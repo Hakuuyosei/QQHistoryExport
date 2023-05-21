@@ -8,12 +8,11 @@ import errcode
 from errcode import err_code
 
 
+from lib.proto import Msg_pb2
+
 from lib.proto.RichMsg_pb2 import PicRec
 from lib.proto.RichMsg_pb2 import Msg
 from lib.proto.RichMsg_pb2 import Elem
-
-from lib.proto.Msg_pb2 import ShortVideo
-from lib.proto.Msg_pb2 import Voice
 
 from lib.javaDeserialization import javaDeserialization as jd
 from lib.slkamr import slkamrTomp3
@@ -42,6 +41,9 @@ def crc64(s):
 
 
 class QQ():
+    def __init__(self):
+        pass
+
     def fill_cursors(self,cmd):
         cursors = []
         # slowtable might not contain related message, so just skip it
@@ -206,7 +208,7 @@ class QQ():
                 msgList = self.proMsg(msgType,msgData,extStr,senderQQ)
 
     # 加工信息
-    def proMsg(self, msgType,msgData,extStr,senderQQ):
+    def proMsg(self, msgType, msgData, extStr, senderQQ):
         msgOutData = []
         print(msgType)
 
@@ -262,7 +264,8 @@ class QQ():
 
             # 拍一拍戳一戳
             elif "pai_yi_pai_showed" in extStrJson.keys():
-                1
+                doc = Msg_pb2.pai_yi_pai()
+                doc.ParseFromString(msgData)
             else:
                 deserialize_data, message_type = blackboxprotobuf.decode_message(msgData)
                 print(f"原始数据: {deserialize_data}")
@@ -340,14 +343,22 @@ class QQ():
             return msgOutData
 
 
-
         elif msgType == -8018:  # 大号表情
-            1
+            doc = Msg_pb2.marketFace()
+            doc.ParseFromString(msgData)
+            print(doc)
+            print(doc.u7.decode("utf-8"))
             #第七个参数为str表情
-            #deserialize_data, message_type = blackboxprotobuf.decode_message(msgData)
-            #print(f"原始数据: {deserialize_data}")
-            #print(f"消息类型: {message_type}")
-            #print(msgData.decode("utf-8"))
+            deserialize_data, message_type = blackboxprotobuf.decode_message(msgData)
+            print(f"原始数据: {deserialize_data}")
+            print(f"消息类型: {message_type}")
+            print(msgData.decode("utf-8"))
+
+        elif msgType == -2022:  # 短视频
+            doc = Msg_pb2.ShortVideo()
+            doc.ParseFromString(msgData)
+            filePath = doc.field3.decode("utf-8")
+            print(filePath)
 
 
         elif msgType == -1049:# 回复引用
@@ -385,6 +396,23 @@ class QQ():
         elif msgType == -5008:# 小程序/推荐名片，java 序列化套json
             #print(-5008,jd.javaDeserialization(binascii.hexlify(msgData).decode(),"miniapp"))
             1
+
+
+
+        elif msgType == -2002:# 语音
+            doc = Msg_pb2.Voice()
+            doc.ParseFromString(msgData)
+            filePath = doc.field1
+            voiceLength = doc.field19
+
+            # deserialize_data, message_type = blackboxprotobuf.decode_message(msgData)
+            # print(f"原始数据: {deserialize_data}")
+            # print(f"消息类型: {message_type}")
+
+            print(filePath,voiceLength)
+            #slkamrTomp3.slkamrTomp3(filePath)
+
+
         # elif msgType ==
         #     # msgOutData = self.decodeMixMsg(msgData)
         #     # print(msgOutData)
@@ -393,27 +421,6 @@ class QQ():
         #     with open("./11.bin", 'wb') as f:  # 二进制流写到.bin文件
         #         f.write(msgData)
         #     1
-
-
-
-        #elif msgType == -2025:
-        #    print(-2025)
-            #jd.javaDeserialization(binascii.hexlify(msgData).decode(),"1")
-            # deserialize_data, message_type = blackboxprotobuf.decode_message(msgData)
-            # print(f"原始数据: {deserialize_data}")
-            # print(f"消息类型: {message_type}")
-            # print(msgData)
-            # print(deserialize_data["5"].decode("utf-8"))
-        #    return 0
-
-
-        elif msgType == -2002:# 语音
-            doc = Voice()
-            doc.ParseFromString(msgData)
-            filePath = doc.u1
-            voiceLength = doc.u19
-            #print(filePath,voiceLength)
-            slkamrTomp3.slkamrTomp3(filePath)
 
         elif msgType == -5023:  # 该用户通过***向你发起临时会话，前往设置。
             # deserialize_data, message_type = blackboxprotobuf.decode_message(msgData)
@@ -448,11 +455,7 @@ class QQ():
 
 
 
-        elif msgType == -2022:  # 短视频
-            doc = ShortVideo()
-            doc.ParseFromString(msgData)
-            filePath = doc.u3.decode("utf-8")
-            print(filePath)
+
 
         else:
 

@@ -1,78 +1,79 @@
 syntax = "proto3";
 
 message ShortVideo {
-  bytes u1 = 1;
-  bytes u2 = 2;
-  bytes u3 = 3;
-  int32 u4 = 4;
-  int32 u5 = 5;
-  int32 u6 = 6;
-  int32 u7 = 7;
-  int32 u8 = 8;
-  int32 u9 = 9;
-  int32 u10 = 10;
-  int32 u11 = 11;
-  bytes u12 = 12;
-  bytes u13 = 13;
-  int32 u14 = 14;
-  int32 u15 = 15;
-  int32 u16 = 16;
-  int32 u17 = 17;
-  int32 u18 = 18;
-  int32 u19 = 19;
-  string u20 = 20;
-  int32 u21 = 21;
-  int32 u22 = 22;
-  int32 u23 = 23;
-  string u24 = 24;
-  int32 u26 = 26;
-  int32 u27 = 27;
-  int32 u28 = 28;
-  int32 u29 = 29;
-  int32 u30 = 30;
-  string u31 = 31;
-  string u32 = 32;
-  string u33 = 33;
-  string u34 = 34;
-  int32 u35 = 35;
-  int32 u36 = 36;
-  int32 u37 = 37;
-  string u38 = 38;
-  int32 u39 = 39;
-  int32 u40 = 40;
-  int32 u41 = 41;
-  string u42 = 42;
-  string u43 = 43;
-  int32 u44 = 44;
+  bytes field1 = 1;
+  bytes field2 = 2;
+  bytes field3 = 3;
+  int32 field4 = 4;
+  int32 field5 = 5;
+  int32 field6 = 6;
+  int32 field7 = 7;
+  int32 field8 = 8;
+  int32 field9 = 9;
+  int32 field10 = 10;
+  int32 field11 = 11;
+  bytes field12 = 12;
+  bytes field13 = 13;
+  int32 field14 = 14;
+  int32 field15 = 15;
+  int32 field16 = 16;
+  int32 field17 = 17;
+  int32 field18 = 18;
+  int32 field19 = 19;
+  string field20 = 20;
+  int32 field21 = 21;
+  int32 field22 = 22;
+  int32 field23 = 23;
+  string field24 = 24;
+  int32 field26 = 26;
+  int32 field27 = 27;
+  int32 field28 = 28;
+  int32 field29 = 29;
+  int32 field30 = 30;
+  string field31 = 31;
+  string field32 = 32;
+  string field33 = 33;
+  string field34 = 34;
+  int32 field35 = 35;
+  int32 field36 = 36;
+  int32 field37 = 37;
+  string field38 = 38;
+  int32 field39 = 39;
+  int32 field40 = 40;
+  int32 field41 = 41;
+  string field42 = 42;
+  string field43 = 43;
+  int32 field44 = 44;
 }
+
 message Voice {
-  bytes u1 = 1;
-  int32 u2 = 2;
-  int32 u3 = 3;
-  int32 u4 = 4;
-  bytes u5 = 5;
-  bytes u6 = 6;
-  string u7 = 7;
-  int32 u8 = 8;
-  int32 u9 = 9;
-  int32 u10 = 10;
-  int32 u11 = 11;
-  string u12 = 12;
-  int32 u13 = 13;
-  int32 u14 = 14;
-  bytes u15 = 15;
-  int32 u16 = 16;
-  int32 u17 = 17;
-  int32 u18 = 18;
-  int32 u19 = 19;
-  int32 u20 = 20;
-  string u21 = 21;
-  int32 u22 = 22;
-  string u23 = 23;
-  int32 u24 = 24;
-  int32 u25 = 25;
-  int32 u26 = 26;
+  bytes field1 = 1;
+  int32 field2 = 2;
+  int32 field3 = 3;
+  int32 field4 = 4;
+  bytes field5 = 5;
+  bytes field6 = 6;
+  bytes field7 = 7;
+  int32 field8 = 8;
+  int32 field9 = 9;
+  int32 field10 = 10;
+  int32 field11 = 11;
+  string field12 = 12;
+  int32 field13 = 13;
+  int32 field14 = 14;
+  int32 field16 = 16;
+  int32 field17 = 17;
+  int32 field18 = 18;
+  int32 field19 = 19;
+  int32 field20 = 20;
+  bytes field21 = 21;
+  int32 field22 = 22;
+  bytes field23 = 23;
+  int32 field24 = 24;
+  int32 field25 = 25;
+  int32 field26 = 26;
 }
+
 message marketFace {
   bytes u1 = 1;
   bytes u2 = 2;
@@ -88,28 +89,29 @@ message marketFace {
 
 
 message pai_yi_pai {
-  uint32 field1 = 1;
-  uint32 field2 = 2;
+  int32 field1 = 1;
+  int32 field2 = 2;
   bytes field4 = 4;
   bytes field5 = 5;
   message SubField7 {
-    uint32 field1 = 1;
-    uint32 field2 = 2;
-    uint32 field3 = 3;
-    uint32 field4 = 4;
-    uint32 field5 = 5;
+    int32 field1 = 1;
+    int32 field2 = 2;
+    int32 field3 = 3;
+    int32 field4 = 4;
+    int32 field5 = 5;
     bytes field6 = 6;
-    uint32 field7 = 7;
+    int32 field7 = 7;
     bytes field8 = 8;
   }
   SubField7 field7 = 7;
-  uint32 field8 = 8;
+  int32 field8 = 8;
   message SubField9 {
-    uint32 field1 = 1;
-    uint32 field2 = 2;
-    uint32 field6 = 6;
-    uint32 field7 = 7;
+    int32 field1 = 1;
+    int32 field2 = 2;
+    int32 field6 = 6;
+    int32 field7 = 7;
   }
   SubField9 field9 = 9;
 }
+
 
