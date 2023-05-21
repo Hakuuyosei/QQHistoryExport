@@ -3,6 +3,11 @@ import sqlite3
 import os
 import traceback
 import json
+
+import errcode
+from errcode import err_code
+
+
 from lib.proto.RichMsg_pb2 import PicRec
 from lib.proto.RichMsg_pb2 import Msg
 from lib.proto.RichMsg_pb2 import Elem
@@ -61,6 +66,19 @@ class QQ():
                 msg += chr(ord(data[i]) ^ ord(self.key[i % len(self.key)]))
             return msg
 
+    # 建立表情索引
+    def map_new_emoji(self):
+        with open('lib/emoticon/face_config.json', encoding='utf-8') as f:
+            emojis = json.load(f)
+        new_emoji_map = {}
+        for e in emojis['sysface']:
+            if self.emoji == 1:
+                new_emoji_map[e["AQLid"]] = e["QSid"]
+            else:
+                if len(e["EMCode"]) == 3:
+                    new_emoji_map[e["AQLid"]] = str(int(e["EMCode"]) - 100)
+        return new_emoji_map
+
     # 加工文本信息
     def proText(self, msg):
 
@@ -89,25 +107,13 @@ class QQ():
                     filename = "old/" + index + ".gif"
                 emoticon_path = os.path.join('lib/emoticon', filename)
 
-                msgList.append(["emoji", True,emoticon_path, index])
+                msgList.append(["emoji",ERRCODE.NORMAL(), emoticon_path, index])
             else:
-                msgList.append(["emoji",False,None, None])
+                msgList.append(["emoji",ERRCODE.EMOJI_NOT_EXIST(self.emoji, str(num)), None, None])
 
             lastpos = pos
         return msgList
 
-    # 建立表情索引
-    def map_new_emoji(self):
-        with open('lib/emoticon/face_config.json', encoding='utf-8') as f:
-            emojis = json.load(f)
-        new_emoji_map = {}
-        for e in emojis['sysface']:
-            if self.emoji == 1:
-                new_emoji_map[e["AQLid"]] = e["QSid"]
-            else:
-                if len(e["EMCode"]) == 3:
-                    new_emoji_map[e["AQLid"]] = str(int(e["EMCode"]) - 100)
-        return new_emoji_map
 
     # 解码图片
     def decodePic(self, data):
@@ -119,12 +125,12 @@ class QQ():
             filename = 'Cache_' + filename.replace('0x', '')
             rel_path = os.path.join(".\\chatimg\\", filename[-3:], filename)
             if os.path.exists(rel_path):
-                return ["img",True, rel_path]
+                return ["img",ERRCODE.NORMAL(), rel_path]
             else:
-                return ["img",False, rel_path]
+                return ["img",ERRCODE.IMG_NOT_EXIST(rel_path), None]
         except:
             print(traceback.format_exc())
-            return ["img","NotDecode", "未能被正确解析"]
+            return ["img",ERRCODE.IMG_DESERIALIZATION_ERROR(data), None]
 
     # 解码混合消息
     def decodeMixMsg(self, data):
@@ -143,8 +149,7 @@ class QQ():
             return msgList
         except:
             print(traceback.format_exc())
-            pass
-        return [["mixmsgerr"]]
+            return [["mixmsgerr"]]
 
     # 处理数据库
     def processdb(self):
@@ -202,15 +207,23 @@ class QQ():
 
     # 加工信息
     def proMsg(self, msgType,msgData,extStr,senderQQ):
-        msgList = []
+        msgOutData = []
         print(msgType)
 
         if msgType == -1000 or msgType == -1051:# 普通文字
-            msgList = self.proText(msgData.decode("utf-8"))
-            print(msgList)
+            msgOutData = self.proText(msgData.decode("utf-8"))
+            print(msgOutData)
             # print(extStr)
 
-        elif msgType == -5040:# 撤回消息
+        elif msgType == -2000:  # 图片类型
+            # print(msgData)
+            msgOutData = [self.decodePic(msgData)]
+
+        elif msgType == -1035:  # 图文混排
+            msgOutData = self.decodeMixMsg(msgData)
+            # print(msgOutData)
+
+        elif msgType == -5040:# 灰条消息
             extStrJson = json.loads(extStr)
             if "revoke_op_type" in extStrJson.keys():
                 if extStrJson["revoke_op_type"] == "0":
@@ -233,7 +246,7 @@ class QQ():
         elif msgType == -1012:# 加群提示
             msgDataAlreadyDecode = msgData.decode("utf-8")
             msgDataAlreadyDecode = msgDataAlreadyDecode[0:msgDataAlreadyDecode.find("，点击修改TA的群昵称")]
-            msgList = [["addtroop",msgDataAlreadyDecode]]
+            msgOutData = [["addtroop",msgDataAlreadyDecode]]
 
         elif msgType == -2015:  # 发表说说，明文json
             return 0
@@ -251,13 +264,9 @@ class QQ():
         elif msgType == -3008:  # 未被接收的文件，内容为文件名
             fileName = msgData.decode("utf-8")
 
-        elif msgType == -2000:  # 图片类型
-            # print(msgData)
-            msgList = [self.decodePic(msgData)]
 
-        elif msgType == -1035:  # 图文混排
-            msgList = self.decodeMixMsg(msgData)
-            # print(msgList)
+
+
 
         elif msgType == -2016:# 群语音通话发起
             return 0
@@ -294,7 +303,7 @@ class QQ():
 
 
         elif msgType == -1049:# 回复引用
-            msgList = self.proText(msgData.decode("utf-8"))
+            msgOutData = self.proText(msgData.decode("utf-8"))
             try:
                 #print(extStr)
                 extStrJson = json.loads(extStr)
@@ -306,10 +315,10 @@ class QQ():
                 # if len(SourceMsgInfo) > 1048:
                 #     SourceMsgSenderQQnum = int(SourceMsgInfo[1016:1024],base=16)
                 #     SourceMsgTime = int(SourceMsgInfo[1040:1048],base=16)
-                #     msgList.append(["source",SourceMsgSenderQQnum,SourceMsgTime])
+                #     msgOutData.append(["source",SourceMsgSenderQQnum,SourceMsgTime])
                 # else:
                 #     print("ERROR,SourceMsgInfo too short",SourceMsgInfo)
-                # #print(msgList)
+                # #print(msgOutData)
 
             except:
                 print(traceback.format_exc())
@@ -329,8 +338,8 @@ class QQ():
             #print(-5008,jd.javaDeserialization(binascii.hexlify(msgData).decode(),"miniapp"))
             1
         # elif msgType ==
-        #     # msgList = self.decodeMixMsg(msgData)
-        #     # print(msgList)
+        #     # msgOutData = self.decodeMixMsg(msgData)
+        #     # print(msgOutData)
         #     print(msgType)
         #     print(msgData.decode("utf-8"))
         #     with open("./11.bin", 'wb') as f:  # 二进制流写到.bin文件
@@ -375,7 +384,7 @@ class QQ():
             # with open("./11.bin", 'wb') as f:  # 二进制流写到.bin文件
             #     f.write(msgData)
             # 1
-        return msgList
+        return msgOutData
 
     # 获取好友列表
     def getFriends(self):
@@ -442,6 +451,7 @@ class QQ():
 
 
 print(1)
+ERRCODE = errcode.err_code()
 QQclass = QQ()
 QQclass.processdb()
 
