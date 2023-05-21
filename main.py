@@ -155,7 +155,7 @@ class QQ():
     def processdb(self):
 
         # 从测试文件中读取测试用信息
-        with open('text.json', 'r', encoding='utf-8') as f:
+        with open('test.json', 'r', encoding='utf-8') as f:
             data = json.load(f)
             self.targetQQ = data["targetQQ"]
             dbPath = data["fileName"]
@@ -183,7 +183,7 @@ class QQ():
             cmd = "select msgtype,senderuin,msgData,time,extStr from mr_troop_{}_New order by time".format(
                 targetQQmd5)
         else:
-            print("无效QQ号")
+            print("无效QQ号",self.targetQQ)
             return
         print(cmd)
 
@@ -211,23 +211,44 @@ class QQ():
         print(msgType)
 
         if msgType == -1000 or msgType == -1051:# 普通文字
-            msgOutData = self.proText(msgData.decode("utf-8"))
-            print(msgOutData)
+            msgOutData = {
+                "t":"msg",
+                "c":self.proText(msgData.decode("utf-8")),
+                "e":ERRCODE.NORMAL()
+            }
+            # print(msgOutData)
             # print(extStr)
 
         elif msgType == -2000:  # 图片类型
             # print(msgData)
-            msgOutData = [self.decodePic(msgData)]
+            decodeOut = self.decodePic(msgData)
+            msgOutData = {
+                "t": "pic",
+                "c": {"filePath": decodeOut[2]},
+                "e": decodeOut[1]
+            }
 
         elif msgType == -1035:  # 图文混排
             msgOutData = self.decodeMixMsg(msgData)
+            msgOutData = {
+                "t": "pic",
+                "c": self.decodePic(msgData),
+                "e": ERRCODE.NORMAL()
+            }
             # print(msgOutData)
 
         elif msgType == -5040:# 灰条消息
             extStrJson = json.loads(extStr)
             if "revoke_op_type" in extStrJson.keys():
                 if extStrJson["revoke_op_type"] == "0":
-                    print(msgData.decode("utf-8"))
+                    # 撤回消息
+                    msgOutData = {
+                        "t": "pic",
+                        "c": {"text": msgData.decode("utf-8")},
+                        "e": ERRCODE.NORMAL()
+                    }
+
+                    #print(msgData.decode("utf-8"))
                 else:
                     print(msgData)
                     print(extStr)
@@ -248,11 +269,7 @@ class QQ():
             msgDataAlreadyDecode = msgDataAlreadyDecode[0:msgDataAlreadyDecode.find("，点击修改TA的群昵称")]
             msgOutData = [["addtroop",msgDataAlreadyDecode]]
 
-        elif msgType == -2015:  # 发表说说，明文json
-            return 0
 
-        elif msgType == -1034:  # 似乎是个性签名，明文json
-            return 0
 
         elif msgType == -2005:  # 已经被保存到本地的文件，内容为路径
             fileData = msgData[1:].decode("utf-8").split("|")
@@ -345,10 +362,7 @@ class QQ():
         #     with open("./11.bin", 'wb') as f:  # 二进制流写到.bin文件
         #         f.write(msgData)
         #     1
-        elif msgType == -2007:  #推荐名片
-            return 0
-        elif msgType == -2025:# 群标识卡片，proto
-            return 0
+
 
 
         #elif msgType == -2025:
@@ -360,6 +374,18 @@ class QQ():
             # print(msgData)
             # print(deserialize_data["5"].decode("utf-8"))
         #    return 0
+
+        elif msgType == -2015:  # 发表说说，明文json
+            return 0
+
+        elif msgType == -1034:  # 似乎是个性签名，明文json
+            return 0
+
+        elif msgType == -2007:  #推荐名片
+            return 0
+
+        elif msgType == -2025:# 群标识卡片，proto
+            return 0
 
 
         elif msgType == -2060:# unknown
