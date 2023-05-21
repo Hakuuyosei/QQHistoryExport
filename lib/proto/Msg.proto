@@ -1,0 +1,87 @@
+syntax = "proto3";
+
+message ShortVideo {
+  bytes u1 = 1;
+  bytes u2 = 2;
+  bytes u3 = 3;
+  int32 u4 = 4;
+  int32 u5 = 5;
+  int32 u6 = 6;
+  int32 u7 = 7;
+  int32 u8 = 8;
+  int32 u9 = 9;
+  int32 u10 = 10;
+  int32 u11 = 11;
+  bytes u12 = 12;
+  bytes u13 = 13;
+  int32 u14 = 14;
+  int32 u15 = 15;
+  int32 u16 = 16;
+  int32 u17 = 17;
+  int32 u18 = 18;
+  int32 u19 = 19;
+  string u20 = 20;
+  int32 u21 = 21;
+  int32 u22 = 22;
+  int32 u23 = 23;
+  string u24 = 24;
+  int32 u26 = 26;
+  int32 u27 = 27;
+  int32 u28 = 28;
+  int32 u29 = 29;
+  int32 u30 = 30;
+  string u31 = 31;
+  string u32 = 32;
+  string u33 = 33;
+  string u34 = 34;
+  int32 u35 = 35;
+  int32 u36 = 36;
+  int32 u37 = 37;
+  string u38 = 38;
+  int32 u39 = 39;
+  int32 u40 = 40;
+  int32 u41 = 41;
+  string u42 = 42;
+  string u43 = 43;
+  int32 u44 = 44;
+}
+message Voice {
+  bytes u1 = 1;
+  int32 u2 = 2;
+  int32 u3 = 3;
+  int32 u4 = 4;
+  bytes u5 = 5;
+  bytes u6 = 6;
+  string u7 = 7;
+  int32 u8 = 8;
+  int32 u9 = 9;
+  int32 u10 = 10;
+  int32 u11 = 11;
+  string u12 = 12;
+  int32 u13 = 13;
+  int32 u14 = 14;
+  bytes u15 = 15;
+  int32 u16 = 16;
+  int32 u17 = 17;
+  int32 u18 = 18;
+  int32 u19 = 19;
+  int32 u20 = 20;
+  string u21 = 21;
+  int32 u22 = 22;
+  string u23 = 23;
+  int32 u24 = 24;
+  int32 u25 = 25;
+  int32 u26 = 26;
+}
+message marketFace {
+  bytes u1 = 1;
+  bytes u2 = 2;
+  int32 u3 = 3;
+  int32 u4 = 4;
+  int32 u5 = 5;
+  string u6 = 6;
+  bytes u7 = 7;
+  string u8 = 8;
+  int32 u9 = 9;
+  int32 u10 = 10;
+}
