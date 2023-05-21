@@ -85,3 +85,31 @@ message marketFace {
   int32 u9 = 9;
   int32 u10 = 10;
 }
+
+
+message pai_yi_pai {
+  uint32 field1 = 1;
+  uint32 field2 = 2;
+  bytes field4 = 4;
+  bytes field5 = 5;
+  message SubField7 {
+    uint32 field1 = 1;
+    uint32 field2 = 2;
+    uint32 field3 = 3;
+    uint32 field4 = 4;
+    uint32 field5 = 5;
+    bytes field6 = 6;
+    uint32 field7 = 7;
+    bytes field8 = 8;
+  }
+  SubField7 field7 = 7;
+  uint32 field8 = 8;
+  message SubField9 {
+    uint32 field1 = 1;
+    uint32 field2 = 2;
+    uint32 field6 = 6;
+    uint32 field7 = 7;
+  }
+  SubField9 field9 = 9;
+}
+

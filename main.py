@@ -239,6 +239,7 @@ class QQ():
 
         elif msgType == -5040:# 灰条消息
             extStrJson = json.loads(extStr)
+
             if "revoke_op_type" in extStrJson.keys():
                 if extStrJson["revoke_op_type"] == "0":
                     # 撤回消息
@@ -247,20 +248,26 @@ class QQ():
                         "c": {"text": msgData.decode("utf-8")},
                         "e": ERRCODE.NORMAL()
                     }
-
-                    #print(msgData.decode("utf-8"))
+                    print(msgData.decode("utf-8"))
                 else:
                     print(msgData)
                     print(extStr)
+
+            # 被邀请进入群聊
             elif "inviteeUin" in extStrJson.keys():
                 inviteeUin = extStrJson["inviteeUin"]
                 invitorUin = extStrJson["invitorUin"]
-                #deserialize_data, message_type = blackboxprotobuf.decode_message(msgData)
-                #print(f"原始数据: {deserialize_data}")
+                deserialize_data, message_type = blackboxprotobuf.decode_message(msgData)
+                print(f"原始数据: {deserialize_data}")
+
+            # 拍一拍戳一戳
+            elif "pai_yi_pai_showed" in extStrJson.keys():
+                1
             else:
                 deserialize_data, message_type = blackboxprotobuf.decode_message(msgData)
                 print(f"原始数据: {deserialize_data}")
                 print(msgData)
+                # print(deserialize_data["5"].decode("utf-8"))
                 print(extStr)
 
 
@@ -268,6 +275,33 @@ class QQ():
             msgDataAlreadyDecode = msgData.decode("utf-8")
             msgDataAlreadyDecode = msgDataAlreadyDecode[0:msgDataAlreadyDecode.find("，点击修改TA的群昵称")]
             msgOutData = [["addtroop",msgDataAlreadyDecode]]
+            msgOutData = {
+                "t": "jointroop",
+                "c": {"text": msgDataAlreadyDecode},
+                "e": ERRCODE.NORMAL()
+            }
+            print(extStr)
+
+        elif msgType == -2016:# 群语音通话发起
+            msgDataAlreadyDecode = msgData.decode("utf-8")
+            msgDataText = msgDataAlreadyDecode.split("|")
+            print(extStr)
+            msgOutData = {
+                "t": "troopcallstart",
+                "c": {"text": msgDataAlreadyDecode},
+                "e": ERRCODE.NORMAL()
+            }
+            return msgOutData
+
+        elif msgType == -4008:  # 群语音通话结束
+            msgDataAlreadyDecode = msgData.decode("utf-8")
+            print(extStr)
+            msgOutData = {
+                "t": "troopcallend",
+                "c": {"text": msgDataAlreadyDecode},
+                "e": ERRCODE.NORMAL()
+            }
+            return msgOutData
 
 
 
@@ -276,39 +310,36 @@ class QQ():
             filePath = fileData[-5]
             fileSize = fileData[-4]
             fileName = os.path.basename(filePath)
-            return 0
+            file = {
+                "received": True,
+                "fileName": fileName,
+                "filePath": filePath,
+                "fileSize": fileSize
+            }
+            msgOutData = {
+                "t": "file",
+                "c": file,
+                "e": ERRCODE.NORMAL()
+            }
+            print(extStr)
+            return msgOutData
+
 
         elif msgType == -3008:  # 未被接收的文件，内容为文件名
             fileName = msgData.decode("utf-8")
+            file = {
+                "received": False,
+                "fileName": fileName
+            }
+            msgOutData = {
+                "t": "file",
+                "c": file,
+                "e": ERRCODE.NORMAL()
+            }
+            print(extStr)
+            return msgOutData
 
 
-
-
-
-        elif msgType == -2016:# 群语音通话发起
-            return 0
-        elif msgType == -4008:  # 语音通话结束
-            return 0
-
-
-        elif msgType == -2002:# 语音
-            doc = Voice()
-            doc.ParseFromString(msgData)
-            filePath = doc.u1
-            voiceLength = doc.u19
-            #print(filePath,voiceLength)
-            slkamrTomp3.slkamrTomp3(filePath)
-
-        elif msgType == -5020:# 群标识卡片，proto
-            return 0
-
-        elif msgType == -5023:  # 该用户通过***向你发起临时会话，前往设置。
-            # deserialize_data, message_type = blackboxprotobuf.decode_message(msgData)
-            # print(f"原始数据: {deserialize_data}")
-            # print(f"消息类型: {message_type}")
-            # print(msgData)
-            # print(deserialize_data["5"].decode("utf-8"))
-            return 0
 
         elif msgType == -8018:  # 大号表情
             1
@@ -375,6 +406,26 @@ class QQ():
             # print(deserialize_data["5"].decode("utf-8"))
         #    return 0
 
+
+        elif msgType == -2002:# 语音
+            doc = Voice()
+            doc.ParseFromString(msgData)
+            filePath = doc.u1
+            voiceLength = doc.u19
+            #print(filePath,voiceLength)
+            slkamrTomp3.slkamrTomp3(filePath)
+
+        elif msgType == -5023:  # 该用户通过***向你发起临时会话，前往设置。
+            # deserialize_data, message_type = blackboxprotobuf.decode_message(msgData)
+            # print(f"原始数据: {deserialize_data}")
+            # print(f"消息类型: {message_type}")
+            # print(msgData)
+            # print(deserialize_data["5"].decode("utf-8"))
+            return 0
+
+        elif msgType == -5020:# 群标识卡片，proto
+            return 0
+
         elif msgType == -2015:  # 发表说说，明文json
             return 0
 
@@ -390,10 +441,10 @@ class QQ():
 
         elif msgType == -2060:# unknown
             print(-2060,msgData.decode("utf-8"))
-            #-2060 {"text":"诺瓦","bgColor":-7883789,"ts":1646410874,"cover":""}
+            #-2060 {"text":"诺瓦","bgColor":-7883789,"ts":16464**,"cover":""}
         elif msgType == -7010:# unknown
             print(-7010,msgData.decode("utf-8"))
-            #-7010 [{"key_profile_introduction":"人际交往笨拙 不谙世事 涉世未深 思想不成熟的孩子","key_ts":1657508294,"key_type":20019}]
+            #-7010 [{"key_profile_introduction":"人际交往笨拙 不谙世事 涉世未深 思想不成熟的孩子","key_ts":1657**,"key_type":20019}]
 
 
 
@@ -423,7 +474,6 @@ class QQ():
                 FriendName = self.decrypt(row[1])
                 FriendRemark = self.decrypt(row[2])
                 self.friends[friendQQNumber] = [FriendName,FriendRemark]
-                # 解码并添加进friends字典
         friendsKeys = list(self.friends.keys())
         for friendQQNumber in friendsKeys:
             # 计算qq号的md5值
