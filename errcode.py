@@ -56,11 +56,12 @@ class err_code():
         return info
 
     #混合消息反序列化失败
-    def MIXMSG_DESERIALIZATION_ERROR(self, data):
+    def MIXMSG_DESERIALIZATION_ERROR(self, data, pyexc):
         info = {
             "code": 4,
             "errinfo": "Mixmsg information deserialization failed",
-            "data": data
+            "data": data,
+            "pyexc": pyexc
         }
         return info
 

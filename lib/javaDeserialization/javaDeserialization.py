@@ -5,6 +5,10 @@ import json
 def javaDeserialization(data,msgType):
     javaCmd = "java -jar ./lib/javaDeserialization/SerializationDumper-v1.13.jar " + data
     javaCmdOutput = subprocess.getoutput(javaCmd)
+    if msgType == "reply":
+        with open('example.txt', 'w') as f:
+            f.write(javaCmdOutput)
+
     print(javaCmdOutput)
     rdata = {}
     javaCmdOutputData = {"classdata": {}}

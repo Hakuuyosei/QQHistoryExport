@@ -106,12 +106,11 @@ message pai_yi_pai {
   SubField7 field7 = 7;
   int32 field8 = 8;
   message SubField9 {
-    int32 field1 = 1;
+    int32 field1 = 1;s
     int32 field2 = 2;
     int32 field6 = 6;
     int32 field7 = 7;
   }
   SubField9 field9 = 9;
 }
-
 

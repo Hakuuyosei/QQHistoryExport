@@ -151,7 +151,7 @@ class QQ():
             return msgList
         except:
             print(traceback.format_exc())
-            return [["mixmsgerr"]]
+            return ["mixmsgerr", traceback.format_exc()]
 
     # 处理数据库
     def processdb(self):
@@ -192,7 +192,6 @@ class QQ():
         if cmdpre != "":
             cmd = cmdpre
 
-
         cursors = self.fill_cursors(cmd)
 
 
@@ -214,9 +213,9 @@ class QQ():
 
         if msgType == -1000 or msgType == -1051:# 普通文字
             msgOutData = {
-                "t":"msg",
-                "c":self.proText(msgData.decode("utf-8")),
-                "e":ERRCODE.NORMAL()
+                "t": "msg",
+                "c": self.proText(msgData.decode("utf-8")),
+                "e": ERRCODE.NORMAL()
             }
             # print(msgOutData)
             # print(extStr)
@@ -231,12 +230,19 @@ class QQ():
             }
 
         elif msgType == -1035:  # 图文混排
-            msgOutData = self.decodeMixMsg(msgData)
-            msgOutData = {
-                "t": "pic",
-                "c": self.decodePic(msgData),
-                "e": ERRCODE.NORMAL()
-            }
+            msgFirstData = self.decodeMixMsg(msgData)
+            if msgFirstData[0] == "mixmsgerr":
+                msgOutData = {
+                    "t": "mixmsg",
+                    "c": [],
+                    "e": ERRCODE.MIXMSG_DESERIALIZATION_ERROR(msgData,msgFirstData[1])
+                }
+            else:
+                msgOutData = {
+                    "t": "mixmsg",
+                    "c": msgFirstData,
+                    "e": ERRCODE.NORMAL()
+                }
             # print(msgOutData)
 
         elif msgType == -5040:# 灰条消息
@@ -259,8 +265,6 @@ class QQ():
             elif "inviteeUin" in extStrJson.keys():
                 inviteeUin = extStrJson["inviteeUin"]
                 invitorUin = extStrJson["invitorUin"]
-                deserialize_data, message_type = blackboxprotobuf.decode_message(msgData)
-                print(f"原始数据: {deserialize_data}")
 
             # 拍一拍戳一戳
             elif "pai_yi_pai_showed" in extStrJson.keys():
@@ -270,7 +274,7 @@ class QQ():
                 deserialize_data, message_type = blackboxprotobuf.decode_message(msgData)
                 print(f"原始数据: {deserialize_data}")
                 print(msgData)
-                # print(deserialize_data["5"].decode("utf-8"))
+                print(deserialize_data["5"].decode("utf-8"))
                 print(extStr)
 
 
@@ -283,7 +287,9 @@ class QQ():
                 "c": {"text": msgDataAlreadyDecode},
                 "e": ERRCODE.NORMAL()
             }
-            print(extStr)
+
+
+
 
         elif msgType == -2016:# 群语音通话发起
             msgDataAlreadyDecode = msgData.decode("utf-8")
@@ -342,17 +348,15 @@ class QQ():
             print(extStr)
             return msgOutData
 
-
         elif msgType == -8018:  # 大号表情
             doc = Msg_pb2.marketFace()
             doc.ParseFromString(msgData)
             print(doc)
             print(doc.u7.decode("utf-8"))
-            #第七个参数为str表情
             deserialize_data, message_type = blackboxprotobuf.decode_message(msgData)
-            print(f"原始数据: {deserialize_data}")
-            print(f"消息类型: {message_type}")
-            print(msgData.decode("utf-8"))
+            # print(f"原始数据: {deserialize_data}")
+            # print(f"消息类型: {message_type}")
+            # print(msgData.decode("utf-8"))
 
         elif msgType == -2022:  # 短视频
             doc = Msg_pb2.ShortVideo()
@@ -364,9 +368,10 @@ class QQ():
         elif msgType == -1049:# 回复引用
             msgOutData = self.proText(msgData.decode("utf-8"))
             try:
-                #print(extStr)
+                print(extStr)
                 extStrJson = json.loads(extStr)
                 sourceMsgInfo = extStrJson["sens_msg_source_msg_info"]
+                print(sourceMsgInfo)
                 #sourceMsgInfoJson = jd.javaDeserialization(sourceMsgInfo,"reply")
 
                 # HACK
@@ -384,9 +389,9 @@ class QQ():
                 pass
 
         elif msgType == -2011:# 转发的聊天记录，java序列化
-            #jd.javaDeserialization(binascii.hexlify(msgData).decode(),"111")
+            jd.javaDeserialization(binascii.hexlify(msgData).decode(),"111")
 
-            # #sourceMsg = binascii.unhexlify("000000230000001d00000001000c766965774d756c74694d73670000000000000000000e5be8818ae5a4a9e8aeb0e5bd955d0000000100046974656d00000001000000120000000000000000000000000000000000000000000000000000000700057469746c650000000c00000000000233340015e7bea4e8818ae79a84e8818ae5a4a9e8aeb0e5bd950000000000013200023132000000057469746c650000000c00072337373737373700000002323600224d61686972757e3a2020e8bf99e4b8aae4bd9ce59381e8a681e698afe781abe4ba860000000000013400023132000000057469746c650000000c000723373737373737000000023236003a4d61686972757e3a2020e58fafe883bde4bc9ae5bc95e8b5b7e4b880e4ba9be4babae58f91e78eb0e8bf99e4b8aae7bb86e58886e9a286e59f9f0000000000013400023132000000057469746c650000000c00072337373737373700000002323600344d61686972757e3a2020e784b6e5908ee9a9ace4b88ae5b0b1e69c89e69bb4e4bc98e7a780e79a84e4baa7e59381e587bae69da50000000000013400023132000000057469746c650000000c00072337373737373700000002323600224d61686972757e3a202077656267616ce79a84e69cabe697a5e5b0b1e69da5e4ba86000000000001340002313200000002687200000009000566616c736500000000000773756d6d6172790000000c0007233737373737370000000232360016e69fa5e79c8b34e69da1e8bdace58f91e6b688e681af0000000000000000000000000000000000000000000000000000000000000000000000013000013000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffffffffffffff0000000ce8818ae5a4a9e8aeb0e5bd9500000000000000000000000000000000000300406f6f4e6557352f436a616b772f6c35317079656e4777707a6b79542f362b444749674f387139492f362b5a7a2b6b53707248467a326c4a412f32396c4359317000133731313433343236313033353830303136303700000000000000000000000000000000000000000000000000000000ffffffff0000ffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000400000000000007d000000000")
+            # sourceMsg = binascii.unhexlify("000000230000001d00000001000c766965774d756c74694d73670000000000000000000e5be8818ae5a4a9e8aeb0e5bd955d0000000100046974656d00000001000000120000000000000000000000000000000000000000000000000000000700057469746c650000000c00000000000233340015e7bea4e8818ae79a84e8818ae5a4a9e8aeb0e5bd950000000000013200023132000000057469746c650000000c00072337373737373700000002323600224d61686972757e3a2020e8bf99e4b8aae4bd9ce59381e8a681e698afe781abe4ba860000000000013400023132000000057469746c650000000c000723373737373737000000023236003a4d61686972757e3a2020e58fafe883bde4bc9ae5bc95e8b5b7e4b880e4ba9be4babae58f91e78eb0e8bf99e4b8aae7bb86e58886e9a286e59f9f0000000000013400023132000000057469746c650000000c00072337373737373700000002323600344d61686972757e3a2020e784b6e5908ee9a9ace4b88ae5b0b1e69c89e69bb4e4bc98e7a780e79a84e4baa7e59381e587bae69da50000000000013400023132000000057469746c650000000c00072337373737373700000002323600224d61686972757e3a202077656267616ce79a84e69cabe697a5e5b0b1e69da5e4ba86000000000001340002313200000002687200000009000566616c736500000000000773756d6d6172790000000c0007233737373737370000000232360016e69fa5e79c8b34e69da1e8bdace58f91e6b688e681af0000000000000000000000000000000000000000000000000000000000000000000000013000013000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffffffffffffff0000000ce8818ae5a4a9e8aeb0e5bd9500000000000000000000000000000000000300406f6f4e6557352f436a616b772f6c35317079656e4777707a6b79542f362b444749674f387139492f362b5a7a2b6b53707248467a326c4a412f32396c4359317000133731313433343236313033353830303136303700000000000000000000000000000000000000000000000000000000ffffffff0000ffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000400000000000007d000000000")
             return 0
 
         elif msgType == -2017:# 群文件
@@ -409,7 +414,7 @@ class QQ():
             # print(f"原始数据: {deserialize_data}")
             # print(f"消息类型: {message_type}")
 
-            print(filePath,voiceLength)
+            #print(filePath,voiceLength)
             #slkamrTomp3.slkamrTomp3(filePath)
 
 
@@ -421,6 +426,9 @@ class QQ():
         #     with open("./11.bin", 'wb') as f:  # 二进制流写到.bin文件
         #         f.write(msgData)
         #     1
+
+        elif msgType == -1013:# 你已经和xxx成为好友，现在可以开始聊天了。
+            msgDataAlreadyDecode = msgData.decode("utf-8")
 
         elif msgType == -5023:  # 该用户通过***向你发起临时会话，前往设置。
             # deserialize_data, message_type = blackboxprotobuf.decode_message(msgData)
@@ -459,7 +467,7 @@ class QQ():
 
         else:
 
-            print(msgType)
+            print("unknown:", msgType)
             print(msgData)
             # with open("./11.bin", 'wb') as f:  # 二进制流写到.bin文件
             #     f.write(msgData)
