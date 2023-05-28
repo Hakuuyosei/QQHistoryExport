@@ -33,17 +33,17 @@ class err_code():
     # 无错误
     def NORMAL(self):
         info = {
-            "code": codes.NORMAL
+            "code": codes.NORMAL.value
         }
         return info
 
 
     # 表情未找到
-    def EMOJI_NOT_EXIST(self,emojiType,emojiID):
+    def EMOJI_NOT_EXIST(self,qqemojiVer,emojiID):
         info = {
-            "code": codes.EMOJI_NOT_EXIST,
+            "code": codes.EMOJI_NOT_EXIST.value,
             "errinfo": "emoji not EXIST in emoticon,emojiType is {},emojiID is {}".format(emojiType,emojiID),
-            "emojiType": emojiType,
+            "qqemojiVer": qqemojiVer,
             "emojiID": emojiID
         }
         return info
@@ -51,7 +51,7 @@ class err_code():
     # 图片未找到
     def IMG_NOT_EXIST(self, imgPath):
         info = {
-            "code": codes.IMG_NOT_EXIST,
+            "code": codes.IMG_NOT_EXIST.value,
             "errinfo": "imgPath is not exist in files,imgPath is {}".format(imgPath),
             "imgPath": imgPath
         }
@@ -60,7 +60,7 @@ class err_code():
     #图片反序列化失败
     def IMG_DESERIALIZATION_ERROR(self, data):
         info = {
-            "code": codes.IMG_DESERIALIZATION_ERROR,
+            "code": codes.IMG_DESERIALIZATION_ERROR.value,
             "errinfo": "Image information deserialization failed",
             "data": data
         }
@@ -69,7 +69,7 @@ class err_code():
     #混合消息反序列化失败
     def MIXMSG_DESERIALIZATION_ERROR(self, data, pyexc):
         info = {
-            "code": codes.MIXMSG_DESERIALIZATION_ERROR,
+            "code": codes.MIXMSG_DESERIALIZATION_ERROR.value,
             "errinfo": "Mixmsg information deserialization failed",
             "data": data,
             "pyexc": pyexc
@@ -79,7 +79,7 @@ class err_code():
     # 图片未找到
     def MARKETFACE_NOT_EXIST(self, imgPath):
         info = {
-            "code": codes.MARKETFACE_NOT_EXIST,
+            "code": codes.MARKETFACE_NOT_EXIST.value,
             "errinfo": "imgPath is not exist in files,imgPath is {}".format(imgPath),
             "imgPath": imgPath
         }

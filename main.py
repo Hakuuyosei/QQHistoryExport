@@ -42,7 +42,14 @@ def crc64(s):
 
 class QQ():
     def __init__(self):
-        pass
+        self.targetQQ = None
+        self.key = None
+
+        self.qqemojiVer = 1
+        self.emoji_map = None
+        self.DBcursor1 = None
+
+        self.imgMD5Map = {}
 
     def fill_cursors(self,cmd):
         cursors = []
@@ -74,7 +81,7 @@ class QQ():
             emojis = json.load(f)
         new_emoji_map = {}
         for e in emojis['sysface']:
-            if self.emoji == 1:
+            if self.qqemojiVer == 1:
                 new_emoji_map[e["AQLid"]] = e["QSid"]
             else:
                 if len(e["EMCode"]) == 3:
@@ -103,15 +110,24 @@ class QQ():
             num = ord(msg[pos + 1])
             if str(num) in self.emoji_map:
                 index = self.emoji_map[str(num)]
-                if self.emoji == 1:
+                if self.qqemojiVer == 1:
                     filename = "new/s" + index + ".png"
                 else:
                     filename = "old/" + index + ".gif"
                 emoticon_path = os.path.join('lib/emoticon1', filename)
 
-                msgList.append(["emoji", ERRCODE.NORMAL(), emoticon_path, index])
+                output_path = "output/emoticon1/" + filename
+                lib_path = "lib/emoticon1/" + filename
+
+                if os.path.exists(output_path):
+                    msgList.append(["qqemoji", ERRCODE.NORMAL(), output_path, index])
+                elif os.path.exists(lib_path):
+                    shutil.copy(lib_path, output_path)
+                    msgList.append(["qqemoji", ERRCODE.NORMAL(), output_path, index])
+                else:
+                    msgList.append(["qqemoji", ERRCODE.EMOJI_NOT_EXIST(self.qqemojiVer, str(num)), None, None])
             else:
-                msgList.append(["emoji", ERRCODE.EMOJI_NOT_EXIST(self.emoji, str(num)), None, None])
+                msgList.append(["qqemoji", ERRCODE.EMOJI_NOT_EXIST(self.qqemojiVer, str(num)), None, None])
 
             lastpos = pos
         return msgList
@@ -122,12 +138,12 @@ class QQ():
         lib_path = "lib/emoticon2/" + emoticon_name
 
         if os.path.exists(output_path):
-            return output_path
+            return ERRCODE.NORMAL(), output_path
         elif os.path.exists(lib_path):
             shutil.copy(lib_path, output_path)
             return ERRCODE.NORMAL(), output_path
         else:
-            return  ERRCODE.MARKETFACE_NOT_EXIST(), []
+            return ERRCODE.MARKETFACE_NOT_EXIST(), ""
 
     # 解码图片
     def decodePic(self, data):
@@ -176,7 +192,7 @@ class QQ():
             cmdpre = data["cmd"]
 
 
-        self.emoji = 1
+        self.qqemojiVer = 1
         self.emoji_map = self.map_new_emoji()
         self.DBcursor1 = sqlite3.connect(dbPath).cursor()
 
