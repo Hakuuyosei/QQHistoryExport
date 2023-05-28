@@ -109,9 +109,9 @@ class QQ():
                     filename = "old/" + index + ".gif"
                 emoticon_path = os.path.join('lib/emoticon1', filename)
 
-                msgList.append(["emoji",ERRCODE.NORMAL(), emoticon_path, index])
+                msgList.append(["emoji", ERRCODE.NORMAL(), emoticon_path, index])
             else:
-                msgList.append(["emoji",ERRCODE.EMOJI_NOT_EXIST(self.emoji, str(num)), None, None])
+                msgList.append(["emoji", ERRCODE.EMOJI_NOT_EXIST(self.emoji, str(num)), None, None])
 
             lastpos = pos
         return msgList

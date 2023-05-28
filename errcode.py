@@ -1,4 +1,13 @@
+from enum import Enum, auto
 #错误码
+class codes(Enum):
+    NORMAL = auto()
+    EMOJI_NOT_EXIST = auto()
+    IMG_NOT_EXIST = auto()
+    IMG_DESERIALIZATION_ERROR = auto()
+    MIXMSG_DESERIALIZATION_ERROR = auto()
+    MARKETFACE_NOT_EXIST = auto()
+
 class err_code():
     def __init__(self,):
         #日志等级
@@ -7,6 +16,8 @@ class err_code():
         self.LOG_LEVEL_ERR = 2
 
         self.logLevel = self.LOG_LEVEL_WARNING
+
+        self.codes = codes()
 
 
     #设置日志等级
@@ -22,7 +33,7 @@ class err_code():
     # 无错误
     def NORMAL(self):
         info = {
-            "code":0
+            "code": codes.NORMAL
         }
         return info
 
@@ -30,17 +41,17 @@ class err_code():
     # 表情未找到
     def EMOJI_NOT_EXIST(self,emojiType,emojiID):
         info = {
-            "code":1,
-            "errinfo":"emoji not EXIST in emoticon,emojiType is {},emojiID is {}".format(emojiType,emojiID),
-            "emojiType":emojiType,
-            "emojiID":emojiID
+            "code": codes.EMOJI_NOT_EXIST,
+            "errinfo": "emoji not EXIST in emoticon,emojiType is {},emojiID is {}".format(emojiType,emojiID),
+            "emojiType": emojiType,
+            "emojiID": emojiID
         }
         return info
 
     # 图片未找到
     def IMG_NOT_EXIST(self, imgPath):
         info = {
-            "code": 2,
+            "code": codes.IMG_NOT_EXIST,
             "errinfo": "imgPath is not exist in files,imgPath is {}".format(imgPath),
             "imgPath": imgPath
         }
@@ -49,7 +60,7 @@ class err_code():
     #图片反序列化失败
     def IMG_DESERIALIZATION_ERROR(self, data):
         info = {
-            "code": 3,
+            "code": codes.IMG_DESERIALIZATION_ERROR,
             "errinfo": "Image information deserialization failed",
             "data": data
         }
@@ -58,10 +69,19 @@ class err_code():
     #混合消息反序列化失败
     def MIXMSG_DESERIALIZATION_ERROR(self, data, pyexc):
         info = {
-            "code": 4,
+            "code": codes.MIXMSG_DESERIALIZATION_ERROR,
             "errinfo": "Mixmsg information deserialization failed",
             "data": data,
             "pyexc": pyexc
+        }
+        return info
+
+    # 图片未找到
+    def MARKETFACE_NOT_EXIST(self, imgPath):
+        info = {
+            "code": codes.MARKETFACE_NOT_EXIST,
+            "errinfo": "imgPath is not exist in files,imgPath is {}".format(imgPath),
+            "imgPath": imgPath
         }
         return info
 
