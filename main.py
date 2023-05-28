@@ -3,10 +3,10 @@ import sqlite3
 import os
 import traceback
 import json
+import shutil
 
 import errcode
 from errcode import err_code
-
 
 from lib.proto import Msg_pb2
 
@@ -70,7 +70,7 @@ class QQ():
 
     # 建立表情索引
     def map_new_emoji(self):
-        with open('lib/emoticon/face_config.json', encoding='utf-8') as f:
+        with open('lib/emoticon1/face_config.json', encoding='utf-8') as f:
             emojis = json.load(f)
         new_emoji_map = {}
         for e in emojis['sysface']:
@@ -107,7 +107,7 @@ class QQ():
                     filename = "new/s" + index + ".png"
                 else:
                     filename = "old/" + index + ".gif"
-                emoticon_path = os.path.join('lib/emoticon', filename)
+                emoticon_path = os.path.join('lib/emoticon1', filename)
 
                 msgList.append(["emoji",ERRCODE.NORMAL(), emoticon_path, index])
             else:
@@ -116,6 +116,18 @@ class QQ():
             lastpos = pos
         return msgList
 
+    def decodeMarketFace(self, data):
+        emoticon_name = data + ".jif"
+        output_path = "output/emoticon2/" + emoticon_name
+        lib_path = "lib/emoticon2/" + emoticon_name
+
+        if os.path.exists(output_path):
+            return output_path
+        elif os.path.exists(lib_path):
+            shutil.copy(lib_path, output_path)
+            return ERRCODE.NORMAL(), output_path
+        else:
+            return  ERRCODE.MARKETFACE_NOT_EXIST(), []
 
     # 解码图片
     def decodePic(self, data):
@@ -136,10 +148,10 @@ class QQ():
 
     # 解码混合消息
     def decodeMixMsg(self, data):
+        msgList = []
         try:
             doc = Msg()
             doc.ParseFromString(data)
-            msgList = []
             for elem in doc.elems:
                 if elem.picMsg:
                     msgList.append(self.decodePic(elem.picMsg))
@@ -148,10 +160,9 @@ class QQ():
                     if msgText != " ":
                         for msgElem2 in self.proText(msgText):
                             msgList.append(msgElem2)
-            return msgList
+            return ERRCODE.NORMAL(), msgList
         except:
-            print(traceback.format_exc())
-            return ["mixmsgerr", traceback.format_exc()]
+            return ERRCODE.MIXMSG_DESERIALIZATION_ERROR(data,traceback.format_exc()), msgList
 
     # 处理数据库
     def processdb(self):
@@ -230,19 +241,12 @@ class QQ():
             }
 
         elif msgType == -1035:  # 图文混排
-            msgFirstData = self.decodeMixMsg(msgData)
-            if msgFirstData[0] == "mixmsgerr":
-                msgOutData = {
-                    "t": "mixmsg",
-                    "c": [],
-                    "e": ERRCODE.MIXMSG_DESERIALIZATION_ERROR(msgData,msgFirstData[1])
-                }
-            else:
-                msgOutData = {
-                    "t": "mixmsg",
-                    "c": msgFirstData,
-                    "e": ERRCODE.NORMAL()
-                }
+            DeseErrcode, msgDeseData = self.decodeMixMsg(msgData)
+            msgOutData = {
+                "t": "mixmsg",
+                "c": msgDeseData,
+                "e": DeseErrcode
+            }
             # print(msgOutData)
 
         elif msgType == -5040:# 灰条消息
@@ -279,12 +283,12 @@ class QQ():
 
 
         elif msgType == -1012:# 加群提示
-            msgDataAlreadyDecode = msgData.decode("utf-8")
-            msgDataAlreadyDecode = msgDataAlreadyDecode[0:msgDataAlreadyDecode.find("，点击修改TA的群昵称")]
-            msgOutData = [["addtroop",msgDataAlreadyDecode]]
+            msgDecodedData = msgData.decode("utf-8")
+            msgDecodedData = msgDecodedData[0:msgDecodedData.find("，点击修改TA的群昵称")]
+            msgOutData = [["addtroop",msgDecodedData]]
             msgOutData = {
                 "t": "jointroop",
-                "c": {"text": msgDataAlreadyDecode},
+                "c": {"text": msgDecodedData},
                 "e": ERRCODE.NORMAL()
             }
 
@@ -292,12 +296,12 @@ class QQ():
 
 
         elif msgType == -2016:# 群语音通话发起
-            msgDataAlreadyDecode = msgData.decode("utf-8")
-            msgDataText = msgDataAlreadyDecode.split("|")
+            msgDecodedData = msgData.decode("utf-8")
+            msgDataText = msgDecodedData.split("|")
             print(extStr)
             msgOutData = {
                 "t": "troopcallstart",
-                "c": {"text": msgDataAlreadyDecode},
+                "c": {"text": msgDecodedData},
                 "e": ERRCODE.NORMAL()
             }
             return msgOutData
@@ -333,7 +337,6 @@ class QQ():
             print(extStr)
             return msgOutData
 
-
         elif msgType == -3008:  # 未被接收的文件，内容为文件名
             fileName = msgData.decode("utf-8")
             file = {
@@ -351,12 +354,15 @@ class QQ():
         elif msgType == -8018:  # 大号表情
             doc = Msg_pb2.marketFace()
             doc.ParseFromString(msgData)
-            print(doc)
-            print(doc.u7.decode("utf-8"))
-            deserialize_data, message_type = blackboxprotobuf.decode_message(msgData)
-            # print(f"原始数据: {deserialize_data}")
-            # print(f"消息类型: {message_type}")
-            # print(msgData.decode("utf-8"))
+            descErrcode, msgDeseData = self.decodeMarketFace(doc.u7.decode("utf-8"))
+            msgOutData = {
+                "t": "file",
+                "c": msgDeseData,
+                "e": descErrcode
+            }
+            print(extStr)
+            return msgOutData
+
 
         elif msgType == -2022:  # 短视频
             doc = Msg_pb2.ShortVideo()
