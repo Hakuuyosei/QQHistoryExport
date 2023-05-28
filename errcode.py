@@ -5,6 +5,7 @@ class codes(Enum):
     EMOJI_NOT_EXIST = auto()
     IMG_NOT_EXIST = auto()
     IMG_DESERIALIZATION_ERROR = auto()
+    IMG_UNKNOWN_TYPE_ERROR = auto()
     MIXMSG_DESERIALIZATION_ERROR = auto()
     MARKETFACE_NOT_EXIST = auto()
 
@@ -49,15 +50,15 @@ class err_code():
         return info
 
     # 图片未找到
-    def IMG_NOT_EXIST(self, imgPath):
+    def IMG_NOT_EXIST(self, data):
         info = {
             "code": codes.IMG_NOT_EXIST.value,
-            "errinfo": "imgPath is not exist in files,imgPath is {}".format(imgPath),
-            "imgPath": imgPath
+            "errinfo": "imgPath is not exist in files,imgPath is {}".format(data),
+            "data": data
         }
         return info
 
-    #图片反序列化失败
+    # 图片反序列化失败
     def IMG_DESERIALIZATION_ERROR(self, data):
         info = {
             "code": codes.IMG_DESERIALIZATION_ERROR.value,
@@ -66,7 +67,16 @@ class err_code():
         }
         return info
 
-    #混合消息反序列化失败
+    # 图片类型判断失败
+    def IMG_UNKNOWN_TYPE_ERROR(self, data):
+        info = {
+            "code": codes.IMG_UNKNOWN_TYPE_ERROR.value,
+            "errinfo": "Unknown type for this image : {}".format(data),
+            "data": data
+        }
+        return info
+
+    # 混合消息反序列化失败
     def MIXMSG_DESERIALIZATION_ERROR(self, data, pyexc):
         info = {
             "code": codes.MIXMSG_DESERIALIZATION_ERROR.value,
@@ -77,11 +87,11 @@ class err_code():
         return info
 
     # 图片未找到
-    def MARKETFACE_NOT_EXIST(self, imgPath):
+    def MARKETFACE_NOT_EXIST(self, data):
         info = {
             "code": codes.MARKETFACE_NOT_EXIST.value,
-            "errinfo": "imgPath is not exist in files,imgPath is {}".format(imgPath),
-            "imgPath": imgPath
+            "errinfo": "imgPath is not exist in files,imgPath is {}".format(data),
+            "data": data
         }
         return info
 

@@ -3,20 +3,21 @@ import sqlite3
 import os
 import traceback
 import json
+import imghdr
 import shutil
+import binascii
 
 import errcode
 from errcode import err_code
 
 from lib.proto import Msg_pb2
-
 from lib.proto.RichMsg_pb2 import PicRec
 from lib.proto.RichMsg_pb2 import Msg
 from lib.proto.RichMsg_pb2 import Elem
 
 from lib.javaDeserialization import javaDeserialization as jd
 from lib.slkamr import slkamrTomp3
-import binascii
+
 import blackboxprotobuf
 import ffmpeg
 
@@ -50,8 +51,9 @@ class QQ():
         self.DBcursor1 = None
 
         self.imgMD5Map = {}
+        self.imgNum = 1
 
-    def fill_cursors(self,cmd):
+    def fill_cursors(self, cmd):
         cursors = []
         # slowtable might not contain related message, so just skip it
         try:
@@ -153,14 +155,41 @@ class QQ():
             url = 'chatimg:' + doc.md5
             filename = hex(crc64(url))
             filename = 'Cache_' + filename.replace('0x', '')
-            rel_path = os.path.join(".\\chatimg\\", filename[-3:], filename)
-            if os.path.exists(rel_path):
-                return ["img",ERRCODE.NORMAL(), rel_path]
-            else:
-                return ["img",ERRCODE.IMG_NOT_EXIST(rel_path), None]
+            relpath = os.path.join(".\\chatimg\\", filename[-3:], filename)
+
+            # 判断文件是否存在
+            if not os.path.isfile(relpath):
+                return ["img",ERRCODE.IMG_NOT_EXIST(relpath), None]
+
+            # 计算图片的MD5值
+            with open(relpath, 'rb') as f:
+                img_data = f.read()
+                md5 = hashlib.md5(img_data).hexdigest()
+
+            # 查找图片的MD5值是否已经存在
+            if md5 in self.imgMD5Map:
+                return ["img",ERRCODE.NORMAL(), self.imgMD5Map[md5]]
+
+            # 确定图片类型并添加后缀名
+            img_type = imghdr.what(relpath)
+            if img_type is None:
+                return ["img", ERRCODE.IMG_UNKNOWN_TYPE_ERROR(), relpath]
+
+            new_filename = f'{self.imgNum}.{img_type}'
+            self.imgNum = self.imgNum + 1
+            new_file_path = os.path.join('output', 'images', new_filename)
+
+            # 移动图片文件到output/images文件夹中，并重命名
+            shutil.move(relpath, new_file_path)
+
+            # 将MD5和新文件路径添加到imgMD5Map中
+            self.imgMD5Map[md5] = new_file_path
+
+            return ["img", ERRCODE.NORMAL(), new_file_path]
+
         except:
             print(traceback.format_exc())
-            return ["img",ERRCODE.IMG_DESERIALIZATION_ERROR(data), None]
+            return ["img", ERRCODE.IMG_DESERIALIZATION_ERROR(data), None]
 
     # 解码混合消息
     def decodeMixMsg(self, data):
