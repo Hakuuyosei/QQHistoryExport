@@ -7,22 +7,50 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Frame, Paragraph, Flowable
 
+import re
 
-# 定义自定义的Flowable子类
-class RoundedRectangle(Flowable):
-    def __init__(self, width, height, radius, fill_color=None):
-        super().__init__()
-        self.width = width
-        self.height = height
-        self.radius = radius
-        self.fill_color = fill_color or colors.white
+def isEmoji(s):
+    """
+    判断字符串是否为Emoji表情
+    """
+    emoji_pattern = re.compile("["
+        u"\U0001F600-\U0001F64F"  # emoticons
+        u"\U0001F300-\U0001F5FF"  # symbols & pictographs
+        u"\U0001F680-\U0001F6FF"  # transport & map symbols
+        u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
+                        "]+", flags=re.UNICODE)
+    return emoji_pattern.search(s) is not None
 
-    def wrap(self, *args):
-        return (self.width, self.height)
 
-    def draw(self):
-        self.canv.setFillColor(self.fill_color)
-        self.canv.roundRect(0, 0, self.width, self.height, self.radius, stroke=0, fill=1)
+def procText(rowWidth, colWidth, emojiWidth, qqemojiWidth, lst):
+    curRow = 0
+    curY = 0
+    buffer = ''
+    for item in lst:
+        if item[0] == 'm':
+            text = item[1]
+            for character in text:
+                if isEmoji(character):
+                    pdfDraw.DrawEmoji(character)
+                    curRow += qqemojiWidth
+                else:
+                    charWidth = queryCharWidth(character)
+                    if curRow + charWidth > rowWidth:
+                        pdfDraw.DrawText(buffer)
+                        curRow = 0
+                        curY += colWidth
+                        buffer = ''
+                    buffer += character
+                    curRow += charWidth
+        elif item[0] == 'qqemoji':
+            path = item[2]
+            pdfDraw.DrawQQEmoji(path, qqemojiWidth)
+        elif item[0] == 'img':
+            path = item[2]
+            pdfDraw.DrawQQimg(path)
+            curY += colWidth
+            curRow = 0
+    pdfDraw.DrawText(buffer)
 
 
 # 定义样式

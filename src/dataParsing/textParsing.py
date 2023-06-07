@@ -19,7 +19,7 @@ class textParsing():
 
     # 建立表情索引
     def mapqqEmoji(self):
-        with open('src/emoticons/emoticon1/face_config.json', encoding='utf-8') as f:
+        with open('lib/emoticons/emoticon1/face_config.json', encoding='utf-8') as f:
             emojis = json.load(f)
         new_emoji_map = {}
         for e in emojis['sysface']:
@@ -59,7 +59,7 @@ class textParsing():
                 emoticon_path = os.path.join('src/emoticons/emoticon1', filename)
 
                 output_path = "output/emoticon1/" + filename
-                lib_path = "src/emoticons/emoticon1/" + filename
+                lib_path = "lib/emoticons/emoticon1/" + filename
 
                 if os.path.exists(output_path):
                     msgList.append(["qqemoji", self.ERRCODE.NORMAL(), output_path, index])
