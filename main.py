@@ -268,7 +268,8 @@ class QQ():
         msgOutData = []
         print(msgType)
 
-        if msgType == -1000 or msgType == -1051:# 普通文字
+        # 普通文字
+        if msgType == -1000 or msgType == -1051:
             msgOutData = {
                 "t": "msg",
                 "c": self.proText(msgData.decode("utf-8")),
@@ -277,16 +278,18 @@ class QQ():
             # print(msgOutData)
             # print(extStr)
 
-        elif msgType == -2000:  # 图片类型
+        # 图片类型
+        elif msgType == -2000:
             # print(msgData)
             decodeOut = self.decodePic(msgData)
             msgOutData = {
-                "t": "pic",
+                "t": "img",
                 "c": {"filePath": decodeOut[2]},
                 "e": decodeOut[1]
             }
 
-        elif msgType == -1035:  # 图文混排
+        # 图文混排
+        elif msgType == -1035:
             DeseErrcode, msgDeseData = self.decodeMixMsg(msgData)
             msgOutData = {
                 "t": "mixmsg",
@@ -314,26 +317,43 @@ class QQ():
 
             # 被邀请进入群聊
             elif ("inviteeUin" in extStrJson.keys()) or ("invitorUin" in extStrJson.keys()):
+                doc = Msg_pb2.pai_yi_pai()
+                doc.ParseFromString(msgData)
+                print(doc.field5.decode("utf-8"))
                 if ("inviteeUin" in extStrJson.keys()) and ("invitorUin" in extStrJson.keys()):
                     inviteeUin = extStrJson["inviteeUin"]
                     invitorUin = extStrJson["invitorUin"]
                     msgOutData = {
-                        "t": "pic",
+                        "t": "invite",
                         "c": {"inviteeUin": inviteeUin, "invitorUin":invitorUin},
                         "e": ERRCODE.NORMAL()
                     }
                 else:
                     msgOutData = {
-                        "t": "pic",
+                        "t": "invite",
                         "c": {},
                         "e": ERRCODE.ALL_EXTSTR_NOT_EXIST_TARGET(extStr, "invitee or invitor ")
                     }
 
-            # 拍一拍戳一戳
-            elif "pai_yi_pai_showed" in extStrJson.keys():
-                print("pai_yi_pai_showed", extStr)
-                doc = Msg_pb2.pai_yi_pai()
-                doc.ParseFromString(msgData)
+
+            # busi_type
+            if "uint64_busi_type" in extStrJson.keys():
+                busi_type = extStrJson["uint64_busi_type"]
+
+                # 可能是拍一拍
+                if busi_type == "14":
+                    doc = Msg_pb2.pai_yi_pai()
+                    doc.ParseFromString(msgData)
+                    print(doc.field5.decode("utf-8"))
+                    print(111, extStrJson["bytes_content"])
+
+                # 可能是拍一拍
+                elif busi_type == "12":
+                    doc = Msg_pb2.pai_yi_pai()
+                    doc.ParseFromString(msgData)
+                    print(doc.field5.decode("utf-8"))
+                    print(111, extStrJson["bytes_content"])
+
             else:
                 deserialize_data, message_type = blackboxprotobuf.decode_message(msgData)
                 print(f"原始数据: {deserialize_data}")
