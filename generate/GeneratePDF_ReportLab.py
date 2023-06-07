@@ -1,11 +1,11 @@
 from reportlab.lib import colors
-from reportlab.lib.pagesizes import letter
+from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.lib.units import inch
+from reportlab.lib.units import mm
 from reportlab.pdfgen import canvas
 from reportlab.lib import colors
-from reportlab.lib.pagesizes import letter
-from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Frame, Paragraph, Flowable
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 
 import re
 
@@ -20,69 +20,71 @@ def isEmoji(s):
         u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
                         "]+", flags=re.UNICODE)
     return emoji_pattern.search(s) is not None
+def queryCharWidth(s):
+    return 16
 
-
-def procText(rowWidth, colWidth, emojiWidth, qqemojiWidth, lst):
-    curRow = 0
-    curY = 0
+def procText(PosiX, PosiY, rowWidth, colWidth, emojiWidth, qqemojiWidth, lst):
+    curX = PosiX
+    curY = PosiY
+    StartX = curX
     buffer = ''
     for item in lst:
         if item[0] == 'm':
             text = item[1]
             for character in text:
                 if isEmoji(character):
-                    pdfDraw.DrawEmoji(character)
-                    curRow += qqemojiWidth
+                    pdfDraw.drawEmoji(character)
+                    curX += emojiWidth
+                    StartX = curX
                 else:
                     charWidth = queryCharWidth(character)
-                    if curRow + charWidth > rowWidth:
-                        pdfDraw.DrawText(buffer)
-                        curRow = 0
+                    if curX + charWidth > rowWidth:
+                        pdfDraw.drawText(curX, curY, buffer)
+                        curX = PosiX
+                        StartX = PosiX
                         curY += colWidth
                         buffer = ''
                     buffer += character
-                    curRow += charWidth
+                    curX += charWidth
         elif item[0] == 'qqemoji':
             path = item[2]
-            pdfDraw.DrawQQEmoji(path, qqemojiWidth)
+            pdfDraw.drawQQEmoji(path, qqemojiWidth)
+            curX += qqemojiWidth
+            StartX = curX
+
         elif item[0] == 'img':
             path = item[2]
-            pdfDraw.DrawQQimg(path)
+            pdfDraw.drawQQimg(path)
             curY += colWidth
-            curRow = 0
-    pdfDraw.DrawText(buffer)
+            curX = PosiX
+            StartX = PosiX
+    pdfDraw.drawText(buffer)
+class pdfDrawing():
+    def __init__(self):
+        pdfmetrics.registerFont(TTFont('simhei', 'fonts/simhei.ttf'))
+        pdfmetrics.registerFont(TTFont('ColorEmoji', 'fonts/ColorEmoji.ttf'))
+        self.pdf_canvas = canvas.Canvas("example.pdf", pagesize=A4)
+        self.PAGE_HEIGHT = A4[1]
+        self.PAGE_WIDTH = A4[0]
+
+    def save(self):
+        self.pdf_canvas.save()
+
+    def showPage(self):
+        self.pdf_canvas.showPage()
+
+    def drawText(self, x, y):
+        self.pdf_canvas.setFont('simhei', 5 * mm)
+        self.pdf_canvas.drawString(x * mm, y * mm, "报表")
+        
+    def drawQQEmoji(self):
+        1
+    def drawEmoji(self):
+        1
+        # pdf_canvas.setFont('Noto-COLRv1', 12 * mm)
+        # pdf_canvas.drawString(7.25 * mm, 10 * mm, "🥺")
+pdfDraw = pdfDrawing()
 
 
-# 定义样式
-styles = getSampleStyleSheet()
-styleNormal = styles['Normal']
 
-# 创建页面大小和画布对象
-PAGE_HEIGHT = letter[1]
-PAGE_WIDTH = letter[0]
-pdf_canvas = canvas.Canvas("example.pdf", pagesize=letter)
 
-# 定义段落内容
-text = "He"
-
-# 设置段落样式
-para = Paragraph(text, styleNormal)
-
-# 创建圆角矩形对象
-radius = 0.25 * inch
-r = RoundedRectangle(1, 1, radius, fill_color=colors.blue)
-
-# 计算圆角矩形的大小
-width, height = para.wrap(1000, 1000)
-r.width = width + 2 * radius
-r.height = height + 2 * radius
-
-# 将段落添加到圆角矩形内部
-para.wrapOn(pdf_canvas, r.width - 2 * radius, r.height - 2 * radius)
-para.drawOn(pdf_canvas, radius, radius)
-
-# 将圆角矩形添加到画布上
-r.drawOn(pdf_canvas, 2 * inch, 6.5 * inch)
-
-# 保存PDF文件
-pdf_canvas.save()
