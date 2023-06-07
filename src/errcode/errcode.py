@@ -1,5 +1,7 @@
 from enum import Enum, auto
-#错误码
+
+# 错误码
+
 class codes(Enum):
     NORMAL = auto()
     EMOJI_NOT_EXIST = auto()
