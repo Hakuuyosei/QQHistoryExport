@@ -358,12 +358,12 @@ class QQ():
                     print(doc.field5.decode("utf-8"))
                     print(111, extStrJson["bytes_content"])
 
-                # 可能是拍一拍
+                # 签到打卡
                 elif busi_type == "12":
                     doc = Msg_pb2.grayTipBar()
                     doc.ParseFromString(msgData)
-                    print(doc.field5.decode("utf-8"))
-                    print(111, extStrJson["bytes_content"])
+                    # print(doc.field5.decode("utf-8"))
+                    # print(111, extStrJson["bytes_content"])
 
                 else:
                     deserialize_data, message_type = blackboxprotobuf.decode_message(msgData)
@@ -387,7 +387,11 @@ class QQ():
                 "c": {"text": msgDecodedData},
                 "e": ERRCODE.NORMAL()
             }
+            print(extStr)
 
+        elif msgType == -2042:# Q群管家进群
+            print(msgData.decode("utf-8"))
+            print(extStr)
 
 
 
@@ -475,7 +479,7 @@ class QQ():
                 extStrJson = json.loads(extStr)
                 sourceMsgInfo = extStrJson["sens_msg_source_msg_info"]
                 print(sourceMsgInfo)
-                #sourceMsgInfoJson = jd.javaDeserialization(sourceMsgInfo,"reply")
+                # sourceMsgInfoJson = jd.javaDeserialization(sourceMsgInfo,"reply")
 
                 # HACK
                 # (目前已弃用)
@@ -492,9 +496,8 @@ class QQ():
                 pass
 
         elif msgType == -2011:# 转发的聊天记录，java序列化
-            jd.javaDeserialization(binascii.hexlify(msgData).decode(),"111")
+            jd.javaDeserialization(binascii.hexlify(msgData).decode(), "111")
 
-            # sourceMsg = binascii.unhexlify("000000230000001d00000001000c766965774d756c74694d73670000000000000000000e5be8818ae5a4a9e8aeb0e5bd955d0000000100046974656d00000001000000120000000000000000000000000000000000000000000000000000000700057469746c650000000c00000000000233340015e7bea4e8818ae79a84e8818ae5a4a9e8aeb0e5bd950000000000013200023132000000057469746c650000000c00072337373737373700000002323600224d61686972757e3a2020e8bf99e4b8aae4bd9ce59381e8a681e698afe781abe4ba860000000000013400023132000000057469746c650000000c000723373737373737000000023236003a4d61686972757e3a2020e58fafe883bde4bc9ae5bc95e8b5b7e4b880e4ba9be4babae58f91e78eb0e8bf99e4b8aae7bb86e58886e9a286e59f9f0000000000013400023132000000057469746c650000000c00072337373737373700000002323600344d61686972757e3a2020e784b6e5908ee9a9ace4b88ae5b0b1e69c89e69bb4e4bc98e7a780e79a84e4baa7e59381e587bae69da50000000000013400023132000000057469746c650000000c00072337373737373700000002323600224d61686972757e3a202077656267616ce79a84e69cabe697a5e5b0b1e69da5e4ba86000000000001340002313200000002687200000009000566616c736500000000000773756d6d6172790000000c0007233737373737370000000232360016e69fa5e79c8b34e69da1e8bdace58f91e6b688e681af0000000000000000000000000000000000000000000000000000000000000000000000013000013000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffffffffffffff0000000ce8818ae5a4a9e8aeb0e5bd9500000000000000000000000000000000000300406f6f4e6557352f436a616b772f6c35317079656e4777707a6b79542f362b444749674f387139492f362b5a7a2b6b53707248467a326c4a412f32396c4359317000133731313433343236313033353830303136303700000000000000000000000000000000000000000000000000000000ffffffff0000ffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000400000000000007d000000000")
             return 0
 
         elif msgType == -2017:# 群文件
@@ -556,13 +559,17 @@ class QQ():
         elif msgType == -2025:# 群标识卡片，proto
             return 0
 
+        elif msgType == -2059:# 新人入群 java + unknown
+            jd.javaDeserialization(binascii.hexlify(msgData).decode(), "111")
+            return 0
+
 
         elif msgType == -2060:# unknown
-            print(-2060,msgData.decode("utf-8"))
+            print(-2060, msgData.decode("utf-8"))
             #-2060 {"text":"xxx","bgColor":-7883789,"ts":16464**,"cover":""}
         elif msgType == -7010:# unknown
-            print(-7010,msgData.decode("utf-8"))
-            #-7010 [{"key_profile_introduction":"人际交往笨拙 不谙世事 涉世未深 思想不成熟的孩子","key_ts":1657**,"key_type":20019}]
+            print(-7010, msgData.decode("utf-8"))
+            #-7010 [{"key_profile_introduction":"人际交往笨拙xxxxx","key_ts":16****,"key_type":20019}]
 
 
 
