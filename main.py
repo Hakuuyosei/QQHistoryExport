@@ -261,7 +261,7 @@ class QQ():
                 msgData = self.decrypt(row[2])
                 ltime = row[3]
                 extStr = self.decrypt(row[4])
-                msgList = self.proMsg(msgType,msgData,extStr,senderQQ)
+                msgList = self.proMsg(msgType, msgData, extStr, senderQQ)
 
     # 加工信息
     def proMsg(self, msgType, msgData, extStr, senderQQ):
@@ -302,15 +302,26 @@ class QQ():
             extStrJson = json.loads(extStr)
 
             if "revoke_op_type" in extStrJson.keys():
+                # 自己撤回
                 if extStrJson["revoke_op_type"] == "0":
+                    doc = Msg_pb2.grayTipBar()
+                    doc.ParseFromString(msgData)
+                    msgText = doc.field5.decode("utf-8")
                     # 撤回消息
                     msgOutData = {
-                        "t": "pic",
-                        "c": {"text": msgData.decode("utf-8")},
+                        "t": "revoke",
+                        "c": {"text": msgText, "type": "bySelf"},
                         "e": ERRCODE.NORMAL()
                     }
-                    print("撤回消息样本  ", msgData.decode("utf-8"))
-                    print(extStr)
+                    # print(extStr)
+                # 群主（或管理员，待验证）撤回
+                elif extStrJson["revoke_op_type"] == "2":
+                    msgOutData = {
+                        "t": "revoke",
+                        "c": {"text": msgData, "type": "byAdmin"},
+                        "e": ERRCODE.NORMAL()
+                    }
+                    # print(extStr)
                 else:
                     print(msgData)
                     print(extStr)
@@ -337,7 +348,7 @@ class QQ():
 
 
             # busi_type
-            if "uint64_busi_type" in extStrJson.keys():
+            elif "uint64_busi_type" in extStrJson.keys():
                 busi_type = extStrJson["uint64_busi_type"]
 
                 # 可能是拍一拍
@@ -354,10 +365,15 @@ class QQ():
                     print(doc.field5.decode("utf-8"))
                     print(111, extStrJson["bytes_content"])
 
+                else:
+                    deserialize_data, message_type = blackboxprotobuf.decode_message(msgData)
+                    print(f"原始数据: {deserialize_data}")
+                    print(deserialize_data["5"].decode("utf-8"))
+                    print(extStr)
+
             else:
                 deserialize_data, message_type = blackboxprotobuf.decode_message(msgData)
                 print(f"原始数据: {deserialize_data}")
-                print(msgData)
                 print(deserialize_data["5"].decode("utf-8"))
                 print(extStr)
 
