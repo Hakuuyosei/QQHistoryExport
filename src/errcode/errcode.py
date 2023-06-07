@@ -29,7 +29,7 @@ class err_code():
         self.logLevel = logLevel
 
 
-    def log(self,tag,logLevel,info):
+    def log(self, tag, logLevel, info):
         if logLevel >= self.logLevel:
             print(tag + " :" + info)
 
@@ -46,10 +46,11 @@ class err_code():
     def EMOJI_NOT_EXIST(self,qqemojiVer,emojiID):
         info = {
             "code": codes.EMOJI_NOT_EXIST.value,
-            "errinfo": "emoji not EXIST in emoticon,emojiType is {},emojiID is {}".format(emojiType,emojiID),
+            "errinfo": "emoji not EXIST in emoticon,emojiType is {},emojiID is {}".format(qqemojiVer, emojiID),
             "qqemojiVer": qqemojiVer,
             "emojiID": emojiID
         }
+        self.log("PARSE", self.LOG_LEVEL_ERR, info["errinfo"])
         return info
 
     # 图片未找到
@@ -59,6 +60,7 @@ class err_code():
             "errinfo": "imgPath is not exist in files,imgPath is {}".format(data),
             "data": data
         }
+        #self.log("PARSE", self.LOG_LEVEL_ERR, info["errinfo"])
         return info
 
     # 图片反序列化失败
@@ -68,6 +70,7 @@ class err_code():
             "errinfo": "Image information deserialization failed",
             "data": data
         }
+        self.log("PARSE", self.LOG_LEVEL_ERR, info["errinfo"])
         return info
 
     # 图片类型判断失败
@@ -77,6 +80,7 @@ class err_code():
             "errinfo": "Unknown type for this image : {}".format(data),
             "data": data
         }
+        self.log("PARSE", self.LOG_LEVEL_ERR, info["errinfo"])
         return info
 
     # 混合消息反序列化失败
@@ -87,15 +91,17 @@ class err_code():
             "data": data,
             "pyexc": pyexc
         }
+        self.log("PARSE", self.LOG_LEVEL_ERR, info["errinfo"])
         return info
 
-    # 图片未找到
+    # MARKETFACE未找到
     def MARKETFACE_NOT_EXIST(self, data):
         info = {
             "code": codes.MARKETFACE_NOT_EXIST.value,
             "errinfo": "imgPath is not exist in files,imgPath is {}".format(data),
             "data": data
         }
+        self.log("PARSE", self.LOG_LEVEL_ERR, info["errinfo"])
         return info
 
     # 在extstr中没有找到目标字段
@@ -105,5 +111,6 @@ class err_code():
             "errinfo": "The target field({}) was not found in extstr {}".format(target, data),
             "data": data
         }
+        self.log("PARSE", self.LOG_LEVEL_ERR, info["errinfo"])
         return info
 

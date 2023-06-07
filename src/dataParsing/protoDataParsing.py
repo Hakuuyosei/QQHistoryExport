@@ -166,6 +166,9 @@ class protoDataParsing():
             print(filePath)
 
         elif msgType == -5020:# 群标识卡片，proto
+            # deserialize_data, message_type = blackboxprotobuf.decode_message(msgData)
+            # print(f"原始数据: {deserialize_data}")
+            # print(f"消息类型: {message_type}")
             return 0
 
         elif msgType == -5023:  # 该用户通过***向你发起临时会话，前往设置。
@@ -222,19 +225,24 @@ class protoDataParsing():
             elif ("inviteeUin" in extStrJson.keys()) or ("invitorUin" in extStrJson.keys()):
                 doc = Msg_pb2.grayTipBar()
                 doc.ParseFromString(msgData)
+                msgDecodedData = doc.field5.decode("utf-8")
                 print(doc.field5.decode("utf-8"))
                 if ("inviteeUin" in extStrJson.keys()) and ("invitorUin" in extStrJson.keys()):
                     inviteeUin = extStrJson["inviteeUin"]
                     invitorUin = extStrJson["invitorUin"]
+                    items = {
+                        "inviteeUin": inviteeUin,
+                        "invitorUin": invitorUin
+                    }
                     msgOutData = {
-                        "t": "invite",
-                        "c": {"inviteeUin": inviteeUin, "invitorUin":invitorUin},
+                        "t": "tip",
+                        "c": {"text": msgDecodedData, "type": "invite", "ext": items},
                         "e": self.ERRCODE.NORMAL()
                     }
                 else:
                     msgOutData = {
-                        "t": "invite",
-                        "c": {},
+                        "t": "tip",
+                        "c": {"type": "invite"},
                         "e": self.ERRCODE.ALL_EXTSTR_NOT_EXIST_TARGET(extStr, "invitee or invitor ")
                     }
 
@@ -243,19 +251,19 @@ class protoDataParsing():
             elif "uint64_busi_type" in extStrJson.keys():
                 busi_type = extStrJson["uint64_busi_type"]
 
-                # 可能是拍一拍
+                # 签到打卡
                 if busi_type == "14":
+                    doc = Msg_pb2.grayTipBar()
+                    doc.ParseFromString(msgData)
+                    #print(doc.field5.decode("utf-8"))
+                    #print(extStrJson["bytes_content"])
+
+                # 可能是拍一拍
+                elif busi_type == "12":
                     doc = Msg_pb2.grayTipBar()
                     doc.ParseFromString(msgData)
                     print(doc.field5.decode("utf-8"))
                     print(111, extStrJson["bytes_content"])
-
-                # 签到打卡
-                elif busi_type == "12":
-                    doc = Msg_pb2.grayTipBar()
-                    doc.ParseFromString(msgData)
-                    # print(doc.field5.decode("utf-8"))
-                    # print(111, extStrJson["bytes_content"])
 
                 else:
                     deserialize_data, message_type = blackboxprotobuf.decode_message(msgData)
@@ -268,6 +276,8 @@ class protoDataParsing():
                 print(f"原始数据: {deserialize_data}")
                 print(deserialize_data["5"].decode("utf-8"))
                 print(extStr)
+
+            return msgOutData
 
 
 

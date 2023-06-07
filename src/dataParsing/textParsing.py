@@ -56,10 +56,10 @@ class textParsing():
                     filename = "new/s" + index + ".png"
                 else:
                     filename = "old/" + index + ".gif"
-                emoticon_path = os.path.join('lib/emoticon1', filename)
+                emoticon_path = os.path.join('src/emoticons/emoticon1', filename)
 
                 output_path = "output/emoticon1/" + filename
-                lib_path = "lib/emoticon1/" + filename
+                lib_path = "src/emoticons/emoticon1/" + filename
 
                 if os.path.exists(output_path):
                     msgList.append(["qqemoji", self.ERRCODE.NORMAL(), output_path, index])

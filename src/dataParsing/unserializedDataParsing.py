@@ -33,20 +33,35 @@ class unserializedDataParsing():
 
         # 加群提示
         elif msgType == -1012:
+            extStrJson = json.loads(extStr)
             msgDecodedData = msgData.decode("utf-8")
             msgDecodedData = msgDecodedData[0:msgDecodedData.find("，点击修改TA的群昵称")]
-            msgOutData = [["addtroop", msgDecodedData]]
+            items = {
+                "newmember": extStrJson["troop_new_member_uin"]
+            }
             msgOutData = {
-                "t": "jointroop",
-                "c": {"text": msgDecodedData},
+                "t": "tip",
+                "c": {"text": msgDecodedData, "type": "jointroop", "ext": items},
                 "e": self.ERRCODE.NORMAL()
             }
-            print(msgDecodedData, extStr)
+            print(extStr)
 
         # 邀请Q群管家
         elif msgType == -2042:
-            print(msgData.decode("utf-8"))
-            print(extStr)
+            msgDecodedData = msgData.decode("utf-8")
+            msgDecodedData2 = msgDecodedData[msgDecodedData.find("##**##") + 6 :]
+            msgDecodedData = msgDecodedData[0:msgDecodedData.find("           ")]
+            invitorUin = msgDecodedData2.split(",")[5]
+            inviteeUin = msgDecodedData2.split(",")[15]
+            items = {
+                "inviteeUin": inviteeUin,
+                "invitorUin": invitorUin
+            }
+            msgOutData = {
+                "t": "tip",
+                "c": {"text": msgDecodedData, "type": "qbotjointroop", "ext": items},
+                "e": self.ERRCODE.NORMAL()
+            }
 
 
         elif msgType == -2015:  # 发表说说，明文json
@@ -107,6 +122,12 @@ class unserializedDataParsing():
 
         elif msgType == -1013:  # 你已经和xxx成为好友，现在可以开始聊天了。
             msgDataAlreadyDecode = msgData.decode("utf-8")
+            msgOutData = {
+                "t": "tip",
+                "c": {"text": msgDataAlreadyDecode, "type": "newfriend", "ext": {}},
+                "e": self.ERRCODE.NORMAL()
+            }
+
             print(msgDataAlreadyDecode)
 
         return msgOutData

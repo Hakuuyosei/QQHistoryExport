@@ -124,17 +124,19 @@ class QQ():
     # 加工信息
     def proMsg(self, msgType, msgData, extStr, senderQQ):
         msgOutData = []
-        print(msgType)
+
 
         if msgType in unserializedDataType:
             msgOutData = self.unserializedDataParsing.parse(msgType, msgData, extStr, senderQQ)
+            return msgOutData
         elif msgType in protoDataType:
             msgOutData = self.protoDataParsing.parse(msgType, msgData, extStr, senderQQ)
+            return msgOutData
+        print(msgType)
 
 
-
-        elif msgType == -1049:# 回复引用
-            msgOutData = self.proText(msgData.decode("utf-8"))
+        if msgType == -1049:# 回复引用
+            msgOutData = self.textParsing.parse(msgData.decode("utf-8"))
             try:
                 print(extStr)
                 extStrJson = json.loads(extStr)
@@ -163,11 +165,12 @@ class QQ():
 
         elif msgType == -2017:# 群文件
             #jd.javaDeserialization(binascii.hexlify(msgData).decode(),"troopfile")
+            print(binascii.hexlify(msgData).decode())
             1
 
         elif msgType == -5008:# 小程序/推荐名片，java 序列化套json
             #print(-5008,jd.javaDeserialization(binascii.hexlify(msgData).decode(),"miniapp"))
-            1
+            print(binascii.hexlify(msgData).decode())
 
 
 
@@ -183,13 +186,16 @@ class QQ():
 
 
         elif msgType == -2007:  #推荐名片
+            print(binascii.hexlify(msgData).decode())
             return 0
 
         elif msgType == -2025:# 红包
+            print(binascii.hexlify(msgData).decode())
             return 0
 
         elif msgType == -2059:# 新人入群 java + unknown
-            jd.javaDeserialization(binascii.hexlify(msgData).decode(), "111")
+            print(binascii.hexlify(msgData).decode())
+            #jd.javaDeserialization(binascii.hexlify(msgData).decode(), "111")
             return 0
 
 
