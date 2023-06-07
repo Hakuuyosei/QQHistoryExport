@@ -380,8 +380,8 @@ class QQ():
             msgDataText = msgDecodedData.split("|")
             print(extStr)
             msgOutData = {
-                "t": "troopcallstart",
-                "c": {"text": msgDecodedData},
+                "t": "call",
+                "c": {"text": msgDecodedData, "type": "troopcallstart"},
                 "e": ERRCODE.NORMAL()
             }
             return msgOutData
@@ -390,8 +390,8 @@ class QQ():
             msgDataAlreadyDecode = msgData.decode("utf-8")
             print(extStr)
             msgOutData = {
-                "t": "troopcallend",
-                "c": {"text": msgDataAlreadyDecode},
+                "t": "call",
+                "c": {"text": msgDataAlreadyDecode, "type": "troopcallend"},
                 "e": ERRCODE.NORMAL()
             }
             return msgOutData
@@ -434,10 +434,11 @@ class QQ():
         elif msgType == -8018:  # 大号表情
             doc = Msg_pb2.marketFace()
             doc.ParseFromString(msgData)
-            descErrcode, msgDeseData = self.decodeMarketFace(doc.u7.decode("utf-8"))
+            marketFaceName = doc.u7.decode("utf-8")
+            descErrcode, msgDeseData = self.decodeMarketFace(marketFaceName)
             msgOutData = {
-                "t": "file",
-                "c": msgDeseData,
+                "t": "marketface",
+                "c": {"path": msgDeseData, "name": marketFaceName},
                 "e": descErrcode
             }
             print(extStr)
@@ -542,7 +543,7 @@ class QQ():
 
         elif msgType == -2060:# unknown
             print(-2060,msgData.decode("utf-8"))
-            #-2060 {"text":"诺瓦","bgColor":-7883789,"ts":16464**,"cover":""}
+            #-2060 {"text":"xxx","bgColor":-7883789,"ts":16464**,"cover":""}
         elif msgType == -7010:# unknown
             print(-7010,msgData.decode("utf-8"))
             #-7010 [{"key_profile_introduction":"人际交往笨拙 不谙世事 涉世未深 思想不成熟的孩子","key_ts":1657**,"key_type":20019}]
