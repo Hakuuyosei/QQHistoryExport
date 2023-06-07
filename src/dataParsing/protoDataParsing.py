@@ -45,6 +45,9 @@ class protoDataParsing():
         self.ERRCODE = errcodeobj
         self.textParsing = textparsingobj
 
+        self.imgMD5Map = {}
+        self.imgNum = 1
+
     # 解码大表情
     def decodeMarketFace(self, data):
         emoticon_name = data + ".jif"
@@ -115,7 +118,7 @@ class protoDataParsing():
                 else:
                     msgText = elem.textMsg.decode('utf-8')
                     if msgText != " ":
-                        for msgElem2 in self.proText(msgText):
+                        for msgElem2 in self.textParsing.parse(msgText):
                             msgList.append(msgElem2)
             return self.ERRCODE.NORMAL(), msgList
         except:
@@ -166,17 +169,17 @@ class protoDataParsing():
             print(filePath)
 
         elif msgType == -5020:# 群标识卡片，proto
-            # deserialize_data, message_type = blackboxprotobuf.decode_message(msgData)
-            # print(f"原始数据: {deserialize_data}")
-            # print(f"消息类型: {message_type}")
+            deserialize_data, message_type = blackboxprotobuf.decode_message(msgData)
+            print(f"原始数据: {deserialize_data}")
+            print(f"消息类型: {message_type}")
             return 0
 
         elif msgType == -5023:  # 该用户通过***向你发起临时会话，前往设置。
-            # deserialize_data, message_type = blackboxprotobuf.decode_message(msgData)
-            # print(f"原始数据: {deserialize_data}")
-            # print(f"消息类型: {message_type}")
-            # print(msgData)
-            # print(deserialize_data["5"].decode("utf-8"))
+            deserialize_data, message_type = blackboxprotobuf.decode_message(msgData)
+            print(f"原始数据: {deserialize_data}")
+            print(f"消息类型: {message_type}")
+            print(msgData)
+            print(deserialize_data["5"].decode("utf-8"))
             return 0
 
         elif msgType == -8018:  # 大号表情

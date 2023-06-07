@@ -31,12 +31,7 @@ class QQ():
     def __init__(self):
         self.targetQQ = None
         self.key = None
-
         self.qqemojiVer = 1
-        self.emoji_map = None
-
-        self.imgMD5Map = {}
-        self.imgNum = 1
 
         self.DBcursor1 = None
 
@@ -138,10 +133,10 @@ class QQ():
         if msgType == -1049:# 回复引用
             msgOutData = self.textParsing.parse(msgData.decode("utf-8"))
             try:
-                print(extStr)
+                # print(extStr)
                 extStrJson = json.loads(extStr)
                 sourceMsgInfo = extStrJson["sens_msg_source_msg_info"]
-                print(sourceMsgInfo)
+                # print(sourceMsgInfo)
                 # sourceMsgInfoJson = jd.javaDeserialization(sourceMsgInfo,"reply")
 
                 # HACK
@@ -159,7 +154,7 @@ class QQ():
                 pass
 
         elif msgType == -2011:# 转发的聊天记录，java序列化
-            jd.javaDeserialization(binascii.hexlify(msgData).decode(), "111")
+            # jd.javaDeserialization(binascii.hexlify(msgData).decode(), "111")
 
             return 0
 

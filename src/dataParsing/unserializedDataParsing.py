@@ -1,11 +1,6 @@
-import hashlib
-import sqlite3
 import os
-import traceback
 import json
-import imghdr
-import shutil
-import binascii
+
 
 from ..errcode.errcode import err_code
 from .textParsing import textParsing
@@ -19,7 +14,7 @@ class unserializedDataParsing():
     
     def parse(self, msgType, msgData, extStr, senderQQ):
         msgOutData = []
-        print(msgType)
+        # print(msgType)
 
         # 普通文字
         if msgType == -1000 or msgType == -1051:
@@ -81,12 +76,28 @@ class unserializedDataParsing():
                 "filePath": filePath,
                 "fileSize": fileSize
             }
-            msgOutData = {
-                "t": "file",
-                "c": file,
-                "e": self.ERRCODE.NORMAL()
-            }
-            print(extStr)
+            extStrJson = json.loads(extStr)
+            if "file_pic_width" in extStrJson.keys():
+                if int(extStrJson["file_pic_width"]) > 0:
+                    # 文件形式的图片
+                    msgOutData = {
+                        "t": "fileimg",
+                        "c": filePath,
+                        "e": self.ERRCODE.NORMAL()
+                    }
+                else:
+                    msgOutData = {
+                        "t": "file",
+                        "c": file,
+                        "e": self.ERRCODE.NORMAL()
+                    }
+            else:
+                msgOutData = {
+                    "t": "file",
+                    "c": file,
+                    "e": self.ERRCODE.NORMAL()
+                }
+            print(fileData, extStr)
 
         elif msgType == -3008:  # 未被接收的文件，内容为文件名
             fileName = msgData.decode("utf-8")

@@ -31,7 +31,9 @@ class err_code():
 
     def log(self, tag, logLevel, info):
         if logLevel >= self.logLevel:
-            print(tag + " :" + info)
+            print(tag + " :" + info["errinfo"])
+            if "pyexc" in info.keys():
+                print(info["pyexc"])
 
 
     # 无错误
@@ -50,7 +52,7 @@ class err_code():
             "qqemojiVer": qqemojiVer,
             "emojiID": emojiID
         }
-        self.log("PARSE", self.LOG_LEVEL_ERR, info["errinfo"])
+        self.log("PARSE", self.LOG_LEVEL_ERR, info)
         return info
 
     # 图片未找到
@@ -60,7 +62,7 @@ class err_code():
             "errinfo": "imgPath is not exist in files,imgPath is {}".format(data),
             "data": data
         }
-        #self.log("PARSE", self.LOG_LEVEL_ERR, info["errinfo"])
+        #self.log("PARSE", self.LOG_LEVEL_ERR, info)
         return info
 
     # 图片反序列化失败
@@ -70,7 +72,7 @@ class err_code():
             "errinfo": "Image information deserialization failed",
             "data": data
         }
-        self.log("PARSE", self.LOG_LEVEL_ERR, info["errinfo"])
+        self.log("PARSE", self.LOG_LEVEL_ERR, info)
         return info
 
     # 图片类型判断失败
@@ -80,7 +82,7 @@ class err_code():
             "errinfo": "Unknown type for this image : {}".format(data),
             "data": data
         }
-        self.log("PARSE", self.LOG_LEVEL_ERR, info["errinfo"])
+        self.log("PARSE", self.LOG_LEVEL_ERR, info)
         return info
 
     # 混合消息反序列化失败
@@ -91,7 +93,7 @@ class err_code():
             "data": data,
             "pyexc": pyexc
         }
-        self.log("PARSE", self.LOG_LEVEL_ERR, info["errinfo"])
+        self.log("PARSE", self.LOG_LEVEL_ERR, info)
         return info
 
     # MARKETFACE未找到
@@ -101,7 +103,7 @@ class err_code():
             "errinfo": "imgPath is not exist in files,imgPath is {}".format(data),
             "data": data
         }
-        self.log("PARSE", self.LOG_LEVEL_ERR, info["errinfo"])
+        self.log("PARSE", self.LOG_LEVEL_ERR, info)
         return info
 
     # 在extstr中没有找到目标字段
@@ -111,6 +113,6 @@ class err_code():
             "errinfo": "The target field({}) was not found in extstr {}".format(target, data),
             "data": data
         }
-        self.log("PARSE", self.LOG_LEVEL_ERR, info["errinfo"])
+        self.log("PARSE", self.LOG_LEVEL_ERR, info)
         return info
 
