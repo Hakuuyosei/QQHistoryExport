@@ -317,7 +317,7 @@ class QQ():
 
             # 被邀请进入群聊
             elif ("inviteeUin" in extStrJson.keys()) or ("invitorUin" in extStrJson.keys()):
-                doc = Msg_pb2.pai_yi_pai()
+                doc = Msg_pb2.grayTipBar()
                 doc.ParseFromString(msgData)
                 print(doc.field5.decode("utf-8"))
                 if ("inviteeUin" in extStrJson.keys()) and ("invitorUin" in extStrJson.keys()):
@@ -342,14 +342,14 @@ class QQ():
 
                 # 可能是拍一拍
                 if busi_type == "14":
-                    doc = Msg_pb2.pai_yi_pai()
+                    doc = Msg_pb2.grayTipBar()
                     doc.ParseFromString(msgData)
                     print(doc.field5.decode("utf-8"))
                     print(111, extStrJson["bytes_content"])
 
                 # 可能是拍一拍
                 elif busi_type == "12":
-                    doc = Msg_pb2.pai_yi_pai()
+                    doc = Msg_pb2.grayTipBar()
                     doc.ParseFromString(msgData)
                     print(doc.field5.decode("utf-8"))
                     print(111, extStrJson["bytes_content"])

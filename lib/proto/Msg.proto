@@ -75,20 +75,20 @@ message Voice {
 }
 
 message marketFace {
-  bytes u1 = 1;
-  bytes u2 = 2;
-  int32 u3 = 3;
-  int32 u4 = 4;
-  int32 u5 = 5;
-  string u6 = 6;
-  bytes u7 = 7;
-  string u8 = 8;
-  int32 u9 = 9;
-  int32 u10 = 10;
+  bytes field1 = 1;
+  bytes field2 = 2;
+  int32 field3 = 3;
+  int32 field4 = 4;
+  int32 field5 = 5;
+  string field6 = 6;
+  bytes field7 = 7;
+  string field8 = 8;
+  int32 field9 = 9;
+  int32 field10 = 10;
 }
 
 
-message pai_yi_pai {
+message grayTipBar {
   int32 field1 = 1;
   int32 field2 = 2;
   bytes field4 = 4;
@@ -106,7 +106,7 @@ message pai_yi_pai {
   SubField7 field7 = 7;
   int32 field8 = 8;
   message SubField9 {
-    int32 field1 = 1;s
+    int32 field1 = 1;
     int32 field2 = 2;
     int32 field6 = 6;
     int32 field7 = 7;
