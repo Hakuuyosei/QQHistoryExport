@@ -41,6 +41,7 @@ def crc64(s):
     return v
 
 
+
 class QQ():
     def __init__(self):
         self.targetQQ = None
@@ -78,7 +79,7 @@ class QQ():
             return msg
 
     # 建立表情索引
-    def map_new_emoji(self):
+    def mapqqEmoji(self):
         with open('lib/emoticon1/face_config.json', encoding='utf-8') as f:
             emojis = json.load(f)
         new_emoji_map = {}
@@ -159,7 +160,7 @@ class QQ():
 
             # 判断文件是否存在
             if not os.path.isfile(relpath):
-                return ["img",ERRCODE.IMG_NOT_EXIST(relpath), None]
+                return ["img", ERRCODE.IMG_NOT_EXIST(relpath), None]
 
             # 计算图片的MD5值
             with open(relpath, 'rb') as f:
@@ -168,7 +169,7 @@ class QQ():
 
             # 查找图片的MD5值是否已经存在
             if md5 in self.imgMD5Map:
-                return ["img",ERRCODE.NORMAL(), self.imgMD5Map[md5]]
+                return ["img", ERRCODE.NORMAL(), self.imgMD5Map[md5]]
 
             # 确定图片类型并添加后缀名
             img_type = imghdr.what(relpath)
@@ -222,7 +223,7 @@ class QQ():
 
 
         self.qqemojiVer = 1
-        self.emoji_map = self.map_new_emoji()
+        self.emoji_map = self.mapqqEmoji()
         self.DBcursor1 = sqlite3.connect(dbPath).cursor()
 
         self.getFriends()
@@ -305,18 +306,32 @@ class QQ():
                         "c": {"text": msgData.decode("utf-8")},
                         "e": ERRCODE.NORMAL()
                     }
-                    print(msgData.decode("utf-8"))
+                    print("撤回消息样本  ", msgData.decode("utf-8"))
+                    print(extStr)
                 else:
                     print(msgData)
                     print(extStr)
 
             # 被邀请进入群聊
-            elif "inviteeUin" in extStrJson.keys():
-                inviteeUin = extStrJson["inviteeUin"]
-                invitorUin = extStrJson["invitorUin"]
+            elif ("inviteeUin" in extStrJson.keys()) or ("invitorUin" in extStrJson.keys()):
+                if ("inviteeUin" in extStrJson.keys()) and ("invitorUin" in extStrJson.keys()):
+                    inviteeUin = extStrJson["inviteeUin"]
+                    invitorUin = extStrJson["invitorUin"]
+                    msgOutData = {
+                        "t": "pic",
+                        "c": {"inviteeUin": inviteeUin, "invitorUin":invitorUin},
+                        "e": ERRCODE.NORMAL()
+                    }
+                else:
+                    msgOutData = {
+                        "t": "pic",
+                        "c": {},
+                        "e": ERRCODE.ALL_EXTSTR_NOT_EXIST_TARGET(extStr, "invitee or invitor ")
+                    }
 
             # 拍一拍戳一戳
             elif "pai_yi_pai_showed" in extStrJson.keys():
+                print("pai_yi_pai_showed", extStr)
                 doc = Msg_pb2.pai_yi_pai()
                 doc.ParseFromString(msgData)
             else:

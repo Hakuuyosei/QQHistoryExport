@@ -8,6 +8,7 @@ class codes(Enum):
     IMG_UNKNOWN_TYPE_ERROR = auto()
     MIXMSG_DESERIALIZATION_ERROR = auto()
     MARKETFACE_NOT_EXIST = auto()
+    ALL_EXTSTR_NOT_EXIST_TARGET = auto()
 
 class err_code():
     def __init__(self,):
@@ -18,7 +19,7 @@ class err_code():
 
         self.logLevel = self.LOG_LEVEL_WARNING
 
-        self.codes = codes()
+        self.codes = codes
 
 
     #设置日志等级
@@ -91,6 +92,15 @@ class err_code():
         info = {
             "code": codes.MARKETFACE_NOT_EXIST.value,
             "errinfo": "imgPath is not exist in files,imgPath is {}".format(data),
+            "data": data
+        }
+        return info
+
+    # 在extstr中没有找到目标字段
+    def ALL_EXTSTR_NOT_EXIST_TARGET(self, data, target):
+        info = {
+            "code": codes.ALL_EXTSTR_NOT_EXIST_TARGET.value,
+            "errinfo": "The target field({}) was not found in extstr {}".format(target, data),
             "data": data
         }
         return info
