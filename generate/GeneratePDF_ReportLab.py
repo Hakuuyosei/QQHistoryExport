@@ -14,13 +14,12 @@ import json
 
 
 
-class FontQuery:
+class DrawingQuery:
     def __init__(self, db_path, style):
         self.style = style
 
         # 连接数据库
         self.conn = sqlite3.connect(db_path)
-        self.font_size = self.style["textHeight"]
 
     def queryCharWidth(self, char):
         # 查询宽高比
@@ -31,7 +30,7 @@ class FontQuery:
         if result:
             aspect_ratio = result[0]
             # 计算宽度并返回结果
-            width = round(aspect_ratio * self.font_size)
+            width = round(aspect_ratio * self.style["textHeight"])
             return width
 
         return None
@@ -48,6 +47,14 @@ class FontQuery:
                                    "]+", flags=re.UNICODE)
         return emoji_pattern.search(s) is not None
 
+    def resize_image(self, img_width, img_height, max_width, max_height):
+        # 比较宽高的大小，计算缩放比例
+        ratio = min(max_width / img_width, max_height / img_height)
+        # 根据比例计算新的宽高
+        new_width = int(img_width * ratio)
+        new_height = int(img_height * ratio)
+        return new_width, new_height
+
 
 class DataProcessor:
     def __init__(self, style):
@@ -60,7 +67,23 @@ class DataProcessor:
         return startY - style["tipTextHeight"], True
 
     def procImgMessage(self, data, startY, startC):
-        1
+        path = data["imgPath"]
+        name = data["name"]
+        imgType = data["imgType"]
+
+        # 如果是图片表情
+        if imgType == "50":
+            maxWidth = style["imgEmoMaxSize"]
+            maxHeight = style["imgEmoMaxSize"]
+        else:
+            maxWidth = style["imgMaxWidth"]
+            maxHeight = style["imgMaxHeight"]
+
+        width, height = DrawingQuery.resize_image(self,data["imgWidth"],  data["imgHeight"], maxWidth, maxHeight)
+
+        if startY - height - style["textHeight"] < style["contentMaxY"]:
+            return startY, False
+        pdfDraw.drawImg(path, name, width, height, 0, startY, startC)
 
     def procChatBoxMessage(self, dataList, startY, startC):
         isFinish = False
@@ -101,14 +124,14 @@ class DataProcessor:
                 # 遍历字符串中的每一个字符
                 for character in item["c"]["m"]:
                     # 判断字符是否为表情符号
-                    if fontQuery.isEmoji(character):
+                    if drawingQuery.isEmoji(character):
                         # 如果是表情符号，则绘制符号，并更新当前坐标
 
                         if buffer != "":
                             drawData.append([pdfDraw.drawText, [buffer, bufStartX, curY, startC]])
                             buffer = ""
 
-                        drawData.append([pdfDraw.drawEmoji, [character, curX, curY, startC]])
+                        drawData.append([pdfDraw.drawTextEmoji, [character, curX, curY, startC]])
                         curX += self.emojiWidth
                         bufStartX = curX + self.emojiWidth
 
@@ -124,7 +147,7 @@ class DataProcessor:
 
                     else:
                         # 如果不是表情符号，先查询其宽度
-                        charWidth = fontQuery.queryCharWidth(character)
+                        charWidth = drawingQuery.queryCharWidth(character)
                         # 判断是否需要换行
                         if curX + charWidth > self.style["chatBoxTextMaxX"]:
                             # 如果该字符加上前面已暂存字符串的宽度会超出列宽，则先将暂存字符串绘制出来
@@ -154,13 +177,13 @@ class DataProcessor:
             # 处理 qqemoji 类型的元素
             elif item["t"] == "qqemoji":
                 # 绘制qq表情符号并更新坐标
-                drawData.append([pdfDraw.drawQQEmoji, [item["c"]["path"], curX, curY]])
+                drawData.append([pdfDraw.drawTextQQEmoji, [item["c"]["path"], curX, curY]])
                 curX += self.style["qqemojiWidth"]
 
             # 处理 "img" 类型的元素
             elif item["t"] == "img":
                 # 绘制图片并更新坐标
-                drawData.append([pdfDraw.DrawQQimg, [item["c"]["imgPath"], curX, curY]])
+                drawData.append([pdfDraw.DrawTextImg, [item["c"]["imgPath"], curX, curY]])
                 # 图片后要加两个换行
                 curX = self.style["chatBoxTextStartX"]
 
@@ -218,7 +241,7 @@ class PdfDraw:
         y = y - self.style["tipTextHeight"]
         self.pdf_canvas.drawCentredString(x, y, text)
 
-    def drawQQEmoji(self, path, x, y, c):
+    def drawTextQQEmoji(self, path, x, y, c):
         x = style["pageWidth"] * c + x
         print("emoji", x, y)
 
@@ -226,17 +249,24 @@ class PdfDraw:
                                   width=self.style["qqemojiWidth"], height=self.style["qqemojiWidth"],
                                   mask='auto')
 
-    def drawImg(self, path, x, y, c):
-        x = style["pageWidth"] * c + x
+
+
+    def drawImg(self, path, name, width, height, x, y, c):
+        x = style["pageWidth"] * c + self.style["contentStartX"] + x
         print("Img", x, y)
-        # 获取文件名
-        filename = os.path.basename(path)
-
-        self.pdf_canvas.drawImage(path, x, y,
-                                  width=self.style["qqemojiWidth"], height=self.style["qqemojiWidth"],
+        self.pdf_canvas.drawImage(path, x, y - height,
+                                  width=width, height=height,
                                   mask='auto')
+        text = f"file:  {name}"
+        x = style["pageWidth"] * c + x
+        self.pdf_canvas.setFillColor(self.style["textColor"])
+        self.pdf_canvas.setFont(self.style["fontName"], self.style["textHeight"])
+        self.pdf_canvas.drawString(x, y - self.style["textHeight"], text)
 
-    def drawEmoji(self, x, y, c):
+    def DrawTextImg(self, path, y, c):
+        1
+
+    def drawTextEmoji(self, x, y, c):
         1
         # pdf_canvas.setFont('Noto-COLRv1', 12 * mm)
         # pdf_canvas.drawString(7.25 * mm, 10 * mm, "🥺")
@@ -287,6 +317,14 @@ class Generate:
                         self.nextPage()
                         self.curY, isFinish = dataprocessor.procTipMessage(data, self.curY, self.curC)
 
+                elif obj["t"] == "img":
+                    isFinish = False
+                    data = obj["c"]
+                    self.curY, isFinish = dataprocessor.procImgMessage(data, self.curY, self.curC)
+                    if not isFinish:
+                        self.nextPage()
+                        self.curY, isFinish = dataprocessor.procImgMessage(data, self.curY, self.curC)
+
                 if i == 10:
                     break
                 self.curY -= style["MassageSpacing"]
@@ -295,9 +333,11 @@ class Generate:
 
 
 
-
+# 为防止设置项被设为小写，使用自己的optionxform函数
 def my_optionxform(optionstr: str) -> str:
     return optionstr
+
+# 读取ini文件
 def read_ini_file(file_path: str) -> dict:
     parser = configparser.ConfigParser(allow_no_value=True, inline_comment_prefixes=';', comment_prefixes=';')
     parser.optionxform = my_optionxform
@@ -307,8 +347,11 @@ def read_ini_file(file_path: str) -> dict:
     for section in parser.sections():
         for key, value in parser.items(section):
             # 尝试将值转换为 int 类型
-            if key[0:3] == "num":
+            if key[0:3] == "int":
                 value = int(value)
+                data[key] = value
+            elif key[0:3] == "flt":
+                value = float(value)
                 data[key] = value
             elif key == "pageSize":
                 if value == 'A4': value = A4
@@ -326,7 +369,7 @@ def procStyle(file_path):
     style = read_ini_file(file_path)
     # Page
     style["pageHeight"] = style["pageSize"][1]  # 纸张高度
-    style["pageWidth"] = style["pageSize"][0] / style["numColumn"]  # 纸张宽度
+    style["pageWidth"] = style["pageSize"][0] / style["intcolumn"]  # 纸张宽度
 
     # 聊天内容
     style["contentStartX"] = style["leftMargin"] + \
@@ -344,14 +387,20 @@ def procStyle(file_path):
     style["chatBoxTextMaxY"] = style["contentMaxY"] - style["chatBoxPadding"]
     style["chatBoxTextMaxWidth"] = style["chatBoxTextMaxX"] - style["chatBoxTextStartX"]
 
+    # 图像
+    style["imgMaxWidth"] = style["pageWidth"] * style["fltimgDrawScale"]
+    style["imgMaxHeight"] = style["pageHeight"] * style["fltimgDrawScale"]
+    return style
+
 style = procStyle('GeneratePDF_ReportLab_config.ini')
+print(style)
 
 fontName = "simhei"
 fontDirName = "../lib/fonts/"
 fontPath = fontDirName + fontName + ".ttf"
 fontInfoPath = fontDirName + fontName + "_aspect_ratio.db"
 
-fontQuery = FontQuery(fontInfoPath, style)
+drawingQuery = DrawingQuery(fontInfoPath, style)
 pdfDraw = PdfDraw(fontPath, style)
 dataprocessor = DataProcessor(style)
 generate = Generate("../output", style)
