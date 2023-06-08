@@ -64,17 +64,29 @@ class protoDataParsing():
 
     # 解码图片
     def decodePic(self, data):
+        msgOutData = {
+            "t": "img",
+            "c": {"imgPath": "", "imgType": "", "name": ""},
+            "e": None
+        }
         try:
             doc = PicRec()
             doc.ParseFromString(data)
+
+
             url = 'chatimg:' + doc.md5
             filename = hex(crc64(url))
             filename = 'Cache_' + filename.replace('0x', '')
             relpath = os.path.join(".\\chatimg\\", filename[-3:], filename)
+            print(doc.uint32_width, doc.uint32_height, doc.uint32_image_type)
+            msgOutData["c"]["imgType"] = doc.uint32_image_type
+            msgOutData["c"]["imgWidth"] = doc.uint32_width
+            msgOutData["c"]["imgHeight"] = doc.uint32_height
 
             # 判断文件是否存在
-            if not os.path.isfile(relpath):
-                return ["img", self.ERRCODE.IMG_NOT_EXIST(relpath), None]
+            if not os.path.exists(relpath):
+                msgOutData["e"] = self.ERRCODE.IMG_NOT_EXIST(relpath)
+                return msgOutData
 
             # 计算图片的MD5值
             with open(relpath, 'rb') as f:
@@ -83,12 +95,16 @@ class protoDataParsing():
 
             # 查找图片的MD5值是否已经存在
             if md5 in self.imgMD5Map:
-                return ["img", self.ERRCODE.NORMAL(), self.imgMD5Map[md5]]
+                msgOutData["e"] = self.ERRCODE.NORMAL()
+                msgOutData["c"]["imgPath"] = self.imgMD5Map[md5][0]
+                msgOutData["c"]["name"] = self.imgMD5Map[md5][1]
+                return msgOutData
 
             # 确定图片类型并添加后缀名
             img_type = imghdr.what(relpath)
             if img_type is None:
-                return ["img", self.ERRCODE.IMG_UNKNOWN_TYPE_ERROR(), relpath]
+                msgOutData["e"] = self.ERRCODE.IMG_UNKNOWN_TYPE_ERROR(relpath)
+                return msgOutData
 
             new_filename = f'{self.imgNum}.{img_type}'
             self.imgNum = self.imgNum + 1
@@ -98,13 +114,16 @@ class protoDataParsing():
             shutil.move(relpath, new_file_path)
 
             # 将MD5和新文件路径添加到imgMD5Map中
-            self.imgMD5Map[md5] = new_file_path
+            self.imgMD5Map[md5] = [new_file_path, new_filename]
 
-            return ["img", self.ERRCODE.NORMAL(), new_file_path]
+            msgOutData["e"] = self.ERRCODE.NORMAL()
+            msgOutData["c"]["imgPath"] = new_file_path
+            msgOutData["c"]["name"] = new_filename
+            return msgOutData
 
         except:
-            print(traceback.format_exc())
-            return ["img", self.ERRCODE.IMG_DESERIALIZATION_ERROR(data), None]
+            msgOutData["e"] = self.ERRCODE.IMG_DESERIALIZATION_ERROR(data)
+            return msgOutData
 
     # 解码混合消息
     def decodeMixMsg(self, data):
@@ -125,18 +144,14 @@ class protoDataParsing():
             return self.ERRCODE.MIXMSG_DESERIALIZATION_ERROR(data, traceback.format_exc()), msgList
 
     def parse(self, msgType, msgData, extStr, senderQQ):
-        msgOutData = []
+        msgOutData = {}
         print(msgType)
 
         # 图片类型
         if msgType == -2000:
             # print(msgData)
-            decodeOut = self.decodePic(msgData)
-            msgOutData = {
-                "t": "img",
-                "c": {"filePath": decodeOut[2]},
-                "e": decodeOut[1]
-            }
+            msgOutData = self.decodePic(msgData)
+            #print(extStr)
 
         # 图文混排
         elif msgType == -1035:
@@ -148,8 +163,8 @@ class protoDataParsing():
             }
             # print(msgOutData)
 
-
-        elif msgType == -2002:# 语音
+        # 语音
+        elif msgType == -2002:
             doc = Msg_pb2.Voice()
             doc.ParseFromString(msgData)
             filePath = doc.field1
@@ -168,11 +183,12 @@ class protoDataParsing():
             filePath = doc.field3.decode("utf-8")
             print(filePath)
 
+
         elif msgType == -5020:# 群标识卡片，proto
             deserialize_data, message_type = blackboxprotobuf.decode_message(msgData)
             print(f"原始数据: {deserialize_data}")
             print(f"消息类型: {message_type}")
-            return 0
+            return
 
         elif msgType == -5023:  # 该用户通过***向你发起临时会话，前往设置。
             deserialize_data, message_type = blackboxprotobuf.decode_message(msgData)
@@ -180,7 +196,7 @@ class protoDataParsing():
             print(f"消息类型: {message_type}")
             print(msgData)
             print(deserialize_data["5"].decode("utf-8"))
-            return 0
+            return
 
         elif msgType == -8018:  # 大号表情
             doc = Msg_pb2.marketFace()
@@ -280,7 +296,7 @@ class protoDataParsing():
                 print(deserialize_data["5"].decode("utf-8"))
                 print(extStr)
 
-            return msgOutData
+        return msgOutData
 
 
 

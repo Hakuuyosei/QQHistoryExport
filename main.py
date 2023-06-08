@@ -49,6 +49,22 @@ class QQ():
         self.unserializedDataParsing = unserializedDataParsing(self.ERRCODE, self.textParsing)
         self.protoDataParsing = protoDataParsing(self.ERRCODE, self.textParsing)
 
+        self.createOutput()
+        self.outputFile = open('output/chatData.txt', 'w')
+
+    def createOutput(self):
+        dir_path = 'output'
+
+        # 判断目录是否存在并删除
+        if os.path.exists(dir_path):
+            shutil.rmtree(dir_path)
+        os.mkdir(dir_path)
+        os.mkdir(dir_path + "/emoticons")
+        os.mkdir(dir_path + "/emoticons/emoticon1")
+        os.mkdir(dir_path + "/emoticons/emoticon1/new")
+        os.mkdir(dir_path + "/emoticons/emoticon1/old")
+        os.mkdir(dir_path + "/emoticons/emoticon2")
+        os.mkdir(dir_path + "/emoticons/nudgeaction")
 
     def fill_cursors(self, cmd):
         cursors = []
@@ -114,11 +130,18 @@ class QQ():
                 msgData = self.decrypt(row[2])
                 ltime = row[3]
                 extStr = self.decrypt(row[4])
-                msgList = self.proMsg(msgType, msgData, extStr, senderQQ)
+                msgOutData = self.proMsg(msgType, msgData, extStr, senderQQ)
+                if msgOutData != None:
+                    msgOutData["s"] = senderQQ
+                    msgOutData["i"] = ltime
+                    json_str = json.dumps(msgOutData)
+                    self.outputFile.write(json_str + '\n')
+        self.outputFile.close()
+
 
     # 加工信息
     def proMsg(self, msgType, msgData, extStr, senderQQ):
-        msgOutData = []
+        msgOutData = {}
 
 
         if msgType in unserializedDataType:
@@ -127,11 +150,16 @@ class QQ():
         elif msgType in protoDataType:
             msgOutData = self.protoDataParsing.parse(msgType, msgData, extStr, senderQQ)
             return msgOutData
+        return
         print(msgType)
 
 
         if msgType == -1049:# 回复引用
-            msgOutData = self.textParsing.parse(msgData.decode("utf-8"))
+            msgOutData = {
+                "t": "msg",
+                "c": self.textParsing.parse(msgData.decode("utf-8")),
+                "e": self.ERRCODE.NORMAL()
+            }
             try:
                 # print(extStr)
                 extStrJson = json.loads(extStr)

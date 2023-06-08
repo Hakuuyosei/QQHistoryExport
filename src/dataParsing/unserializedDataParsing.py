@@ -13,7 +13,7 @@ class unserializedDataParsing():
 
     
     def parse(self, msgType, msgData, extStr, senderQQ):
-        msgOutData = []
+        msgOutData = {}
         # print(msgType)
 
         # 普通文字

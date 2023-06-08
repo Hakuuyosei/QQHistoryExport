@@ -38,38 +38,70 @@ class textParsing():
         pos = msg.find('\x14')
 
         if pos == -1:
-            msgList.append(["m", msg])
+            msgOutData = {
+                "t": "m",
+                "c": {"m": msg},
+                "e": self.ERRCODE.NORMAL()
+            }
+            msgList.append(msgOutData)
             return msgList
 
         while 1:
             pos = msg.find('\x14', lastpos + 2)
             if pos == -1:
                 if msg[lastpos + 2:] != "":
-                    msgList.append(["m", msg[lastpos + 2:]])
+                    msgOutData = {
+                        "t": "m",
+                        "c": {"m": msg[lastpos + 2:]},
+                        "e": self.ERRCODE.NORMAL()
+                    }
+                    msgList.append(msgOutData)
                 break
 
-            msgList.append(["m", msg[lastpos + 2:pos]])
+            msgOutData = {
+                "t": "m",
+                "c": {"m": msg[lastpos + 2:pos]},
+                "e": self.ERRCODE.NORMAL()
+            }
+            msgList.append(msgOutData)
             num = ord(msg[pos + 1])
+
+            msgOutData = {
+                "t": "qqemoji",
+                "c": {"path": "", "index": ""},
+                "e": None
+            }
+
             if str(num) in self.emoji_map:
                 index = self.emoji_map[str(num)]
                 if self.qqemojiVer == 1:
                     filename = "new/s" + index + ".png"
                 else:
                     filename = "old/" + index + ".gif"
-                emoticon_path = os.path.join('src/emoticons/emoticon1', filename)
 
-                output_path = "output/emoticon1/" + filename
+                output_path = "output/emoticons/emoticon1/" + filename
                 lib_path = "lib/emoticons/emoticon1/" + filename
 
                 if os.path.exists(output_path):
-                    msgList.append(["qqemoji", self.ERRCODE.NORMAL(), output_path, index])
+                    msgOutData["e"] = self.ERRCODE.NORMAL()
+                    msgOutData["c"]["path"] = output_path
+                    msgOutData["c"]["index"] = index
+                    msgList.append(msgOutData)
+
                 elif os.path.exists(lib_path):
                     shutil.copy(lib_path, output_path)
-                    msgList.append(["qqemoji", self.ERRCODE.NORMAL(), output_path, index])
+
+                    msgOutData["e"] = self.ERRCODE.NORMAL()
+                    msgOutData["c"]["path"] = output_path
+                    msgOutData["c"]["index"] = index
+                    msgList.append(msgOutData)
                 else:
-                    msgList.append(["qqemoji", self.ERRCODE.EMOJI_NOT_EXIST(self.qqemojiVer, str(num)), None, None])
+                    msgOutData["e"] = self.ERRCODE.EMOJI_NOT_EXIST(self.qqemojiVer, str(num))
+                    msgList.append(msgOutData)
+
             else:
-                msgList.append(["qqemoji", self.ERRCODE.EMOJI_NOT_EXIST(self.qqemojiVer, str(num)), None, None])
+                msgOutData["e"] = self.ERRCODE.EMOJI_NOT_EXIST(self.qqemojiVer, str(num))
+                msgList.append(msgOutData)
 
             lastpos = pos
         return msgList
