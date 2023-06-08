@@ -9,7 +9,10 @@ from PIL import Image
 import sqlite3
 import re
 import os
+import configparser
 import json
+
+
 
 class FontQuery:
     def __init__(self, db_path, style):
@@ -56,6 +59,8 @@ class DataProcessor:
         pdfDraw.drawTipText(data, startY, startC)
         return startY - style["tipTextHeight"], True
 
+    def procImgMessage(self, data, startY, startC):
+        1
 
     def procChatBoxMessage(self, dataList, startY, startC):
         isFinish = False
@@ -108,7 +113,7 @@ class DataProcessor:
                         bufStartX = curX + self.emojiWidth
 
                     if character == "\n":
-                        drawData.append([pdfDraw.drawText, [buffer, bufStartX, curY ,startC]])
+                        drawData.append([pdfDraw.drawText, [buffer, bufStartX, curY, startC]])
                         # 更新当前坐标到下一行开头，并清空暂存字符串
                         textWidth = curX - self.style["chatBoxTextStartX"]
                         curX = self.style["chatBoxTextStartX"]
@@ -158,7 +163,6 @@ class DataProcessor:
                 drawData.append([pdfDraw.DrawQQimg, [item["c"]["imgPath"], curX, curY]])
                 # 图片后要加两个换行
                 curX = self.style["chatBoxTextStartX"]
-
 
             # 其他类型的元素忽略
 
@@ -216,12 +220,11 @@ class PdfDraw:
 
     def drawQQEmoji(self, path, x, y, c):
         x = style["pageWidth"] * c + x
-        print("emoji",x,y)
+        print("emoji", x, y)
 
         self.pdf_canvas.drawImage(path, x, y,
-                                  width=self.style["qqemojiWidth"],height = self.style["qqemojiWidth"],
+                                  width=self.style["qqemojiWidth"], height=self.style["qqemojiWidth"],
                                   mask='auto')
-
 
     def drawImg(self, path, x, y, c):
         x = style["pageWidth"] * c + x
@@ -230,7 +233,7 @@ class PdfDraw:
         filename = os.path.basename(path)
 
         self.pdf_canvas.drawImage(path, x, y,
-                                  width=self.style["qqemojiWidth"],height = self.style["qqemojiWidth"],
+                                  width=self.style["qqemojiWidth"], height=self.style["qqemojiWidth"],
                                   mask='auto')
 
     def drawEmoji(self, x, y, c):
@@ -253,9 +256,8 @@ class Generate:
         self.curY = self.style["contentStartY"]
         self.curC = 0
 
-
     def nextPage(self):
-        if self.curC + 1 < style["column"]:
+        if self.curC + 1 < style["numColumn"]:
             self.curC = self.curC + 1
         else:
             self.pageNum += 1
@@ -272,7 +274,8 @@ class Generate:
                     isFinish = False
                     remaindData = obj["c"]
                     while not isFinish:
-                        self.curY, isFinish, remaindData = dataprocessor.procChatBoxMessage(remaindData, self.curY, self.curC)
+                        self.curY, isFinish, remaindData = dataprocessor.procChatBoxMessage(remaindData, self.curY,
+                                                                                            self.curC)
                         if not isFinish:
                             self.nextPage()
 
@@ -291,64 +294,57 @@ class Generate:
                     self.nextPage()
 
 
-style = {
-    # 文字
-    "fontName": "simhei",  # 字体名称
-    "textHeight": 3 * mm,  # 文本高度
-    "lineSpacing": 0.5 * mm,  # 行距
-    "emojiWidth": 3 * mm,  # emoji宽度
-    "qqemojiWidth": 3 * mm,  # qqemoji宽度 注意，请勿大于行距 + 文本高度
-    "textColor": "#000000",  # 文字颜色
 
-    "tipTextColor": "#585858",  # 文本颜色
-    "tipTextHeight": 3 * mm,  # 文本高度
 
-    "MassageSpacing": 1 * mm, # 消息间距
+def my_optionxform(optionstr: str) -> str:
+    return optionstr
+def read_ini_file(file_path: str) -> dict:
+    parser = configparser.ConfigParser(allow_no_value=True, inline_comment_prefixes=';', comment_prefixes=';')
+    parser.optionxform = my_optionxform
+    parser.read(file_path, encoding="utf-8")
+
+    data = {}
+    for section in parser.sections():
+        for key, value in parser.items(section):
+            # 尝试将值转换为 int 类型
+            if key[0:3] == "num":
+                value = int(value)
+                data[key] = value
+            elif key == "pageSize":
+                if value == 'A4': value = A4
+                if value == 'A5': value = A5
+            else:
+                try:
+                    value = float(value) * mm
+                except ValueError:
+                    pass
+
+            data[key] = value
+
+    return data
+def procStyle(file_path):
+    style = read_ini_file(file_path)
+    # Page
+    style["pageHeight"] = style["pageSize"][1]  # 纸张高度
+    style["pageWidth"] = style["pageSize"][0] / style["numColumn"]  # 纸张宽度
+
+    # 聊天内容
+    style["contentStartX"] = style["leftMargin"] + \
+                             style["avatarSize"] + 2 * style["avatarMargin"]  # 聊天内容开始X坐标
+    style["contentStartY"] = style["pageHeight"] - style["topMargin"]  # 聊天内容开始Y坐标
+
+    style["contentMaxX"] = style["pageWidth"] - style["rightMargin"]  # 聊天内容最大X坐标
+    style["contentMaxY"] = style["bottomMargin"] - style["pageFooterTextHeight"]  # 聊天内容最大Y坐标
+    style["contentMaxWidth"] = style["pageWidth"] - style["rightMargin"] - style["leftMargin"]
+    style["contentCenter"] = style["contentMaxWidth"] / 2 + style["rightMargin"]
 
     # 聊天框
-    "chatBoxPadding": 1 * mm,  # 聊天框内边距
-    "chatBoxradius": 1 * mm,  # 聊天框圆角半径
-    "chatBoxFillColor": "#eeeeee",  # 聊天框填充颜色
+    style["chatBoxTextStartX"] = style["contentStartX"] + style["chatBoxPadding"]
+    style["chatBoxTextMaxX"] = style["contentMaxX"] - style["chatBoxPadding"]
+    style["chatBoxTextMaxY"] = style["contentMaxY"] - style["chatBoxPadding"]
+    style["chatBoxTextMaxWidth"] = style["chatBoxTextMaxX"] - style["chatBoxTextStartX"]
 
-    # 头像
-    "avatarSize": 5 * mm,  # 文本高度
-    "avatarMargin": 1 * mm,  # 文本高度
-
-    # 页边距
-    "topMargin": 10 * mm,
-    "leftMargin": 10 * mm,
-    "rightMargin": 10 * mm,
-    "bottomMargin": 10 * mm,
-
-    # 页脚
-    "pageFooterText": "生成日期：$date  第 $page 页",
-    "pageFooterTextHeight": 3 * mm,
-
-    # 纸张大小
-    "pageSize": A4,
-    "column": 2  # 栏数
-}
-# Page
-style["pageHeight"] = style["pageSize"][1]  # 纸张高度
-style["pageWidth"] = style["pageSize"][0]/style["column"]  # 纸张宽度
-
-
-# 聊天内容
-style["contentStartX"] = style["leftMargin"] + \
-                         style["avatarSize"] + 2 * style["avatarMargin"]  # 聊天内容开始X坐标
-style["contentStartY"] = style["pageHeight"] - style["topMargin"]  # 聊天内容开始Y坐标
-
-style["contentMaxX"] = style["pageWidth"] - style["rightMargin"]  # 聊天内容最大X坐标
-style["contentMaxY"] = style["bottomMargin"] - style["pageFooterTextHeight"]  # 聊天内容最大Y坐标
-style["contentMaxWidth"] = style["pageWidth"] - style["rightMargin"] - style["leftMargin"]
-style["contentCenter"] = style["contentMaxWidth"] / 2 + style["rightMargin"]
-
-# 聊天框
-style["chatBoxTextStartX"] = style["contentStartX"] + style["chatBoxPadding"]
-style["chatBoxTextMaxX"] = style["contentMaxX"] - style["chatBoxPadding"]
-style["chatBoxTextMaxY"] = style["contentMaxY"] - style["chatBoxPadding"]
-style["chatBoxTextMaxWidth"] = style["chatBoxTextMaxX"] - style["chatBoxTextStartX"]
-
+style = procStyle('GeneratePDF_ReportLab_config.ini')
 
 fontName = "simhei"
 fontDirName = "../lib/fonts/"
