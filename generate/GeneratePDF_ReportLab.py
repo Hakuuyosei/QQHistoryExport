@@ -1,20 +1,14 @@
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import A4
-from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.pagesizes import A4, A5
 from reportlab.lib.units import mm
 from reportlab.pdfgen import canvas
-from reportlab.lib import colors
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
+from PIL import Image
+
 import sqlite3
 import re
-
-
-
-
-
-
+import os
 
 class FontQuery:
     def __init__(self, db_path, style):
@@ -57,7 +51,7 @@ class DataProcessor:
 
     def procChatBoxMessage(self, dataList, startY):
         isFinish = False
-        while(not isFinish):
+        while (not isFinish):
             textStartY = startY + self.style["chatBoxPadding"]
             isFinish, textHeight, textWidth, drawData, remaindData \
                 = self.processMessageList(dataList, startY)
@@ -65,24 +59,21 @@ class DataProcessor:
             # 绘制聊天框
             chatBoxHeight = textHeight + 2 * self.style["chatBoxPadding"]
             chatBoxWidth = textWidth + 2 * self.style["chatBoxPadding"]
-            print(chatBoxHeight, chatBoxWidth)
-            pdfDraw.drawChatBox(startY, chatBoxWidth, chatBoxHeight)
+            chatBoxY = startY - chatBoxHeight
+            print("chatboxsize", chatBoxHeight, chatBoxWidth)
+            pdfDraw.drawChatBox(chatBoxY, chatBoxWidth, chatBoxHeight)
             # 绘制内容
-            for items in drawData:
-                # py语法糖，将items[1]的所有项作为参数给函数items[0]
-                items[0](*items[1])
-                print(items[1])
-
-
-
-
+            for item in drawData:
+                # py语法糖，将item[1]的所有项作为参数给函数items[0]
+                item[0](*item[1])
+                print("item", item[1])
 
     def processMessageList(self, dataList, startY):
         drawData = []
         # 初始化绘制区域
         curX = self.style["chatBoxTextStartX"]
         bufStartX = curX
-        curY = startY
+        curY = startY - self.style["textHeight"]
         textWidth = 0
         textHeight = 0
 
@@ -105,13 +96,14 @@ class DataProcessor:
                         drawData.append([pdfDraw.drawEmoji, [character, curX, curY]])
                         curX += self.emojiWidth
                         bufStartX = curX + self.emojiWidth
+
                     if character == "\n":
                         drawData.append([pdfDraw.drawText, [buffer, bufStartX, curY]])
                         # 更新当前坐标到下一行开头，并清空暂存字符串
                         textWidth = curX - self.style["chatBoxTextStartX"]
                         curX = self.style["chatBoxTextStartX"]
                         bufStartX = curX
-                        curY += self.style["textHeight"] + self.style["lineSpacing"]
+                        curY -= self.style["textHeight"] + self.style["lineSpacing"]
                         textHeight += self.style["textHeight"] + self.style["lineSpacing"]
                         buffer = ""
 
@@ -125,7 +117,7 @@ class DataProcessor:
                             # 更新当前坐标到下一行开头，并清空暂存字符串
                             curX = self.style["chatBoxTextStartX"]
                             bufStartX = curX
-                            curY += self.style["textHeight"] + self.style["lineSpacing"]
+                            curY -= self.style["textHeight"] + self.style["lineSpacing"]
                             textHeight += self.style["textHeight"] + self.style["lineSpacing"]
                             buffer = ""
                             textWidth = self.style["chatBoxTextMaxWidth"]
@@ -137,32 +129,31 @@ class DataProcessor:
                     drawData.append([pdfDraw.drawText, [buffer, bufStartX, curY]])
                     if curX - self.style["chatBoxTextStartX"] > textWidth:
                         textWidth = curX - self.style["chatBoxTextStartX"]
-                    curX = self.style["chatBoxTextStartX"]
-                    # curY += self.style["textHeight"] + self.style["lineSpacing"]
+                    # curX += self.style["chatBoxTextStartX"]
+                    # curY -= self.style["textHeight"] + self.style["lineSpacing"]
 
                     # 更新当前坐标到下一行开头，不加行间距
                     bufStartX = curX
                     print(bufStartX)
 
-            # 处理 "qqemoji" 类型的元素
+            # 处理 qqemoji 类型的元素
             elif item[0] == "qqemoji":
                 # 绘制qq表情符号并更新坐标
-                drawData.append([pdfDraw.DrawQQEmoji,[item[2], self.qqemojiWidth, curX, curY]])
-                curX += self.qqemojiWidth
+                drawData.append([pdfDraw.drawQQEmoji, [item[2], curX, curY]])
+                curX += self.style["qqemojiWidth"]
 
-            # # 处理 "img" 类型的元素
-            # elif item[0] == "img":
-            #     # 绘制图片并更新坐标
-            #     pdfDraw.DrawQQimg(item[2])
-            #     # 图片后要加两个换行
-            #     curX = startX + self.boxPadding
-            #     curY += self.textHeight + self.lineSpacing
-            #     curY += self.textHeight + self.lineSpacing
+            # 处理 "img" 类型的元素
+            elif item[0] == "img":
+                # 绘制图片并更新坐标
+                drawData.append([pdfDraw.DrawQQimg, [item[2], curX, curY]])
+                # 图片后要加两个换行
+                curX = self.style["chatBoxTextStartX"]
+
 
             # 其他类型的元素忽略
 
             # 检查是否超出绘制区域，如果是，则返回剩余的元素
-            #if curY >= maxY:
+            # if curY >= maxY:
             #    return False, curY, drawData, dataList[dataList.index(item):]
 
         # 处理完所有元素，返回空列表
@@ -171,13 +162,14 @@ class DataProcessor:
         textHeight += self.style["textHeight"]
         return True, textHeight, textWidth, drawData, []
 
-class PdfDraw():
+
+class PdfDraw:
     def __init__(self, fontPath, style):
         self.style = style
 
-        pdfmetrics.registerFont(TTFont(style["fontName"], fontPath))
-        #pdfmetrics.registerFont(TTFont('ColorEmoji', 'fonts/ColorEmoji.ttf'))
-        self.pdf_canvas = canvas.Canvas("example.pdf", pagesize = style["pageSize"], bottomup=0)
+        pdfmetrics.registerFont(TTFont(self.style["fontName"], fontPath))
+        # pdfmetrics.registerFont(TTFont('ColorEmoji', 'fonts/ColorEmoji.ttf'))
+        self.pdf_canvas = canvas.Canvas("example.pdf", pagesize=self.style["pageSize"])
 
     def save(self):
         self.pdf_canvas.save()
@@ -186,38 +178,55 @@ class PdfDraw():
         self.pdf_canvas.showPage()
 
     def drawText(self, text, x, y):
-        print(text,x,y)
-        textY = y + self.style["textHeight"]
-        self.pdf_canvas.setFont('simhei', 6 * mm)
-        self.pdf_canvas.drawString(x, textY, text)
+        self.pdf_canvas.setFillColor(self.style["textColor"])
+        self.pdf_canvas.setFont(self.style["fontName"], self.style["textHeight"])
+        self.pdf_canvas.drawString(x, y, text)
 
-        
-    def drawQQEmoji(self, x, y):
-        1
+    def drawQQEmoji(self, path, x, y):
+        print("emoji",x,y)
+
+        self.pdf_canvas.drawImage(path, x, y,
+                                  width=self.style["qqemojiWidth"],height = self.style["qqemojiWidth"],
+                                  mask='auto')
+
+
+    def drawImg(self, path, x, y):
+        print("Img", x, y)
+        # 获取文件名
+        filename = os.path.basename(path)
+
+        self.pdf_canvas.drawImage(path, x, y,
+                                  width=self.style["qqemojiWidth"],height = self.style["qqemojiWidth"],
+                                  mask='auto')
+
     def drawEmoji(self, x, y):
         1
         # pdf_canvas.setFont('Noto-COLRv1', 12 * mm)
         # pdf_canvas.drawString(7.25 * mm, 10 * mm, "🥺")
+
     def drawChatBox(self, y, width, Hight):
-        print(self.style["contentStartX"])
-        self.pdf_canvas.roundRect(self.style["contentStartX"], y, width, Hight, style["chatBoxradius"])
+        self.pdf_canvas.setFillColor(self.style["chatBoxFillColor"])
+        self.pdf_canvas.roundRect(self.style["contentStartX"], y, width, Hight, style["chatBoxradius"],
+                                  fill=1, stroke=0)
 
 
 style = {
     # 文字
-    "fontName": "simhei",# 字体名称
-    "textHeight": 6 * mm,# 文本高度
-    "lineSpacing": 1 * mm,# 行距
-    "emojiWidth": 6 * mm,# emoji宽度
-    "qqemojiWidth": 6 * mm,# qqemoji宽度 注意，请勿大于行距 + 文本高度
+    "fontName": "simhei",  # 字体名称
+    "textHeight": 3 * mm,  # 文本高度
+    "lineSpacing": 0.5 * mm,  # 行距
+    "emojiWidth": 3 * mm,  # emoji宽度
+    "qqemojiWidth": 3 * mm,  # qqemoji宽度 注意，请勿大于行距 + 文本高度
+    "textColor": "#000000",  # 文字颜色
 
     # 聊天框
-    "chatBoxPadding": 1 * mm,# 聊天框内边距
-    "chatBoxradius": 1 * mm,# 聊天框圆角半径
+    "chatBoxPadding": 1 * mm,  # 聊天框内边距
+    "chatBoxradius": 1 * mm,  # 聊天框圆角半径
+    "chatBoxFillColor": "#ececec",  # 聊天框填充颜色
 
     # 头像
-    "avatarSize": 3 * mm,# 文本高度
-    "avatarMargin": 1 * mm,# 文本高度
+    "avatarSize": 5 * mm,  # 文本高度
+    "avatarMargin": 1 * mm,  # 文本高度
 
     # 页边距
     "topMargin": 3 * mm,
@@ -225,7 +234,7 @@ style = {
     "rightMargin": 3 * mm,
     "bottomMargin": 3 * mm,
 
-    #页脚
+    # 页脚
     "pageFooterText": "生成日期：$date  第 $page 页",
     "pageFooterTextHeight": 3 * mm,
 
@@ -233,24 +242,23 @@ style = {
     "pageSize": A4
 }
 # Page
-style["pageHeight"] = style["pageSize"][1]# 纸张高度
-style["pageWidth"] = style["pageSize"][0]# 纸张宽度
+style["pageHeight"] = style["pageSize"][1]  # 纸张高度
+style["pageWidth"] = style["pageSize"][0]  # 纸张宽度
 
 # 聊天内容
 style["contentStartX"] = style["leftMargin"] + \
-                         style["avatarSize"] + 2 * style["avatarMargin"]# 聊天内容开始X坐标
-style["contentStartY"] = style["topMargin"]# 聊天内容开始X坐标
+                         style["avatarSize"] + 2 * style["avatarMargin"]  # 聊天内容开始X坐标
+style["contentStartY"] = style["topMargin"]  # 聊天内容开始X坐标
 
-style["contentMaxX"] = style["pageWidth"] - style["rightMargin"]# 聊天内容最大X坐标
-style["contentMaxY"] = style["pageHeight"] - style["topMargin"]\
-                       - style["pageFooterTextHeight"]# 聊天内容最大Y坐标
+style["contentMaxX"] = style["pageWidth"] - style["rightMargin"]  # 聊天内容最大X坐标
+style["contentMaxY"] = style["pageHeight"] - style["topMargin"] \
+                       - style["pageFooterTextHeight"]  # 聊天内容最大Y坐标
 
 # 聊天框
 style["chatBoxTextStartX"] = style["contentStartX"] + style["chatBoxPadding"]
 style["chatBoxTextMaxX"] = style["contentMaxX"] - style["chatBoxPadding"]
 style["chatBoxTextMaxY"] = style["contentMaxY"] - style["chatBoxPadding"]
 style["chatBoxTextMaxWidth"] = style["chatBoxTextMaxX"] - style["chatBoxTextStartX"]
-
 
 
 fontName = "simhei"
@@ -261,11 +269,6 @@ fontInfoPath = fontDirName + fontName + "_aspect_ratio.db"
 fontQuery = FontQuery(fontInfoPath, style)
 pdfDraw = PdfDraw(fontPath, style)
 dataprocessor = DataProcessor(style)
-dataprocessor.procChatBoxMessage([["m","你是谁？？你是谁？？\n你是你是你是你是你是你是你是你是你是你是你是你是你是你是你是你是你是你是你是谁？？你是谁？？？？？"]],4 * mm)
-#pdfDraw.drawChatBox(200*mm,200*mm,200*mm,200*mm)
+dataprocessor.procChatBoxMessage([["m", "你是谁？？你是谁？？\n你是你是？？？"], ["qqemoji","",""]], 100 * mm)
+# pdfDraw.drawChatBox(200*mm,200*mm,200*mm,200*mm)
 pdfDraw.save()
-
-
-
-
-
