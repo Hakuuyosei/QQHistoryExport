@@ -50,25 +50,25 @@ class DataProcessor:
     def __init__(self, style):
         self.style = style
 
-    def procTipMessage(self, data, startY):
+    def procTipMessage(self, data, startY, startC):
         if startY - style["tipTextHeight"] < style["chatBoxTextMaxY"]:
             return startY, False
-        pdfDraw.drawTipText(data, startY)
+        pdfDraw.drawTipText(data, startY, startC)
         return startY - style["tipTextHeight"], True
 
 
-    def procChatBoxMessage(self, dataList, startY):
+    def procChatBoxMessage(self, dataList, startY, startC):
         isFinish = False
         curY = startY
         isFinish, textHeight, textWidth, drawData, remaindData \
-            = self.processMessageList(dataList, startY - self.style["chatBoxPadding"])
+            = self.processMessageList(dataList, startY - self.style["chatBoxPadding"], startC)
 
         # 绘制聊天框
         chatBoxHeight = textHeight + 2 * self.style["chatBoxPadding"]
         chatBoxWidth = textWidth + 2 * self.style["chatBoxPadding"]
         chatBoxY = startY - chatBoxHeight
         print("chatboxsize", chatBoxHeight, chatBoxWidth)
-        pdfDraw.drawChatBox(chatBoxY, chatBoxWidth, chatBoxHeight)
+        pdfDraw.drawChatBox(chatBoxY, startC, chatBoxWidth, chatBoxHeight)
         curY = chatBoxY
         # 绘制内容
         for item in drawData:
@@ -78,7 +78,7 @@ class DataProcessor:
 
         return curY, isFinish, remaindData
 
-    def processMessageList(self, dataList, startY):
+    def processMessageList(self, dataList, startY, startC):
         drawData = []
         # 初始化绘制区域
         curX = self.style["chatBoxTextStartX"]
@@ -100,15 +100,15 @@ class DataProcessor:
                         # 如果是表情符号，则绘制符号，并更新当前坐标
 
                         if buffer != "":
-                            drawData.append([pdfDraw.drawText, [buffer, bufStartX, curY]])
+                            drawData.append([pdfDraw.drawText, [buffer, bufStartX, curY, startC]])
                             buffer = ""
 
-                        drawData.append([pdfDraw.drawEmoji, [character, curX, curY]])
+                        drawData.append([pdfDraw.drawEmoji, [character, curX, curY, startC]])
                         curX += self.emojiWidth
                         bufStartX = curX + self.emojiWidth
 
                     if character == "\n":
-                        drawData.append([pdfDraw.drawText, [buffer, bufStartX, curY]])
+                        drawData.append([pdfDraw.drawText, [buffer, bufStartX, curY ,startC]])
                         # 更新当前坐标到下一行开头，并清空暂存字符串
                         textWidth = curX - self.style["chatBoxTextStartX"]
                         curX = self.style["chatBoxTextStartX"]
@@ -123,7 +123,7 @@ class DataProcessor:
                         # 判断是否需要换行
                         if curX + charWidth > self.style["chatBoxTextMaxX"]:
                             # 如果该字符加上前面已暂存字符串的宽度会超出列宽，则先将暂存字符串绘制出来
-                            drawData.append([pdfDraw.drawText, [buffer, bufStartX, curY]])
+                            drawData.append([pdfDraw.drawText, [buffer, bufStartX, curY, startC]])
                             # 更新当前坐标到下一行开头，并清空暂存字符串
                             curX = self.style["chatBoxTextStartX"]
                             bufStartX = curX
@@ -136,7 +136,7 @@ class DataProcessor:
                         curX += charWidth
                 # 处理剩余的暂存字符串
                 if buffer:
-                    drawData.append([pdfDraw.drawText, [buffer, bufStartX, curY]])
+                    drawData.append([pdfDraw.drawText, [buffer, bufStartX, curY, startC]])
                     if curX - self.style["chatBoxTextStartX"] > textWidth:
                         textWidth = curX - self.style["chatBoxTextStartX"]
                     # curX += self.style["chatBoxTextStartX"]
@@ -201,19 +201,21 @@ class PdfDraw:
         self.showPage()
         self.drawPageFooter(pageNum)
 
-    def drawText(self, text, x, y):
+    def drawText(self, text, x, y, c):
+        x = style["pageWidth"] * c + x
         self.pdf_canvas.setFillColor(self.style["textColor"])
         self.pdf_canvas.setFont(self.style["fontName"], self.style["textHeight"])
         self.pdf_canvas.drawString(x, y, text)
 
-    def drawTipText(self, text, y):
+    def drawTipText(self, text, y, c):
         self.pdf_canvas.setFillColor(self.style["tipTextColor"])
         self.pdf_canvas.setFont(self.style["fontName"], self.style["tipTextHeight"])
-        x = style["contentCenter"]
+        x = style["pageWidth"] * c + style["contentCenter"]
         y = y - self.style["tipTextHeight"]
         self.pdf_canvas.drawCentredString(x, y, text)
 
-    def drawQQEmoji(self, path, x, y):
+    def drawQQEmoji(self, path, x, y, c):
+        x = style["pageWidth"] * c + x
         print("emoji",x,y)
 
         self.pdf_canvas.drawImage(path, x, y,
@@ -221,7 +223,8 @@ class PdfDraw:
                                   mask='auto')
 
 
-    def drawImg(self, path, x, y):
+    def drawImg(self, path, x, y, c):
+        x = style["pageWidth"] * c + x
         print("Img", x, y)
         # 获取文件名
         filename = os.path.basename(path)
@@ -230,14 +233,15 @@ class PdfDraw:
                                   width=self.style["qqemojiWidth"],height = self.style["qqemojiWidth"],
                                   mask='auto')
 
-    def drawEmoji(self, x, y):
+    def drawEmoji(self, x, y, c):
         1
         # pdf_canvas.setFont('Noto-COLRv1', 12 * mm)
         # pdf_canvas.drawString(7.25 * mm, 10 * mm, "🥺")
 
-    def drawChatBox(self, y, width, Hight):
+    def drawChatBox(self, y, c, width, Hight):
+        x = style["pageWidth"] * c + self.style["contentStartX"]
         self.pdf_canvas.setFillColor(self.style["chatBoxFillColor"])
-        self.pdf_canvas.roundRect(self.style["contentStartX"], y, width, Hight, style["chatBoxradius"],
+        self.pdf_canvas.roundRect(x, y, width, Hight, style["chatBoxradius"],
                                   fill=1, stroke=0)
 
 
@@ -247,11 +251,15 @@ class Generate:
         self.style = style
         self.pageNum = 1
         self.curY = self.style["contentStartY"]
+        self.curC = 0
 
 
     def nextPage(self):
-        self.pageNum += 1
-        pdfDraw.nextPage(self.pageNum)
+        if self.curC + 1 < style["column"]:
+            self.curC = self.curC + 1
+        else:
+            self.pageNum += 1
+            pdfDraw.nextPage(self.pageNum)
         self.curY = self.style["contentStartY"]
 
     def main(self):
@@ -264,17 +272,17 @@ class Generate:
                     isFinish = False
                     remaindData = obj["c"]
                     while not isFinish:
-                        self.curY, isFinish, remaindData = dataprocessor.procChatBoxMessage(remaindData, self.curY)
+                        self.curY, isFinish, remaindData = dataprocessor.procChatBoxMessage(remaindData, self.curY, self.curC)
                         if not isFinish:
                             self.nextPage()
 
                 elif obj["t"] == "revoke":
                     isFinish = False
                     data = obj["c"]["text"]
-                    self.curY, isFinish = dataprocessor.procTipMessage(data, self.curY)
+                    self.curY, isFinish = dataprocessor.procTipMessage(data, self.curY, self.curC)
                     if not isFinish:
                         self.nextPage()
-                        self.curY, isFinish = dataprocessor.procTipMessage(data, self.curY)
+                        self.curY, isFinish = dataprocessor.procTipMessage(data, self.curY, self.curC)
 
                 if i == 10:
                     break
@@ -317,11 +325,13 @@ style = {
     "pageFooterTextHeight": 3 * mm,
 
     # 纸张大小
-    "pageSize": A5
+    "pageSize": A4,
+    "column": 2  # 栏数
 }
 # Page
 style["pageHeight"] = style["pageSize"][1]  # 纸张高度
-style["pageWidth"] = style["pageSize"][0]  # 纸张宽度
+style["pageWidth"] = style["pageSize"][0]/style["column"]  # 纸张宽度
+
 
 # 聊天内容
 style["contentStartX"] = style["leftMargin"] + \
