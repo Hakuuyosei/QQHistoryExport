@@ -33,7 +33,7 @@ c.execute('''CREATE TABLE IF NOT EXISTS font_metrics
              (unicode INT PRIMARY KEY, aspect_ratio REAL)''')
 
 # 加载字体
-font = ImageFont.truetype('../../lib/fonts/simhei.ttf', size=32)
+font = ImageFont.truetype('../../lib/fonts/simhei.ttf', size=16)
 
 
 

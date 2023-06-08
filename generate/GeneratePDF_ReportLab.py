@@ -105,6 +105,16 @@ class DataProcessor:
                         drawData.append([pdfDraw.drawEmoji, [character, curX, curY]])
                         curX += self.emojiWidth
                         bufStartX = curX + self.emojiWidth
+                    if character == "\n":
+                        drawData.append([pdfDraw.drawText, [buffer, bufStartX, curY]])
+                        # 更新当前坐标到下一行开头，并清空暂存字符串
+                        textWidth = curX - self.style["chatBoxTextStartX"]
+                        curX = self.style["chatBoxTextStartX"]
+                        bufStartX = curX
+                        curY += self.style["textHeight"] + self.style["lineSpacing"]
+                        textHeight += self.style["textHeight"] + self.style["lineSpacing"]
+                        buffer = ""
+
                     else:
                         # 如果不是表情符号，先查询其宽度
                         charWidth = fontQuery.queryCharWidth(character)
@@ -180,6 +190,7 @@ class PdfDraw():
         textY = y + self.style["textHeight"]
         self.pdf_canvas.setFont('simhei', 6 * mm)
         self.pdf_canvas.drawString(x, textY, text)
+
         
     def drawQQEmoji(self, x, y):
         1
@@ -250,7 +261,7 @@ fontInfoPath = fontDirName + fontName + "_aspect_ratio.db"
 fontQuery = FontQuery(fontInfoPath, style)
 pdfDraw = PdfDraw(fontPath, style)
 dataprocessor = DataProcessor(style)
-dataprocessor.procChatBoxMessage([["m","你是谁？？你是谁？？你是谁？？你是谁？？？？？"]],4 * mm)
+dataprocessor.procChatBoxMessage([["m","你是谁？？你是谁？？\n你是你是你是你是你是你是你是你是你是你是你是你是你是你是你是你是你是你是你是谁？？你是谁？？？？？"]],4 * mm)
 #pdfDraw.drawChatBox(200*mm,200*mm,200*mm,200*mm)
 pdfDraw.save()
 
