@@ -9,6 +9,7 @@ from PIL import Image
 import sqlite3
 import re
 import os
+import json
 
 class FontQuery:
     def __init__(self, db_path, style):
@@ -51,22 +52,24 @@ class DataProcessor:
 
     def procChatBoxMessage(self, dataList, startY):
         isFinish = False
-        while (not isFinish):
-            textStartY = startY + self.style["chatBoxPadding"]
-            isFinish, textHeight, textWidth, drawData, remaindData \
-                = self.processMessageList(dataList, startY)
+        curY = startY
+        isFinish, textHeight, textWidth, drawData, remaindData \
+            = self.processMessageList(dataList, startY)
 
-            # 绘制聊天框
-            chatBoxHeight = textHeight + 2 * self.style["chatBoxPadding"]
-            chatBoxWidth = textWidth + 2 * self.style["chatBoxPadding"]
-            chatBoxY = startY - chatBoxHeight
-            print("chatboxsize", chatBoxHeight, chatBoxWidth)
-            pdfDraw.drawChatBox(chatBoxY, chatBoxWidth, chatBoxHeight)
-            # 绘制内容
-            for item in drawData:
-                # py语法糖，将item[1]的所有项作为参数给函数items[0]
-                item[0](*item[1])
-                print("item", item[1])
+        # 绘制聊天框
+        chatBoxHeight = textHeight + 2 * self.style["chatBoxPadding"]
+        chatBoxWidth = textWidth + 2 * self.style["chatBoxPadding"]
+        chatBoxY = startY - chatBoxHeight
+        print("chatboxsize", chatBoxHeight, chatBoxWidth)
+        pdfDraw.drawChatBox(chatBoxY, chatBoxWidth, chatBoxHeight)
+        curY = chatBoxY
+        # 绘制内容
+        for item in drawData:
+            # py语法糖，将item[1]的所有项作为参数给函数items[0]
+            item[0](*item[1])
+            print("item", item[1])
+
+        return curY, isFinish, remaindData
 
     def processMessageList(self, dataList, startY):
         drawData = []
@@ -80,11 +83,11 @@ class DataProcessor:
         # 遍历列表中的每一个元素
         for item in dataList:
             # 处理 "m" 类型的元素
-            if item[0] == "m":
+            if item["t"] == "m":
                 # 暂存一行中的文本
                 buffer = ""
                 # 遍历字符串中的每一个字符
-                for character in item[1]:
+                for character in item["c"]["m"]:
                     # 判断字符是否为表情符号
                     if fontQuery.isEmoji(character):
                         # 如果是表情符号，则绘制符号，并更新当前坐标
@@ -137,15 +140,15 @@ class DataProcessor:
                     print(bufStartX)
 
             # 处理 qqemoji 类型的元素
-            elif item[0] == "qqemoji":
+            elif item["t"] == "qqemoji":
                 # 绘制qq表情符号并更新坐标
-                drawData.append([pdfDraw.drawQQEmoji, [item[2], curX, curY]])
+                drawData.append([pdfDraw.drawQQEmoji, [item["c"]["path"], curX, curY]])
                 curX += self.style["qqemojiWidth"]
 
             # 处理 "img" 类型的元素
-            elif item[0] == "img":
+            elif item["t"] == "img":
                 # 绘制图片并更新坐标
-                drawData.append([pdfDraw.DrawQQimg, [item[2], curX, curY]])
+                drawData.append([pdfDraw.DrawQQimg, [item["c"]["imgPath"], curX, curY]])
                 # 图片后要加两个换行
                 curX = self.style["chatBoxTextStartX"]
 
@@ -170,12 +173,26 @@ class PdfDraw:
         pdfmetrics.registerFont(TTFont(self.style["fontName"], fontPath))
         # pdfmetrics.registerFont(TTFont('ColorEmoji', 'fonts/ColorEmoji.ttf'))
         self.pdf_canvas = canvas.Canvas("example.pdf", pagesize=self.style["pageSize"])
+        self.drawPageFooter(1)
 
     def save(self):
         self.pdf_canvas.save()
 
+    # pdf文档翻页
     def showPage(self):
         self.pdf_canvas.showPage()
+
+    # pdf绘制页脚
+    def drawPageFooter(self, pageNum):
+        text = self.style["pageFooterText"].replace("$page", str(pageNum))
+        self.pdf_canvas.setFillColor(self.style["textColor"])
+        self.pdf_canvas.setFont(self.style["fontName"], self.style["pageFooterTextHeight"])
+        self.pdf_canvas.drawString(self.style["leftMargin"], self.style["bottomMargin"], text)
+
+    # pdf翻页
+    def nextPage(self, pageNum):
+        self.showPage()
+        self.drawPageFooter(pageNum)
 
     def drawText(self, text, x, y):
         self.pdf_canvas.setFillColor(self.style["textColor"])
@@ -210,6 +227,37 @@ class PdfDraw:
                                   fill=1, stroke=0)
 
 
+class Generate:
+    def __init__(self, outputFolderPath, style):
+        self.outputFolderPath = outputFolderPath
+        self.style = style
+        self.pageNum = 1
+        self.curY = self.style["contentStartY"]
+
+    def nextPage(self):
+        self.pageNum += 1
+        pdfDraw.nextPage(self.pageNum)
+        self.curY = self.style["contentStartY"]
+
+    def main(self):
+        with open(f"{self.outputFolderPath}/chatData.txt", "r") as f:
+            for line in f:
+                obj = json.loads(line)
+                if obj["t"] == "msg":
+                    isFinish = False
+                    remaindData = obj["c"]
+                    while not isFinish:
+                        curY, isFinish, remaindData = dataprocessor.procChatBoxMessage(remaindData, curY)
+                        if not isFinish:
+                            self.nextPage()
+
+
+
+
+                    break
+
+
+
 style = {
     # 文字
     "fontName": "simhei",  # 字体名称
@@ -229,10 +277,10 @@ style = {
     "avatarMargin": 1 * mm,  # 文本高度
 
     # 页边距
-    "topMargin": 3 * mm,
-    "leftMargin": 3 * mm,
-    "rightMargin": 3 * mm,
-    "bottomMargin": 3 * mm,
+    "topMargin": 10 * mm,
+    "leftMargin": 10 * mm,
+    "rightMargin": 10 * mm,
+    "bottomMargin": 10 * mm,
 
     # 页脚
     "pageFooterText": "生成日期：$date  第 $page 页",
@@ -248,11 +296,10 @@ style["pageWidth"] = style["pageSize"][0]  # 纸张宽度
 # 聊天内容
 style["contentStartX"] = style["leftMargin"] + \
                          style["avatarSize"] + 2 * style["avatarMargin"]  # 聊天内容开始X坐标
-style["contentStartY"] = style["topMargin"]  # 聊天内容开始X坐标
+style["contentStartY"] = style["pageHeight"] - style["topMargin"]  # 聊天内容开始Y坐标
 
 style["contentMaxX"] = style["pageWidth"] - style["rightMargin"]  # 聊天内容最大X坐标
-style["contentMaxY"] = style["pageHeight"] - style["topMargin"] \
-                       - style["pageFooterTextHeight"]  # 聊天内容最大Y坐标
+style["contentMaxY"] = style["bottomMargin"] - style["pageFooterTextHeight"]  # 聊天内容最大Y坐标
 
 # 聊天框
 style["chatBoxTextStartX"] = style["contentStartX"] + style["chatBoxPadding"]
@@ -269,6 +316,6 @@ fontInfoPath = fontDirName + fontName + "_aspect_ratio.db"
 fontQuery = FontQuery(fontInfoPath, style)
 pdfDraw = PdfDraw(fontPath, style)
 dataprocessor = DataProcessor(style)
-dataprocessor.procChatBoxMessage([["m", "你是谁？？你是谁？？\n你是你是？？？"], ["qqemoji","",""]], 100 * mm)
-# pdfDraw.drawChatBox(200*mm,200*mm,200*mm,200*mm)
+generate = Generate("../output", style)
+generate.main()
 pdfDraw.save()

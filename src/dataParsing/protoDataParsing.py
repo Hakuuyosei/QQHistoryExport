@@ -177,14 +177,16 @@ class protoDataParsing():
             #print(filePath,voiceLength)
             #slkamrTomp3.slkamrTomp3(filePath)
 
-        elif msgType == -2022:  # 短视频
+        # 短视频
+        elif msgType == -2022:
             doc = Msg_pb2.ShortVideo()
             doc.ParseFromString(msgData)
             filePath = doc.field3.decode("utf-8")
             print(filePath)
 
 
-        elif msgType == -5020:# 群标识卡片，proto
+        # 群标识卡片
+        elif msgType == -5020:
             deserialize_data, message_type = blackboxprotobuf.decode_message(msgData)
             print(f"原始数据: {deserialize_data}")
             print(f"消息类型: {message_type}")
@@ -198,7 +200,8 @@ class protoDataParsing():
             print(deserialize_data["5"].decode("utf-8"))
             return
 
-        elif msgType == -8018:  # 大号表情
+        # 大号表情
+        elif msgType == -8018:
             doc = Msg_pb2.marketFace()
             doc.ParseFromString(msgData)
             marketFaceName = doc.u7.decode("utf-8")
