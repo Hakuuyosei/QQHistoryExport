@@ -50,11 +50,18 @@ class DataProcessor:
     def __init__(self, style):
         self.style = style
 
+    def procTipMessage(self, data, startY):
+        if startY - style["tipTextHeight"] < style["chatBoxTextMaxY"]:
+            return startY, False
+        pdfDraw.drawTipText(data, startY)
+        return startY - style["tipTextHeight"], True
+
+
     def procChatBoxMessage(self, dataList, startY):
         isFinish = False
         curY = startY
         isFinish, textHeight, textWidth, drawData, remaindData \
-            = self.processMessageList(dataList, startY)
+            = self.processMessageList(dataList, startY - self.style["chatBoxPadding"])
 
         # 绘制聊天框
         chatBoxHeight = textHeight + 2 * self.style["chatBoxPadding"]
@@ -162,7 +169,7 @@ class DataProcessor:
         # 处理完所有元素，返回空列表
 
         # 留出最后一行的位置
-        textHeight += self.style["textHeight"]
+        textHeight += self.style["textHeight"] + self.style["lineSpacing"]
         return True, textHeight, textWidth, drawData, []
 
 
@@ -172,7 +179,7 @@ class PdfDraw:
 
         pdfmetrics.registerFont(TTFont(self.style["fontName"], fontPath))
         # pdfmetrics.registerFont(TTFont('ColorEmoji', 'fonts/ColorEmoji.ttf'))
-        self.pdf_canvas = canvas.Canvas("example.pdf", pagesize=self.style["pageSize"])
+        self.pdf_canvas = canvas.Canvas("chatData.pdf", pagesize=self.style["pageSize"])
         self.drawPageFooter(1)
 
     def save(self):
@@ -198,6 +205,13 @@ class PdfDraw:
         self.pdf_canvas.setFillColor(self.style["textColor"])
         self.pdf_canvas.setFont(self.style["fontName"], self.style["textHeight"])
         self.pdf_canvas.drawString(x, y, text)
+
+    def drawTipText(self, text, y):
+        self.pdf_canvas.setFillColor(self.style["tipTextColor"])
+        self.pdf_canvas.setFont(self.style["fontName"], self.style["tipTextHeight"])
+        x = style["contentCenter"]
+        y = y - self.style["tipTextHeight"]
+        self.pdf_canvas.drawCentredString(x, y, text)
 
     def drawQQEmoji(self, path, x, y):
         print("emoji",x,y)
@@ -234,6 +248,7 @@ class Generate:
         self.pageNum = 1
         self.curY = self.style["contentStartY"]
 
+
     def nextPage(self):
         self.pageNum += 1
         pdfDraw.nextPage(self.pageNum)
@@ -241,21 +256,31 @@ class Generate:
 
     def main(self):
         with open(f"{self.outputFolderPath}/chatData.txt", "r") as f:
+            i = 1
             for line in f:
+                i += 1
                 obj = json.loads(line)
                 if obj["t"] == "msg":
                     isFinish = False
                     remaindData = obj["c"]
                     while not isFinish:
-                        curY, isFinish, remaindData = dataprocessor.procChatBoxMessage(remaindData, curY)
+                        self.curY, isFinish, remaindData = dataprocessor.procChatBoxMessage(remaindData, self.curY)
                         if not isFinish:
                             self.nextPage()
 
+                elif obj["t"] == "revoke":
+                    isFinish = False
+                    data = obj["c"]["text"]
+                    self.curY, isFinish = dataprocessor.procTipMessage(data, self.curY)
+                    if not isFinish:
+                        self.nextPage()
+                        self.curY, isFinish = dataprocessor.procTipMessage(data, self.curY)
 
-
-
+                if i == 10:
                     break
-
+                self.curY -= style["MassageSpacing"]
+                if self.curY <= style["chatBoxTextMaxY"]:
+                    self.nextPage()
 
 
 style = {
@@ -267,10 +292,15 @@ style = {
     "qqemojiWidth": 3 * mm,  # qqemoji宽度 注意，请勿大于行距 + 文本高度
     "textColor": "#000000",  # 文字颜色
 
+    "tipTextColor": "#585858",  # 文本颜色
+    "tipTextHeight": 3 * mm,  # 文本高度
+
+    "MassageSpacing": 1 * mm, # 消息间距
+
     # 聊天框
     "chatBoxPadding": 1 * mm,  # 聊天框内边距
     "chatBoxradius": 1 * mm,  # 聊天框圆角半径
-    "chatBoxFillColor": "#ececec",  # 聊天框填充颜色
+    "chatBoxFillColor": "#eeeeee",  # 聊天框填充颜色
 
     # 头像
     "avatarSize": 5 * mm,  # 文本高度
@@ -287,7 +317,7 @@ style = {
     "pageFooterTextHeight": 3 * mm,
 
     # 纸张大小
-    "pageSize": A4
+    "pageSize": A5
 }
 # Page
 style["pageHeight"] = style["pageSize"][1]  # 纸张高度
@@ -300,6 +330,8 @@ style["contentStartY"] = style["pageHeight"] - style["topMargin"]  # 聊天内�
 
 style["contentMaxX"] = style["pageWidth"] - style["rightMargin"]  # 聊天内容最大X坐标
 style["contentMaxY"] = style["bottomMargin"] - style["pageFooterTextHeight"]  # 聊天内容最大Y坐标
+style["contentMaxWidth"] = style["pageWidth"] - style["rightMargin"] - style["leftMargin"]
+style["contentCenter"] = style["contentMaxWidth"] / 2 + style["rightMargin"]
 
 # 聊天框
 style["chatBoxTextStartX"] = style["contentStartX"] + style["chatBoxPadding"]
