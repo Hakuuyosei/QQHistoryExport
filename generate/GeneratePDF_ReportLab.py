@@ -13,7 +13,6 @@ import configparser
 import json
 
 
-
 class DrawingQuery:
     def __init__(self, db_path, style):
         self.style = style
@@ -66,24 +65,24 @@ class DataProcessor:
         pdfDraw.drawTipText(data, startY, startC)
         return startY - style["tipTextHeight"], True
 
-    def procImgMessage(self, data, startY, startC):
+    def procImgMessage(self, data, offsetX, startY, startC):
         path = data["imgPath"]
         name = data["name"]
         imgType = data["imgType"]
 
         # 如果是图片表情
-        if imgType == "50":
+        if imgType == "50" or imgType == "marketface":
             maxWidth = style["imgEmoMaxSize"]
             maxHeight = style["imgEmoMaxSize"]
         else:
             maxWidth = style["imgMaxWidth"]
             maxHeight = style["imgMaxHeight"]
 
-        width, height = DrawingQuery.resize_image(self,data["imgWidth"],  data["imgHeight"], maxWidth, maxHeight)
+        width, height = drawingQuery.resize_image(data["imgWidth"], data["imgHeight"], maxWidth, maxHeight)
 
         if startY - height - style["textHeight"] < style["contentMaxY"]:
             return startY, False
-        pdfDraw.drawImg(path, name, width, height, 0, startY, startC)
+        pdfDraw.drawImg(path, name, width, height, offsetX, startY, startC)
 
     def procChatBoxMessage(self, dataList, startY, startC):
         isFinish = False
@@ -116,13 +115,16 @@ class DataProcessor:
         textHeight = 0
 
         # 遍历列表中的每一个元素
-        for item in dataList:
+        for itemNum in range(len(dataList)):
+            item = dataList[itemNum]
             # 处理 "m" 类型的元素
             if item["t"] == "m":
                 # 暂存一行中的文本
                 buffer = ""
                 # 遍历字符串中的每一个字符
-                for character in item["c"]["m"]:
+                str = item["c"]["m"]
+                for charNum in range(len(str)):
+                    character = str[charNum]
                     # 判断字符是否为表情符号
                     if drawingQuery.isEmoji(character):
                         # 如果是表情符号，则绘制符号，并更新当前坐标
@@ -155,6 +157,16 @@ class DataProcessor:
                             # 更新当前坐标到下一行开头，并清空暂存字符串
                             curX = self.style["chatBoxTextStartX"]
                             bufStartX = curX
+
+                            # 待验证
+                            if curY - self.style["textHeight"] + self.style["lineSpacing"] < \
+                                    self.style["c"] - style["chatBoxTextMaxY"]:
+                                remaindData = []
+                                item["c"]["m"] = str[charNum:]
+                                remaindData.append(item)
+                                remaindData.append(*dataList[itemNum + 1:])
+                                return False, textHeight, drawData, remaindData
+
                             curY -= self.style["textHeight"] + self.style["lineSpacing"]
                             textHeight += self.style["textHeight"] + self.style["lineSpacing"]
                             buffer = ""
@@ -176,22 +188,60 @@ class DataProcessor:
 
             # 处理 qqemoji 类型的元素
             elif item["t"] == "qqemoji":
+                if curX + self.style["qqemojiWidth"] > self.style["chatBoxTextMaxX"]:
+                    # 如果该字符加上前面已暂存字符串的宽度会超出列宽，则先将暂存字符串绘制出来
+                    if buffer != []:
+                        drawData.append([pdfDraw.drawText, [buffer, bufStartX, curY, startC]])
+                    # 更新当前坐标到下一行开头，并清空暂存字符串
+                    curX = self.style["chatBoxTextStartX"]
+                    bufStartX = curX
+
+                    # 待验证
+                    if curY - self.style["textHeight"] + self.style["lineSpacing"] < \
+                            self.style["c"] - style["chatBoxTextMaxY"]:
+                        remaindData = []
+                        remaindData.append(*dataList[itemNum:])
+                        return False, textHeight, drawData, remaindData
+
+                    curY -= self.style["textHeight"] + self.style["lineSpacing"]
+                    textHeight += self.style["textHeight"] + self.style["lineSpacing"]
+                    buffer = ""
+                    textWidth = self.style["chatBoxTextMaxWidth"]
                 # 绘制qq表情符号并更新坐标
                 drawData.append([pdfDraw.drawTextQQEmoji, [item["c"]["path"], curX, curY]])
                 curX += self.style["qqemojiWidth"]
 
             # 处理 "img" 类型的元素
             elif item["t"] == "img":
+                data = item["c"]
+                path = data["imgPath"]
+                name = data["name"]
+                imgType = data["imgType"]
+
+                # 如果是图片表情
+                if imgType == "50":
+                    maxWidth = style["imgEmoMaxSize"]
+                    maxHeight = style["imgEmoMaxSize"]
+                else:
+                    maxWidth = style["imgMaxWidth"] - 2 * self.style["chatBoxPadding"]
+                    maxHeight = style["imgMaxHeight"] - 2 * self.style["chatBoxPadding"]
+
+                width, height = drawingQuery.resize_image(data["imgWidth"], data["imgHeight"], maxWidth,
+                                                          maxHeight)
+
+                if curY - height - style["textHeight"] < style["contentMaxY"]:
+                    remaindData = []
+                    remaindData.append(*dataList[itemNum:])
+                    return False, textHeight, drawData, remaindData
+                    drawData.append([pdfDraw.drawImg,
+                                     [path, name, width, height, self.style["chatBoxPadding"], startY, startC]])
+
                 # 绘制图片并更新坐标
                 drawData.append([pdfDraw.DrawTextImg, [item["c"]["imgPath"], curX, curY]])
                 # 图片后要加两个换行
                 curX = self.style["chatBoxTextStartX"]
 
             # 其他类型的元素忽略
-
-            # 检查是否超出绘制区域，如果是，则返回剩余的元素
-            # if curY >= maxY:
-            #    return False, curY, drawData, dataList[dataList.index(item):]
 
         # 处理完所有元素，返回空列表
 
@@ -249,16 +299,13 @@ class PdfDraw:
                                   width=self.style["qqemojiWidth"], height=self.style["qqemojiWidth"],
                                   mask='auto')
 
-
-
-    def drawImg(self, path, name, width, height, x, y, c):
-        x = style["pageWidth"] * c + self.style["contentStartX"] + x
+    def drawImg(self, path, name, width, height, offsetX, y, c):
+        x = style["pageWidth"] * c + self.style["contentStartX"] + offsetX
         print("Img", x, y)
         self.pdf_canvas.drawImage(path, x, y - height,
                                   width=width, height=height,
                                   mask='auto')
         text = f"file:  {name}"
-        x = style["pageWidth"] * c + x
         self.pdf_canvas.setFillColor(self.style["textColor"])
         self.pdf_canvas.setFont(self.style["fontName"], self.style["textHeight"])
         self.pdf_canvas.drawString(x, y - self.style["textHeight"], text)
@@ -320,10 +367,18 @@ class Generate:
                 elif obj["t"] == "img":
                     isFinish = False
                     data = obj["c"]
-                    self.curY, isFinish = dataprocessor.procImgMessage(data, self.curY, self.curC)
+                    self.curY, isFinish = dataprocessor.procImgMessage(data, 0, self.curY, self.curC)
                     if not isFinish:
                         self.nextPage()
-                        self.curY, isFinish = dataprocessor.procImgMessage(data, self.curY, self.curC)
+                        self.curY, isFinish = dataprocessor.procImgMessage(data, 0, self.curY, self.curC)
+
+                elif obj["t"] == "img":
+                    isFinish = False
+                    data = obj["c"]
+                    self.curY, isFinish = dataprocessor.procImgMessage(data, 0, self.curY, self.curC)
+                    if not isFinish:
+                        self.nextPage()
+                        self.curY, isFinish = dataprocessor.procImgMessage(data, 0, self.curY, self.curC)
 
                 if i == 10:
                     break
@@ -332,10 +387,10 @@ class Generate:
                     self.nextPage()
 
 
-
 # 为防止设置项被设为小写，使用自己的optionxform函数
 def my_optionxform(optionstr: str) -> str:
     return optionstr
+
 
 # 读取ini文件
 def read_ini_file(file_path: str) -> dict:
@@ -365,6 +420,8 @@ def read_ini_file(file_path: str) -> dict:
             data[key] = value
 
     return data
+
+
 def procStyle(file_path):
     style = read_ini_file(file_path)
     # Page
@@ -391,6 +448,7 @@ def procStyle(file_path):
     style["imgMaxWidth"] = style["pageWidth"] * style["fltimgDrawScale"]
     style["imgMaxHeight"] = style["pageHeight"] * style["fltimgDrawScale"]
     return style
+
 
 style = procStyle('GeneratePDF_ReportLab_config.ini')
 print(style)
