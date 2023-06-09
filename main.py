@@ -22,9 +22,9 @@ from lib.javaDeserialization import javaDeserialization as jd
 
 
 
-
-unserializedDataType =  [-1000, -1051, -1012, -2042, -2015, -1034, -2005, -3008, -2016, -4008, -1013]
-protoDataType =         [-2000, -1035, -2002, -2022, -5020, -5023, -8018, -5040]
+# QQ消息类型以及处理方式
+unserializedDataType = [-1000, -1051, -1012, -2042, -2015, -1034, -2005, -3008, -2016, -4008, -1013]
+protoDataType =        [-2000, -1035, -2002, -2022, -5020, -5023, -8018, -5040]
 
 
 class QQ():
@@ -40,6 +40,7 @@ class QQ():
             data = json.load(f)
             self.targetQQ = data["targetQQ"]
             self.dbPath = data["fileName"]
+            self.chatimgPath = data["chatimgPath"]
             self.key = data["key"]
             self.cmdpre = data["cmd"]
             self.qqemojiVer = 1
@@ -47,7 +48,7 @@ class QQ():
         self.ERRCODE = errcode.err_code()
         self.textParsing = textParsing(self.ERRCODE,self.qqemojiVer)
         self.unserializedDataParsing = unserializedDataParsing(self.ERRCODE, self.textParsing)
-        self.protoDataParsing = protoDataParsing(self.ERRCODE, self.textParsing)
+        self.protoDataParsing = protoDataParsing(self.ERRCODE, self.textParsing, self.chatimgPath)
 
         self.createOutput()
         self.outputFile = open('output/chatData.txt', 'w')
@@ -65,6 +66,7 @@ class QQ():
         os.mkdir(dir_path + "/emoticons/emoticon1/old")
         os.mkdir(dir_path + "/emoticons/emoticon2")
         os.mkdir(dir_path + "/emoticons/nudgeaction")
+        os.mkdir(dir_path + "/images")
 
     def fill_cursors(self, cmd):
         cursors = []

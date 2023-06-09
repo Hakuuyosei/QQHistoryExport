@@ -71,18 +71,21 @@ class DataProcessor:
         imgType = data["imgType"]
 
         # 如果是图片表情
-        if imgType == "50" or imgType == "marketface":
+        if imgType == 50 or imgType == "marketface":
             maxWidth = style["imgEmoMaxSize"]
             maxHeight = style["imgEmoMaxSize"]
         else:
             maxWidth = style["imgMaxWidth"]
             maxHeight = style["imgMaxHeight"]
 
+
         width, height = drawingQuery.resize_image(data["imgWidth"], data["imgHeight"], maxWidth, maxHeight)
 
         if startY - height - style["textHeight"] < style["contentMaxY"]:
             return startY, False
+        print("image", width, height, imgType)
         pdfDraw.drawImg(path, name, width, height, offsetX, startY, startC)
+        return startY - height - style["textHeight"], True
 
     def procChatBoxMessage(self, dataList, startY, startC):
         isFinish = False
@@ -94,14 +97,14 @@ class DataProcessor:
         chatBoxHeight = textHeight + 2 * self.style["chatBoxPadding"]
         chatBoxWidth = textWidth + 2 * self.style["chatBoxPadding"]
         chatBoxY = startY - chatBoxHeight
-        print("chatboxsize", chatBoxHeight, chatBoxWidth)
+        # print("chatboxsize", chatBoxHeight, chatBoxWidth)
         pdfDraw.drawChatBox(chatBoxY, startC, chatBoxWidth, chatBoxHeight)
         curY = chatBoxY
         # 绘制内容
         for item in drawData:
             # py语法糖，将item[1]的所有项作为参数给函数items[0]
             item[0](*item[1])
-            print("item", item[1])
+            # print("item", item[1])
 
         return curY, isFinish, remaindData
 
@@ -160,7 +163,7 @@ class DataProcessor:
 
                             # 待验证
                             if curY - self.style["textHeight"] + self.style["lineSpacing"] < \
-                                    self.style["c"] - style["chatBoxTextMaxY"]:
+                                    style["chatBoxTextMaxY"]:
                                 remaindData = []
                                 item["c"]["m"] = str[charNum:]
                                 remaindData.append(item)
@@ -301,17 +304,19 @@ class PdfDraw:
 
     def drawImg(self, path, name, width, height, offsetX, y, c):
         x = style["pageWidth"] * c + self.style["contentStartX"] + offsetX
-        print("Img", x, y)
+        print("Img", x, y, width, height)
+
+        if path == "":
+            return
+        path = "../" + path
         self.pdf_canvas.drawImage(path, x, y - height,
                                   width=width, height=height,
                                   mask='auto')
         text = f"file:  {name}"
         self.pdf_canvas.setFillColor(self.style["textColor"])
         self.pdf_canvas.setFont(self.style["fontName"], self.style["textHeight"])
-        self.pdf_canvas.drawString(x, y - self.style["textHeight"], text)
+        self.pdf_canvas.drawString(x, y - height - self.style["textHeight"], text)
 
-    def DrawTextImg(self, path, y, c):
-        1
 
     def drawTextEmoji(self, x, y, c):
         1
@@ -334,7 +339,7 @@ class Generate:
         self.curC = 0
 
     def nextPage(self):
-        if self.curC + 1 < style["numColumn"]:
+        if self.curC + 1 < style["intcolumn"]:
             self.curC = self.curC + 1
         else:
             self.pageNum += 1
@@ -380,7 +385,7 @@ class Generate:
                         self.nextPage()
                         self.curY, isFinish = dataprocessor.procImgMessage(data, 0, self.curY, self.curC)
 
-                if i == 10:
+                if i == 40:
                     break
                 self.curY -= style["MassageSpacing"]
                 if self.curY <= style["chatBoxTextMaxY"]:

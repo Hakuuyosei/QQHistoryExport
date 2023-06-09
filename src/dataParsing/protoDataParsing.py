@@ -41,9 +41,11 @@ def crc64(s):
 
 
 class protoDataParsing():
-    def __init__(self, errcodeobj: err_code, textparsingobj: textParsing):
+    def __init__(self, errcodeobj: err_code, textparsingobj: textParsing, chatImgPath):
         self.ERRCODE = errcodeobj
         self.textParsing = textparsingobj
+
+        self.chatImgPath = chatImgPath
 
         self.imgMD5Map = {}
         self.imgNum = 1
@@ -77,8 +79,8 @@ class protoDataParsing():
             url = 'chatimg:' + doc.md5
             filename = hex(crc64(url))
             filename = 'Cache_' + filename.replace('0x', '')
-            relpath = os.path.join(".\\chatimg\\", filename[-3:], filename)
-            print(doc.uint32_width, doc.uint32_height, doc.uint32_image_type)
+            relpath = os.path.join(self.chatImgPath, filename[-3:], filename)
+            # print(doc.uint32_width, doc.uint32_height, doc.uint32_image_type)
             msgOutData["c"]["imgType"] = doc.uint32_image_type
             msgOutData["c"]["imgWidth"] = doc.uint32_width
             msgOutData["c"]["imgHeight"] = doc.uint32_height
@@ -111,7 +113,7 @@ class protoDataParsing():
             new_file_path = os.path.join('output', 'images', new_filename)
 
             # 移动图片文件到output/images文件夹中，并重命名
-            shutil.move(relpath, new_file_path)
+            shutil.copy(relpath, new_file_path)
 
             # 将MD5和新文件路径添加到imgMD5Map中
             self.imgMD5Map[md5] = [new_file_path, new_filename]
