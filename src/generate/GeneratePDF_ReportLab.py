@@ -14,11 +14,12 @@ import datetime
 import shutil
 
 class DrawingQuery:
-    def __init__(self, db_path, style):
+    def __init__(self, paths, style):
+        self.paths = paths
         self.style = style
 
         # 连接数据库
-        self.conn = sqlite3.connect(db_path)
+        self.conn = sqlite3.connect(paths["fontInfoPath"])
 
     def queryCharWidth(self, char):
         # 查询宽高比
@@ -56,7 +57,8 @@ class DrawingQuery:
 
 
 class DataProcessor:
-    def __init__(self, style):
+    def __init__(self, paths, style):
+        self.paths = paths
         self.style = style
 
     def procTipMessage(self, data, startY, startC):
@@ -72,7 +74,7 @@ class DataProcessor:
 
         if path == "":
             return True, startY
-        with Image.open("../" + path) as img:
+        with Image.open(self.paths["outputDirPath"] + path) as img:
             imgWidth, imgHeight = img.size
         # 如果是图片表情
         if imgType == "marketface":
@@ -279,10 +281,11 @@ class DataProcessor:
 
 
 class PdfDraw:
-    def __init__(self, fontPath, style):
+    def __init__(self, paths, style):
+        self.paths = paths
         self.style = style
 
-        pdfmetrics.registerFont(TTFont(self.style["fontName"], fontPath))
+        pdfmetrics.registerFont(TTFont(self.style["fontName"], self.paths["fontPath"]))
         # pdfmetrics.registerFont(TTFont('ColorEmoji', 'fonts/ColorEmoji.ttf'))
         self.pdf_canvas = canvas.Canvas("chatData.pdf", pagesize=self.style["pageSize"])
         self.drawPageFooter(1)
@@ -322,7 +325,7 @@ class PdfDraw:
     def drawTextQQEmoji(self, path, x, y, c):
         x = style["pageWidth"] * c + x
         print("emoji", x, y)
-        path = "../" + path
+        path = self.paths["outputDirPath"] + path
         self.pdf_canvas.drawImage(path, x, y,
                                   width=self.style["qqemojiWidth"], height=self.style["qqemojiWidth"],
                                   mask='auto')
@@ -333,7 +336,7 @@ class PdfDraw:
 
         if path == "":
             return
-        path = "../" + path
+        path = self.paths["outputDirPath"] + path
         self.pdf_canvas.drawImage(path, x, y - height,
                                   width=width, height=height,
                                   mask='auto')
@@ -356,8 +359,8 @@ class PdfDraw:
 
 
 class Generate:
-    def __init__(self, outputFolderPath, style):
-        self.outputFolderPath = outputFolderPath
+    def __init__(self, path, style):
+        self.paths = paths
         self.style = style
         self.pageNum = 1
         self.curY = self.style["contentStartY"]
@@ -373,7 +376,7 @@ class Generate:
         self.curY = self.style["contentStartY"]
 
     def main(self):
-        with open(f"{self.outputFolderPath}/chatData.txt", "r") as f:
+        with open(self.paths["outputDirPath"] + "output/chatData.txt", "r") as f:
             i = 1
             for line in f:
                 i += 1
@@ -488,14 +491,18 @@ style = procStyle('GeneratePDF_ReportLab_config.ini')
 print(style)
 
 fontName = "simhei"
-fontDirName = "../lib/fonts/"
-fontPath = fontDirName + fontName + ".ttf"
-fontInfoPath = fontDirName + fontName + "_aspect_ratio.db"
 
-drawingQuery = DrawingQuery(fontInfoPath, style)
-pdfDraw = PdfDraw(fontPath, style)
-dataprocessor = DataProcessor(style)
-generate = Generate("../output", style)
+paths = {
+    "fontDirPath": "../../lib/fonts/",
+    "outputDirPath": "../../"
+}
+paths["fontPath"] = paths["fontDirPath"] + fontName + ".ttf"
+paths["fontInfoPath"] = paths["fontDirPath"] + fontName + "_aspect_ratio.db"
+
+drawingQuery = DrawingQuery(paths, style)
+pdfDraw = PdfDraw(paths, style)
+dataprocessor = DataProcessor(paths, style)
+generate = Generate(paths, style)
 generate.main()
 pdfDraw.save()
 

@@ -78,6 +78,7 @@ class protoDataParsing():
             filename = hex(crc64(url))
             filename = 'Cache_' + filename.replace('0x', '')
             relpath = os.path.join(self.chatImgPath, filename[-3:], filename)
+            imgPath = os.path.join(filename[-3:], filename)
             print(doc.uint32_width, doc.uint32_height, doc.uint32_image_type)
             # msgOutData["c"]["imgType"] = doc.uint32_image_type
             # 数据中，这两项宽高顺序未知，请注意！
@@ -86,7 +87,7 @@ class protoDataParsing():
 
             # 判断文件是否存在
             if not os.path.exists(relpath):
-                msgOutData["e"] = self.ERRCODE.IMG_NOT_EXIST(relpath)
+                msgOutData["e"] = self.ERRCODE.IMG_NOT_EXIST(imgPath)
                 return msgOutData
 
             # 计算图片的MD5值
@@ -104,12 +105,13 @@ class protoDataParsing():
             # 确定图片类型并添加后缀名
             img_type = imghdr.what(relpath)
             if img_type is None:
-                msgOutData["e"] = self.ERRCODE.IMG_UNKNOWN_TYPE_ERROR(relpath)
+                msgOutData["e"] = self.ERRCODE.IMG_UNKNOWN_TYPE_ERROR(imgPath)
                 return msgOutData
 
             new_filename = f'{self.imgNum}.{img_type}'
             self.imgNum = self.imgNum + 1
             new_file_path = os.path.join('output', 'images', new_filename)
+
 
             # 移动图片文件到output/images文件夹中，并重命名
             shutil.copy(relpath, new_file_path)
