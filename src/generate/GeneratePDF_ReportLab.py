@@ -13,8 +13,11 @@ import json
 import datetime
 import shutil
 
+from src.errcode import errcode
+
 class DrawingQuery:
-    def __init__(self, paths, style):
+    def __init__(self, ERRCODE, paths, style):
+        self.ERRCODE = ERRCODE
         self.paths = paths
         self.style = style
 
@@ -57,9 +60,40 @@ class DrawingQuery:
 
 
 class DataProcessor:
-    def __init__(self, paths, style):
+    def __init__(self, ERRCODE, paths, style):
+        self.ERRCODE = ERRCODE
         self.paths = paths
         self.style = style
+
+    def procErrMessage(self, type, data, startY, startC):
+        if data == "":
+            drawText = f"错误消息，消息类型：{type}"
+        else:
+            drawText = f"错误消息，消息类型：{type}\n{data}"
+        drawData = [{
+            "t": "m",
+            "c": {"m": drawText}
+        }]
+        isFinish = False
+        curY = startY
+        isFinish, textHeight, textWidth, drawData, remaindData \
+            = self.processMessageList(drawData, startY - self.style["chatBoxPadding"], startC)
+
+        if isFinish:
+            # 绘制错误框
+            errBoxHeight = textHeight + 2 * self.style["chatBoxPadding"]
+            errBoxWidth = textWidth + 2 * self.style["chatBoxPadding"]
+            chatBoxY = startY - errBoxHeight
+
+            # print("chatboxsize", chatBoxHeight, chatBoxWidth)
+            pdfDraw.drawErrBox(chatBoxY, startC, errBoxWidth, errBoxHeight)
+            curY = chatBoxY
+            # 绘制内容
+            for item in drawData:
+                # py语法糖，将item[1]的所有项作为参数给函数items[0]
+                item[0](*item[1])
+
+        return curY, isFinish
 
     def procTipMessage(self, data, startY, startC):
         if startY - style["tipTextHeight"] < style["chatBoxTextMaxY"]:
@@ -72,8 +106,6 @@ class DataProcessor:
         name = data["name"]
         imgType = data["imgType"]
 
-        if path == "":
-            return True, startY
         with Image.open(self.paths["outputDirPath"] + path) as img:
             imgWidth, imgHeight = img.size
         # 如果是图片表情
@@ -281,7 +313,8 @@ class DataProcessor:
 
 
 class PdfDraw:
-    def __init__(self, paths, style):
+    def __init__(self, ERRCODE, paths, style):
+        self.ERRCODE = ERRCODE
         self.paths = paths
         self.style = style
 
@@ -334,8 +367,6 @@ class PdfDraw:
         x = style["pageWidth"] * c + self.style["contentStartX"] + offsetX
         print("Img", x, y, width, height)
 
-        if path == "":
-            return
         path = self.paths["outputDirPath"] + path
         self.pdf_canvas.drawImage(path, x, y - height,
                                   width=width, height=height,
@@ -357,14 +388,30 @@ class PdfDraw:
         self.pdf_canvas.roundRect(x, y, width, Hight, style["chatBoxradius"],
                                   fill=1, stroke=0)
 
+    def drawErrBox(self, y, c, width, Hight):
+        x = style["pageWidth"] * c + self.style["contentStartX"]
+        self.pdf_canvas.setStrokeColor(self.style["chatBoxFillColor"])
+        self.pdf_canvas.roundRect(x, y, width, Hight, style["chatBoxradius"],
+                                  fill=0, stroke=1)
+
 
 class Generate:
-    def __init__(self, path, style):
+    def __init__(self, ERRCODE: errcode.err_code, path, style):
+        self.ERRCODE = ERRCODE
         self.paths = paths
         self.style = style
         self.pageNum = 1
         self.curY = self.style["contentStartY"]
         self.curC = 0
+
+        self.ec = self.ERRCODE.codes
+        self.normalerr = [self.ec.IMG_UNKNOWN_TYPE_ERROR.value, self.ec.IMG_DESERIALIZATION_ERROR.value, self.ec.IMG_NOT_EXIST.value,
+                          self.ec.MIXMSG_DESERIALIZATION_ERROR.value,
+                          self.ec.MARKETFACE_NOT_EXIST.value,
+                          self.ec.ALL_EXTSTR_NOT_EXIST_TARGET.value
+                          ]
+        self.normalcode = self.ec.NORMAL.value
+
 
     def nextPage(self):
         if self.curC + 1 < style["intcolumn"]:
@@ -374,6 +421,22 @@ class Generate:
             self.curC = 0
             pdfDraw.nextPage(self.pageNum)
         self.curY = self.style["contentStartY"]
+
+
+    def procErrMessage(self, type, data):
+        if self.style["errShow"] == "True":
+            text = ""
+            if self.style["errShowDetails"] == "True":
+                text = data["errinfo"]
+            if self.style["errShowPYDetails"] == "True":
+                if "pyexc" in data:
+                    text += "\n" + data["pyexc"]
+            isFinish = False
+            self.curY, isFinish = dataprocessor.procErrMessage(type, text, self.curY, self.curC)
+            if not isFinish:
+                self.nextPage()
+                self.curY, isFinish = dataprocessor.procErrMessage(type, text, self.curY, self.curC)
+
 
     def main(self):
         with open(self.paths["outputDirPath"] + "output/chatData.txt", "r") as f:
@@ -396,28 +459,28 @@ class Generate:
                             self.nextPage()
 
                 elif obj["t"] == "revoke":
-                    isFinish = False
-                    data = obj["c"]["text"]
-                    self.curY, isFinish = dataprocessor.procTipMessage(data, self.curY, self.curC)
-                    if not isFinish:
-                        self.nextPage()
+                    if obj["e"]["code"] != self.normalcode:
+                        if obj["e"]["code"] in self.normalerr:
+                            self.procErrMessage(obj["t"], obj["e"])
+                    else:
+                        isFinish = False
+                        data = obj["c"]["text"]
                         self.curY, isFinish = dataprocessor.procTipMessage(data, self.curY, self.curC)
+                        if not isFinish:
+                            self.nextPage()
+                            self.curY, isFinish = dataprocessor.procTipMessage(data, self.curY, self.curC)
 
                 elif obj["t"] == "img":
-                    isFinish = False
-                    data = obj["c"]
-                    self.curY, isFinish = dataprocessor.procImgMessage(data, 0, self.curY, self.curC)
-                    if not isFinish:
-                        self.nextPage()
+                    if obj["e"]["code"] != self.normalcode:
+                        if obj["e"]["code"] in self.normalerr:
+                            self.procErrMessage(obj["t"], obj["e"])
+                    else:
+                        isFinish = False
+                        data = obj["c"]
                         self.curY, isFinish = dataprocessor.procImgMessage(data, 0, self.curY, self.curC)
-
-                elif obj["t"] == "img":
-                    isFinish = False
-                    data = obj["c"]
-                    self.curY, isFinish = dataprocessor.procImgMessage(data, 0, self.curY, self.curC)
-                    if not isFinish:
-                        self.nextPage()
-                        self.curY, isFinish = dataprocessor.procImgMessage(data, 0, self.curY, self.curC)
+                        if not isFinish:
+                            self.nextPage()
+                            self.curY, isFinish = dataprocessor.procImgMessage(data, 0, self.curY, self.curC)
 
                 #if i == 80:
                 #    break
@@ -499,10 +562,13 @@ paths = {
 paths["fontPath"] = paths["fontDirPath"] + fontName + ".ttf"
 paths["fontInfoPath"] = paths["fontDirPath"] + fontName + "_aspect_ratio.db"
 
-drawingQuery = DrawingQuery(paths, style)
-pdfDraw = PdfDraw(paths, style)
-dataprocessor = DataProcessor(paths, style)
-generate = Generate(paths, style)
+ERRCODE = errcode.err_code()
+
+
+drawingQuery = DrawingQuery(ERRCODE, paths, style)
+pdfDraw = PdfDraw(ERRCODE, paths, style)
+dataprocessor = DataProcessor(ERRCODE, paths, style)
+generate = Generate(ERRCODE, paths, style)
 generate.main()
 pdfDraw.save()
 
