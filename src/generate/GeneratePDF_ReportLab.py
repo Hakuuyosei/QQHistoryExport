@@ -246,57 +246,59 @@ class DataProcessor:
 
             # 处理 qqemoji 类型的元素
             elif item["t"] == "qqemoji":
-                if curX + self.style["qqemojiWidth"] > self.style["chatBoxTextMaxX"]:
-                    # 如果该字符加上前面已暂存字符串的宽度会超出列宽，则先将暂存字符串绘制出来
-                    if buffer != []:
-                        drawData.append([pdfDraw.drawText, [buffer, bufStartX, curY, startC]])
-                    # 更新当前坐标到下一行开头，并清空暂存字符串
-                    curX = self.style["chatBoxTextStartX"]
-                    bufStartX = curX
+                if item["e"] == self.ERRCODE.codes.NORMAL.value:
+                    if curX + self.style["qqemojiWidth"] > self.style["chatBoxTextMaxX"]:
+                        # 如果该字符加上前面已暂存字符串的宽度会超出列宽，则先将暂存字符串绘制出来
+                        if buffer != []:
+                            drawData.append([pdfDraw.drawText, [buffer, bufStartX, curY, startC]])
+                        # 更新当前坐标到下一行开头，并清空暂存字符串
+                        curX = self.style["chatBoxTextStartX"]
+                        bufStartX = curX
 
 
-                    curY -= self.style["textHeight"] + self.style["lineSpacing"]
-                    textHeight += self.style["textHeight"] + self.style["lineSpacing"]
-                    buffer = ""
-                    textWidth = self.style["chatBoxTextMaxWidth"]
-                    # 待验证
-                    if curY - self.style["textHeight"] + self.style["lineSpacing"] - self.style["textHeight"] < \
-                            self.style["c"] - style["chatBoxTextMaxY"]:
-                        remaindData = []
-                        remaindData.append(*dataList[itemNum:])
-                        return False, textHeight, textWidth, drawData, remaindData
+                        curY -= self.style["textHeight"] + self.style["lineSpacing"]
+                        textHeight += self.style["textHeight"] + self.style["lineSpacing"]
+                        buffer = ""
+                        textWidth = self.style["chatBoxTextMaxWidth"]
+                        # 待验证
+                        if curY - self.style["textHeight"] + self.style["lineSpacing"] - self.style["textHeight"] < \
+                                self.style["c"] - style["chatBoxTextMaxY"]:
+                            remaindData = []
+                            remaindData.append(*dataList[itemNum:])
+                            return False, textHeight, textWidth, drawData, remaindData
 
 
-                # 绘制qq表情符号并更新坐标
-                drawData.append([pdfDraw.drawTextQQEmoji, [item["c"]["path"], curX, curY, startC]])
-                curX += self.style["qqemojiWidth"]
-                if curX - self.style["chatBoxTextStartX"] > textWidth:
-                    textWidth = curX - self.style["chatBoxTextStartX"]
+                    # 绘制qq表情符号并更新坐标
+                    drawData.append([pdfDraw.drawTextQQEmoji, [item["c"]["path"], curX, curY, startC]])
+                    curX += self.style["qqemojiWidth"]
+                    if curX - self.style["chatBoxTextStartX"] > textWidth:
+                        textWidth = curX - self.style["chatBoxTextStartX"]
 
             # 处理 "img" 类型的元素
             elif item["t"] == "img":
-                data = item["c"]
-                path = data["imgPath"]
-                name = data["name"]
-                imgType = data["imgType"]
+                if item["e"] == self.ERRCODE.codes.NORMAL.value:
+                    data = item["c"]
+                    path = data["imgPath"]
+                    name = data["name"]
+                    imgType = data["imgType"]
 
-                # 如果是图片表情
-                if imgType == "marketFace":
-                    maxWidth = style["imgEmoMaxSize"]
-                    maxHeight = style["imgEmoMaxSize"]
-                else:
-                    maxWidth = style["imgMaxWidth"] - 2 * self.style["chatBoxPadding"]
-                    maxHeight = style["imgMaxHeight"] - 2 * self.style["chatBoxPadding"]
+                    # 如果是图片表情
+                    if imgType == "marketFace":
+                        maxWidth = style["imgEmoMaxSize"]
+                        maxHeight = style["imgEmoMaxSize"]
+                    else:
+                        maxWidth = style["imgMaxWidth"] - 2 * self.style["chatBoxPadding"]
+                        maxHeight = style["imgMaxHeight"] - 2 * self.style["chatBoxPadding"]
 
-                width, height = drawingQuery.resize_image(data["imgWidth"], data["imgHeight"], maxWidth,
-                                                          maxHeight)
+                    width, height = drawingQuery.resize_image(data["imgWidth"], data["imgHeight"], maxWidth,
+                                                              maxHeight)
 
-                if curY - height - style["textHeight"] < style["contentMaxY"]:
-                    remaindData = []
-                    remaindData.append(*dataList[itemNum:])
-                    return False, textHeight, textWidth, drawData, remaindData
-                    drawData.append([pdfDraw.drawImg,
-                                     [path, name, width, height, self.style["chatBoxPadding"], startY, startC]])
+                    if curY - height - style["textHeight"] < style["contentMaxY"]:
+                        remaindData = []
+                        remaindData.append(*dataList[itemNum:])
+                        return False, textHeight, textWidth, drawData, remaindData
+                        drawData.append([pdfDraw.drawImg,
+                                         [path, name, width, height, self.style["chatBoxPadding"], startY, startC]])
 
 
                 # 绘制图片并更新坐标

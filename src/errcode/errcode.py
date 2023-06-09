@@ -1,7 +1,6 @@
 from enum import Enum, auto
 
 # 错误码
-
 class codes(Enum):
     NORMAL = auto()
     EMOJI_NOT_EXIST = auto()
@@ -11,6 +10,7 @@ class codes(Enum):
     MIXMSG_DESERIALIZATION_ERROR = auto()
     MARKETFACE_NOT_EXIST = auto()
     ALL_EXTSTR_NOT_EXIST_TARGET = auto()
+    ALL_OS_ERROR = auto()
 
 class err_code():
     def __init__(self,):
@@ -112,6 +112,16 @@ class err_code():
             "code": codes.ALL_EXTSTR_NOT_EXIST_TARGET.value,
             "errinfo": "The target field({}) was not found in extstr {}".format(target, data),
             "data": data
+        }
+        self.log("PARSE", self.LOG_LEVEL_ERR, info)
+        return info
+
+    def ALL_OS_ERROR(self, data, pyexc):
+        info = {
+            "code": codes.ALL_OS_ERROR.value,
+            "errinfo": f"An error occurred in the file operation path:{data}",
+            "data": data,
+            "pyexc": pyexc
         }
         self.log("PARSE", self.LOG_LEVEL_ERR, info)
         return info

@@ -12,9 +12,9 @@ from .textParsing import textParsing
 
 
 sys.path.append("...")
-from proto import Msg_pb2
-from proto.RichMsg_pb2 import PicRec
-from proto.RichMsg_pb2 import Msg
+from src.proto import Msg_pb2
+from src.proto.RichMsg_pb2 import PicRec
+from src.proto.RichMsg_pb2 import Msg
 
 _crc64_init = False
 _crc64_table = [0] * 256
@@ -54,13 +54,17 @@ class protoDataParsing():
         output_path = "output/emoticon2/" + emoticon_name
         lib_path = "...lib/emoticon2/" + emoticon_name
 
-        if os.path.exists(output_path):
-            return self.ERRCODE.NORMAL(), output_path
-        elif os.path.exists(lib_path):
-            shutil.copy(lib_path, output_path)
-            return self.ERRCODE.NORMAL(), output_path
-        else:
-            return self.ERRCODE.MARKETFACE_NOT_EXIST(), ""
+
+        try:
+            if os.path.exists(output_path):
+                return self.ERRCODE.NORMAL(), output_path
+            elif os.path.exists(lib_path):
+                shutil.copy(lib_path, output_path)
+                return self.ERRCODE.NORMAL(), output_path
+            else:
+                return self.ERRCODE.MARKETFACE_NOT_EXIST(), ""
+        except OSError:
+            return self.ERRCODE.ALL_OS_ERROR(output_path, traceback.format_exc()), ""
 
     # 解码图片
     def decodePic(self, data):
@@ -84,6 +88,12 @@ class protoDataParsing():
             # 数据中，这两项宽高顺序未知，请注意！
             # msgOutData["c"]["imgWidth"] = doc.uint32_height
             # msgOutData["c"]["imgHeight"] = doc.uint32_width
+
+        except:
+            msgOutData["e"] = self.ERRCODE.IMG_DESERIALIZATION_ERROR(data)
+            return msgOutData
+
+        try:
 
             # 判断文件是否存在
             if not os.path.exists(relpath):
@@ -123,10 +133,10 @@ class protoDataParsing():
             msgOutData["c"]["imgPath"] = new_file_path
             msgOutData["c"]["name"] = new_filename
             return msgOutData
+        except OSError:
+            msgOutData["e"] = self.ERRCODE.ALL_OS_ERROR(imgPath, traceback.format_exc())
 
-        except:
-            msgOutData["e"] = self.ERRCODE.IMG_DESERIALIZATION_ERROR(data)
-            return msgOutData
+
 
     # 解码混合消息
     def decodeMixMsg(self, data):
