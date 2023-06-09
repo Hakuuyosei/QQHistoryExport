@@ -82,8 +82,9 @@ class protoDataParsing():
             relpath = os.path.join(self.chatImgPath, filename[-3:], filename)
             # print(doc.uint32_width, doc.uint32_height, doc.uint32_image_type)
             msgOutData["c"]["imgType"] = doc.uint32_image_type
-            msgOutData["c"]["imgWidth"] = doc.uint32_width
-            msgOutData["c"]["imgHeight"] = doc.uint32_height
+            # 数据中，这两项似乎是反的。请注意
+            msgOutData["c"]["imgWidth"] = doc.uint32_height
+            msgOutData["c"]["imgHeight"] = doc.uint32_width
 
             # 判断文件是否存在
             if not os.path.exists(relpath):

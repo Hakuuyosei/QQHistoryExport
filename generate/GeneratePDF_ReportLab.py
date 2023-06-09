@@ -239,14 +239,12 @@ class DataProcessor:
                     drawData.append([pdfDraw.drawImg,
                                      [path, name, width, height, self.style["chatBoxPadding"], startY, startC]])
 
+
                 # 绘制图片并更新坐标
                 drawData.append([pdfDraw.DrawTextImg, [item["c"]["imgPath"], curX, curY]])
-                # 图片后要加两个换行
+                textHeight += height + style["textHeight"]
+                curY = height - style["textHeight"]
                 curX = self.style["chatBoxTextStartX"]
-
-            # 其他类型的元素忽略
-
-        # 处理完所有元素，返回空列表
 
         # 留出最后一行的位置
         textHeight += self.style["textHeight"] + self.style["lineSpacing"]
@@ -439,14 +437,14 @@ def procStyle(file_path):
     style["contentStartY"] = style["pageHeight"] - style["topMargin"]  # 聊天内容开始Y坐标
 
     style["contentMaxX"] = style["pageWidth"] - style["rightMargin"]  # 聊天内容最大X坐标
-    style["contentMaxY"] = style["bottomMargin"] - style["pageFooterTextHeight"]  # 聊天内容最大Y坐标
+    style["contentMaxY"] = style["bottomMargin"] + style["pageFooterTextHeight"]  # 聊天内容最大Y坐标
     style["contentMaxWidth"] = style["pageWidth"] - style["rightMargin"] - style["leftMargin"]
     style["contentCenter"] = style["contentMaxWidth"] / 2 + style["rightMargin"]
 
     # 聊天框
     style["chatBoxTextStartX"] = style["contentStartX"] + style["chatBoxPadding"]
     style["chatBoxTextMaxX"] = style["contentMaxX"] - style["chatBoxPadding"]
-    style["chatBoxTextMaxY"] = style["contentMaxY"] - style["chatBoxPadding"]
+    style["chatBoxTextMaxY"] = style["contentMaxY"] + style["chatBoxPadding"]
     style["chatBoxTextMaxWidth"] = style["chatBoxTextMaxX"] - style["chatBoxTextStartX"]
 
     # 图像
