@@ -11,6 +11,7 @@ import os
 import configparser
 import json
 import datetime
+import time
 import shutil
 
 from src.errcode import errcode
@@ -112,7 +113,7 @@ class PdfDraw:
 
     def drawImg(self, path, name, width, height, offsetX, y, c):
         x = self.style["pageWidth"] * c + self.style["contentStartX"] + offsetX
-        print("Img", x, y, width, height)
+        # print("Img", x, y, width, height)
 
         path = self.paths["outputDirPath"] + path
         self.pdf_canvas.drawImage(path, x, y - height,
@@ -122,7 +123,6 @@ class PdfDraw:
         self.pdf_canvas.setFillColor(self.style["textColor"])
         self.pdf_canvas.setFont(self.style["fontName"], self.style["textHeight"])
         self.pdf_canvas.drawString(x, y - height - self.style["textHeight"], text)
-
 
     def drawTextEmoji(self,char, x, y, c):
         1
@@ -140,6 +140,16 @@ class PdfDraw:
         self.pdf_canvas.setStrokeColor(self.style["chatBoxFillColor"])
         self.pdf_canvas.roundRect(x, y, width, Hight, self.style["chatBoxradius"],
                                   fill=0, stroke=1)
+
+    def drawAvatar(self, senderUin):
+        return
+
+    def bookmark(self, Str, y, level):
+        self.pdf_canvas.addOutlineEntry(Str, Str, level)
+        self.pdf_canvas.bookmarkHorizontalAbsolute(Str, y, left=0, fit='XYZ')
+
+
+
 
 
 class DataProcessor:
@@ -186,6 +196,12 @@ class DataProcessor:
         self.pdfDraw.drawTipText(data, startY, startC)
         return startY - self.style["tipTextHeight"], True
 
+    def procTimeMessage(self, timeStr, startY, startC):
+        if startY - self.style["tipTextHeight"] < self.style["chatBoxTextMaxY"]:
+            return startY, False
+        self.pdfDraw.drawTipText(timeStr, startY, startC)
+        return startY - self.style["tipTextHeight"], True
+
     def procImgMessage(self, data, offsetX, startY, startC):
         path = data["imgPath"]
         name = data["name"]
@@ -206,18 +222,20 @@ class DataProcessor:
 
         if startY - height - self.style["textHeight"] < self.style["contentMaxY"]:
             return startY, False
-        print("image", width, height, imgType)
+        # print("image", width, height, imgType)
         self.pdfDraw.drawImg(path, name, width, height, offsetX, startY, startC)
         return startY - height - self.style["textHeight"], True
 
     def procChatBoxMessage(self, dataList, startY, startC):
         isFinish = False
+        isStart = False
         curY = startY
         isFinish, textHeight, textWidth, drawData, remaindData \
             = self.processMessageList(dataList, startY - self.style["chatBoxPadding"], startC)
 
         # 绘制聊天框
         if textHeight != 0:
+            isStart = True
             chatBoxHeight = textHeight + 2 * self.style["chatBoxPadding"]
             chatBoxWidth = textWidth + 2 * self.style["chatBoxPadding"]
             chatBoxY = startY - chatBoxHeight
@@ -230,8 +248,11 @@ class DataProcessor:
                 # py语法糖，将item[1]的所有项作为参数给函数items[0]
                 item[0](*item[1])
                 # print("item", item[1])
-
-        return curY, isFinish, remaindData
+        remaindData.insert(0,{
+            "t": "m",
+            "c": {"m": "【续上：】"}
+        })
+        return curY, isFinish, remaindData, isStart
 
     def processMessageList(self, dataList, startY, startC):
         def lineBreak():
@@ -409,6 +430,10 @@ class Generate:
         self.pageNum = 1
         self.curY = self.style["contentStartY"]
         self.curC = 0
+        self.lastTime = 0
+        self.lastDate = 0
+        self.lastMonth = 0
+        self.lastYear = 0
 
         self.ec = self.ERRCODE.codes
         self.normalerr = [self.ec.IMG_UNKNOWN_TYPE_ERROR.value, self.ec.IMG_DESERIALIZATION_ERROR.value, self.ec.IMG_NOT_EXIST.value,
@@ -441,23 +466,81 @@ class Generate:
                 self.nextPage()
                 self.curY, isFinish = self.dataprocessor.procErrMessage(type, text, self.curY, self.curC)
 
+    def procAvator(self):
+        return
+
+    # 处理绘制时间字符
+    def procTimeStr(self, timeStr):
+        isFinish = False
+        self.curY, isFinish = self.dataprocessor.procTimeMessage(timeStr, self.curY, self.curC)
+        if not isFinish:
+            self.nextPage()
+            self.curY, isFinish = self.dataprocessor.procTimeMessage(timeStr, self.curY, self.curC)
+
+    # 处理时间，是否显示时间等
+    def procTime(self, thisTime):
+        thisDate = time.strftime("%Y年%m月%d日", time.localtime(thisTime))
+        thisMonth = time.strftime("%Y年%m月", time.localtime(thisTime))
+        thisYear = time.strftime("%Y年", time.localtime(thisTime))
+        timeStr = time.strftime("%Y年%m月%d日 %H:%M", time.localtime(thisTime))
+
+        if thisYear != self.lastYear:
+            self.procTimeStr(thisYear)
+            self.pdfDraw.bookmark(thisYear, self.curY + self.style["tipTextHeight"], 0)
+        if thisMonth != self.lastMonth:
+            self.procTimeStr(thisMonth)
+            self.pdfDraw.bookmark(thisMonth, self.curY + self.style["tipTextHeight"], 1)
+        if thisDate != self.lastDate:
+            self.procTimeStr(thisDate)
+            self.pdfDraw.bookmark(thisDate, self.curY + self.style["tipTextHeight"], 2)
+
+        # 相差n分钟,添加时间标签
+        diffMin = abs(self.lastTime - thisTime)/60
+        if diffMin >= self.style["intDiffMin"]:
+            isFinish = False
+            self.curY, isFinish = self.dataprocessor.procTimeMessage(timeStr, self.curY, self.curC)
+            if not isFinish:
+                self.nextPage()
+                self.curY, isFinish = self.dataprocessor.procTimeMessage(timeStr, self.curY, self.curC)
+            self.curY -= self.style["MassageSpacing"]
+            if self.curY <= self.style["chatBoxTextMaxY"]:
+                self.nextPage()
+
+        self.lastTime = thisTime
+        self.lastDate = thisDate
+        self.lastMonth = thisMonth
+        self.lastYear = thisYear
+
+
+
+
     def main(self):
         with open(self.paths["outputDirPath"] + "output/chatData.txt", "r") as f:
             i = 1
+
             for line in f:
-                i += 1
                 obj = json.loads(line)
+
+                i += 1
+                avatarY = 0
+
                 try:
                     obj["t"]
                 except:
                     print(obj)
                     continue
+
+                self.procTime(obj["i"])
+                # 消息类型
                 if obj["t"] == "msg":
                     isFinish = False
                     remaindData = obj["c"]
                     while not isFinish:
-                        self.curY, isFinish, remaindData = self.dataprocessor.procChatBoxMessage(remaindData, self.curY,
-                                                                                            self.curC)
+                        avatarY = self.curY
+                        self.curY, isFinish, remaindData, isStart = self.dataprocessor.procChatBoxMessage(
+                            remaindData, self.curY, self.curC)
+                        #if isStart: avatarY = self.curY
+
                         if not isFinish:
                             self.nextPage()
 
@@ -489,7 +572,6 @@ class Generate:
                 #    break
                 self.curY -= self.style["MassageSpacing"]
                 if self.curY <= self.style["chatBoxTextMaxY"]:
-
                     self.nextPage()
 
 
