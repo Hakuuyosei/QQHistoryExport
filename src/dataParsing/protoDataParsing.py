@@ -1,12 +1,10 @@
 import hashlib
-import sqlite3
 import os
 import sys
 import traceback
 import json
 import imghdr
 import shutil
-import binascii
 import blackboxprotobuf
 
 from ..errcode.errcode import err_code
@@ -14,9 +12,9 @@ from .textParsing import textParsing
 
 
 sys.path.append("...")
-from lib.proto import Msg_pb2
-from lib.proto.RichMsg_pb2 import PicRec
-from lib.proto.RichMsg_pb2 import Msg
+from proto import Msg_pb2
+from proto.RichMsg_pb2 import PicRec
+from proto.RichMsg_pb2 import Msg
 
 _crc64_init = False
 _crc64_table = [0] * 256
@@ -80,11 +78,11 @@ class protoDataParsing():
             filename = hex(crc64(url))
             filename = 'Cache_' + filename.replace('0x', '')
             relpath = os.path.join(self.chatImgPath, filename[-3:], filename)
-            # print(doc.uint32_width, doc.uint32_height, doc.uint32_image_type)
-            msgOutData["c"]["imgType"] = doc.uint32_image_type
-            # 数据中，这两项似乎是反的。请注意
-            msgOutData["c"]["imgWidth"] = doc.uint32_height
-            msgOutData["c"]["imgHeight"] = doc.uint32_width
+            print(doc.uint32_width, doc.uint32_height, doc.uint32_image_type)
+            # msgOutData["c"]["imgType"] = doc.uint32_image_type
+            # 数据中，这两项宽高顺序未知，请注意！
+            # msgOutData["c"]["imgWidth"] = doc.uint32_height
+            # msgOutData["c"]["imgHeight"] = doc.uint32_width
 
             # 判断文件是否存在
             if not os.path.exists(relpath):

@@ -3,24 +3,13 @@ import sqlite3
 import os
 import traceback
 import json
-import imghdr
 import shutil
 import binascii
-import blackboxprotobuf
-
 
 from src.errcode import errcode
 from src.dataParsing.unserializedDataParsing import unserializedDataParsing
 from src.dataParsing.textParsing import textParsing
 from src.dataParsing.protoDataParsing import protoDataParsing
-
-from lib.proto import Msg_pb2
-from lib.proto.RichMsg_pb2 import PicRec
-from lib.proto.RichMsg_pb2 import Msg
-from lib.javaDeserialization import javaDeserialization as jd
-
-
-
 
 # QQ消息类型以及处理方式
 unserializedDataType = [-1000, -1051, -1012, -2042, -2015, -1034, -2005, -3008, -2016, -4008, -1013]

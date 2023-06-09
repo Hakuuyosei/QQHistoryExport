@@ -5,7 +5,6 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
 from PIL import Image
-
 import sqlite3
 import re
 import os
@@ -71,8 +70,12 @@ class DataProcessor:
         name = data["name"]
         imgType = data["imgType"]
 
+        if path == "":
+            return True, startY
+        with Image.open("../" + path) as img:
+            imgWidth, imgHeight = img.size
         # 如果是图片表情
-        if imgType == 50 or imgType == "marketface":
+        if imgType == "marketface":
             maxWidth = style["imgEmoMaxSize"]
             maxHeight = style["imgEmoMaxSize"]
         else:
@@ -80,7 +83,7 @@ class DataProcessor:
             maxHeight = style["imgMaxHeight"]
 
 
-        width, height = drawingQuery.resize_image(data["imgWidth"], data["imgHeight"], maxWidth, maxHeight)
+        width, height = drawingQuery.resize_image(imgWidth, imgHeight, maxWidth, maxHeight)
 
         if startY - height - style["textHeight"] < style["contentMaxY"]:
             return startY, False
@@ -120,7 +123,8 @@ class DataProcessor:
                 buffer = ""
 
             # 更新当前坐标到下一行开头，并清空暂存字符串
-            textWidth = curX - self.style["chatBoxTextStartX"]
+            if curX - self.style["chatBoxTextStartX"] > textWidth:
+                textWidth = curX - self.style["chatBoxTextStartX"]
             curX = self.style["chatBoxTextStartX"]
             bufStartX = curX
 
@@ -147,8 +151,6 @@ class DataProcessor:
             # 校正初次换行
             curY += self.style["lineSpacing"]
             textHeight = 0
-
-
 
         # 遍历列表中的每一个元素
         for itemNum in range(len(dataList)):
@@ -234,6 +236,8 @@ class DataProcessor:
                 # 绘制qq表情符号并更新坐标
                 drawData.append([pdfDraw.drawTextQQEmoji, [item["c"]["path"], curX, curY, startC]])
                 curX += self.style["qqemojiWidth"]
+                if curX - self.style["chatBoxTextStartX"] > textWidth:
+                    textWidth = curX - self.style["chatBoxTextStartX"]
 
             # 处理 "img" 类型的元素
             elif item["t"] == "img":
@@ -243,7 +247,7 @@ class DataProcessor:
                 imgType = data["imgType"]
 
                 # 如果是图片表情
-                if imgType == "50":
+                if imgType == "marketFace":
                     maxWidth = style["imgEmoMaxSize"]
                     maxHeight = style["imgEmoMaxSize"]
                 else:
@@ -266,6 +270,8 @@ class DataProcessor:
                 textHeight += height + style["textHeight"]
                 curY = height - style["textHeight"]
                 curX = self.style["chatBoxTextStartX"]
+                if width > textWidth:
+                    textWidth = width
 
         # 留出最后一行的位置
         textHeight += self.style["textHeight"] + self.style["lineSpacing"]
@@ -495,7 +501,7 @@ pdfDraw.save()
 
 # 以当前日期时间为文件名
 cur_time = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-dst_file = os.path.join('old', cur_time+".pdf")
+dst_file = os.path.join('old', cur_time + ".pdf")
 
 # 判断目标目录是否存在，不存在则创建
 if not os.path.exists('old'):
