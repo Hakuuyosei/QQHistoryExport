@@ -83,7 +83,8 @@ class protoDataParsing():
             filename = 'Cache_' + filename.replace('0x', '')
             relpath = os.path.join(self.chatImgPath, filename[-3:], filename)
             imgPath = os.path.join(filename[-3:], filename)
-            print(doc.uint32_width, doc.uint32_height, doc.uint32_image_type)
+            # print(doc.uint32_width, doc.uint32_height, doc.uint32_image_type)
+            msgOutData["c"]["imgType"] = "pic"
             # msgOutData["c"]["imgType"] = doc.uint32_image_type
             # 数据中，这两项宽高顺序未知，请注意！
             # msgOutData["c"]["imgWidth"] = doc.uint32_height
@@ -158,7 +159,7 @@ class protoDataParsing():
 
     def parse(self, msgType, msgData, extStr, senderQQ):
         msgOutData = {}
-        print(msgType)
+        #print(msgType)
 
         # 图片类型
         if msgType == -2000:
@@ -187,8 +188,8 @@ class protoDataParsing():
             # print(f"原始数据: {deserialize_data}")
             # print(f"消息类型: {message_type}")
 
-            #print(filePath,voiceLength)
-            #slkamrTomp3.slkamrTomp3(filePath)
+            # print(filePath,voiceLength)
+            # slkamrTomp3.slkamrTomp3(filePath)
 
         # 短视频
         elif msgType == -2022:
@@ -198,21 +199,6 @@ class protoDataParsing():
             print(filePath)
 
 
-        # 群标识卡片
-        elif msgType == -5020:
-            deserialize_data, message_type = blackboxprotobuf.decode_message(msgData)
-            print(f"原始数据: {deserialize_data}")
-            print(f"消息类型: {message_type}")
-            return
-
-        elif msgType == -5023:  # 该用户通过***向你发起临时会话，前往设置。
-            deserialize_data, message_type = blackboxprotobuf.decode_message(msgData)
-            print(f"原始数据: {deserialize_data}")
-            print(f"消息类型: {message_type}")
-            print(msgData)
-            print(deserialize_data["5"].decode("utf-8"))
-            return
-
         # 大号表情
         elif msgType == -8018:
             doc = Msg_pb2.marketFace()
@@ -220,8 +206,8 @@ class protoDataParsing():
             marketFaceName = doc.u7.decode("utf-8")
             descErrcode, msgDeseData = self.decodeMarketFace(marketFaceName)
             msgOutData = {
-                "t": "marketface",
-                "c": {"path": msgDeseData, "name": marketFaceName},
+                "t": "img",
+                "c": {"imgPath": msgDeseData, "name": marketFaceName, "type": "marketFace"},
                 "e": descErrcode
             }
             print(extStr)
@@ -261,7 +247,7 @@ class protoDataParsing():
                 doc = Msg_pb2.grayTipBar()
                 doc.ParseFromString(msgData)
                 msgDecodedData = doc.field5.decode("utf-8")
-                print(doc.field5.decode("utf-8"))
+                # print(doc.field5.decode("utf-8"))
                 if ("inviteeUin" in extStrJson.keys()) and ("invitorUin" in extStrJson.keys()):
                     inviteeUin = extStrJson["inviteeUin"]
                     invitorUin = extStrJson["invitorUin"]
@@ -287,30 +273,74 @@ class protoDataParsing():
                 busi_type = extStrJson["uint64_busi_type"]
 
                 # 签到打卡
-                if busi_type == "14":
+                if busi_type == "14" and busi_type == "1":
                     doc = Msg_pb2.grayTipBar()
                     doc.ParseFromString(msgData)
-                    #print(doc.field5.decode("utf-8"))
-                    #print(extStrJson["bytes_content"])
+
+                    msgDecodedData = doc.field5.decode("utf-8")
+                    print(14, doc.field5.decode("utf-8"))
+                    msgOutData = {
+                        "t": "tip",
+                        "c": {"text": msgDecodedData, "type": "dailyattendance"},
+                        "e": self.ERRCODE.NORMAL()
+                    }
 
                 # 可能是拍一拍
                 elif busi_type == "12":
                     doc = Msg_pb2.grayTipBar()
                     doc.ParseFromString(msgData)
-                    print(doc.field5.decode("utf-8"))
-                    print(111, extStrJson["bytes_content"])
+                    msgDecodedData = doc.field5.decode("utf-8")
+                    print(12, extStrJson["bytes_content"])
+                    print(12, doc.field5.decode("utf-8"))
+                    msgOutData = {
+                        "t": "tip",
+                        "c": {"text": msgDecodedData, "type": "paiyipai"},
+                        "e": self.ERRCODE.NORMAL()
+                    }
 
                 else:
-                    deserialize_data, message_type = blackboxprotobuf.decode_message(msgData)
-                    print(f"原始数据: {deserialize_data}")
-                    print(deserialize_data["5"].decode("utf-8"))
+                    doc = Msg_pb2.grayTipBar()
+                    doc.ParseFromString(msgData)
+                    msgDecodedData = doc.field5.decode("utf-8")
+                    print(busi_type, doc.field5.decode("utf-8"))
+                    msgOutData = {
+                        "t": "tip",
+                        "c": {"text": msgDecodedData, "type": "unknown"},
+                        "e": self.ERRCODE.NORMAL()
+                    }
                     print(extStr)
 
             else:
-                deserialize_data, message_type = blackboxprotobuf.decode_message(msgData)
-                print(f"原始数据: {deserialize_data}")
-                print(deserialize_data["5"].decode("utf-8"))
+                doc = Msg_pb2.grayTipBar()
+                doc.ParseFromString(msgData)
+                msgDecodedData = doc.field5.decode("utf-8")
+                print(doc.field5.decode("utf-8"))
+                msgOutData = {
+                    "t": "tip",
+                    "c": {"text": msgDecodedData, "type": "unknown"},
+                    "e": self.ERRCODE.NORMAL()
+                }
                 print(extStr)
+
+
+
+        # 群标识卡片,戳一戳
+        elif msgType == -5020:
+            doc = Msg_pb2.grayTipBar()
+            doc.ParseFromString(msgData)
+            msgDecodedData = doc.field5.decode("utf-8")
+            msgOutData = {
+                "t": "tip",
+                "c": {"text": msgDecodedData, "type": "unknown"},
+                "e": self.ERRCODE.NORMAL()
+            }
+
+        elif msgType == -5023:  # 该用户通过***向你发起临时会话，前往设置。
+            # deserialize_data, message_type = blackboxprotobuf.decode_message(msgData)
+            # print(f"-5023原始数据: {deserialize_data}")
+            # print(f"消息类型: {message_type}")
+            pass
+
 
         return msgOutData
 
