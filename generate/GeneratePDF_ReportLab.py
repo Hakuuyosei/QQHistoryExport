@@ -11,7 +11,8 @@ import re
 import os
 import configparser
 import json
-
+import datetime
+import shutil
 
 class DrawingQuery:
     def __init__(self, db_path, style):
@@ -94,28 +95,60 @@ class DataProcessor:
             = self.processMessageList(dataList, startY - self.style["chatBoxPadding"], startC)
 
         # 绘制聊天框
-        chatBoxHeight = textHeight + 2 * self.style["chatBoxPadding"]
-        chatBoxWidth = textWidth + 2 * self.style["chatBoxPadding"]
-        chatBoxY = startY - chatBoxHeight
-        # print("chatboxsize", chatBoxHeight, chatBoxWidth)
-        pdfDraw.drawChatBox(chatBoxY, startC, chatBoxWidth, chatBoxHeight)
-        curY = chatBoxY
-        # 绘制内容
-        for item in drawData:
-            # py语法糖，将item[1]的所有项作为参数给函数items[0]
-            item[0](*item[1])
-            # print("item", item[1])
+        if textHeight != 0:
+            chatBoxHeight = textHeight + 2 * self.style["chatBoxPadding"]
+            chatBoxWidth = textWidth + 2 * self.style["chatBoxPadding"]
+            chatBoxY = startY - chatBoxHeight
+
+            # print("chatboxsize", chatBoxHeight, chatBoxWidth)
+            pdfDraw.drawChatBox(chatBoxY, startC, chatBoxWidth, chatBoxHeight)
+            curY = chatBoxY
+            # 绘制内容
+            for item in drawData:
+                # py语法糖，将item[1]的所有项作为参数给函数items[0]
+                item[0](*item[1])
+                # print("item", item[1])
 
         return curY, isFinish, remaindData
 
     def processMessageList(self, dataList, startY, startC):
+        def lineBreak():
+            nonlocal buffer, bufStartX, curX, curY, startC, textHeight, textWidth
+            if buffer != "":
+                # 绘制缓冲区字符
+                drawData.append([pdfDraw.drawText, [buffer, bufStartX, curY, startC]])
+                buffer = ""
+
+            # 更新当前坐标到下一行开头，并清空暂存字符串
+            textWidth = curX - self.style["chatBoxTextStartX"]
+            curX = self.style["chatBoxTextStartX"]
+            bufStartX = curX
+
+            if curY - self.style["textHeight"] + self.style["lineSpacing"] < \
+                    style["chatBoxTextMaxY"]:
+                return False
+            else:
+                curY -= self.style["textHeight"] + self.style["lineSpacing"]
+                textHeight += self.style["textHeight"] + self.style["lineSpacing"]
+                return True
+
+        buffer = ""
         drawData = []
-        # 初始化绘制区域
-        curX = self.style["chatBoxTextStartX"]
-        bufStartX = curX
-        curY = startY - self.style["textHeight"]
         textWidth = 0
         textHeight = 0
+
+        curX = self.style["chatBoxTextStartX"]
+        curY = startY
+        bufStartX = curX
+        if not lineBreak():
+            # 没有空间用来换行
+            return False, 0, 0, drawData, dataList
+        else:
+            # 校正初次换行
+            curY += self.style["lineSpacing"]
+            textHeight = 0
+
+
 
         # 遍历列表中的每一个元素
         for itemNum in range(len(dataList)):
@@ -137,57 +170,43 @@ class DataProcessor:
                             buffer = ""
 
                         drawData.append([pdfDraw.drawTextEmoji, [character, curX, curY, startC]])
-                        curX += self.emojiWidth
-                        bufStartX = curX + self.emojiWidth
+                        curX += self.style["emojiWidth"]
+                        bufStartX = curX + self.style["emojiWidth"]
 
                     if character == "\n":
-                        drawData.append([pdfDraw.drawText, [buffer, bufStartX, curY, startC]])
-                        # 更新当前坐标到下一行开头，并清空暂存字符串
-                        textWidth = curX - self.style["chatBoxTextStartX"]
-                        curX = self.style["chatBoxTextStartX"]
-                        bufStartX = curX
-                        curY -= self.style["textHeight"] + self.style["lineSpacing"]
-                        textHeight += self.style["textHeight"] + self.style["lineSpacing"]
-                        buffer = ""
+                        if not lineBreak():
+                            remaindData = []
+                            if dataList[itemNum + 1:] != []:
+                                remaindData.append(*dataList[itemNum + 1:])
+                            return False, textHeight, textWidth, drawData, remaindData
 
                     else:
                         # 如果不是表情符号，先查询其宽度
                         charWidth = drawingQuery.queryCharWidth(character)
                         # 判断是否需要换行
                         if curX + charWidth > self.style["chatBoxTextMaxX"]:
-                            # 如果该字符加上前面已暂存字符串的宽度会超出列宽，则先将暂存字符串绘制出来
-                            drawData.append([pdfDraw.drawText, [buffer, bufStartX, curY, startC]])
-                            # 更新当前坐标到下一行开头，并清空暂存字符串
-                            curX = self.style["chatBoxTextStartX"]
-                            bufStartX = curX
+                            # 如果该字符加上前面已暂存字符串的宽度会超出列宽，则将暂存字符串绘制出来并换行
+                            if not lineBreak():
 
-                            # 待验证
-                            if curY - self.style["textHeight"] + self.style["lineSpacing"] < \
-                                    style["chatBoxTextMaxY"]:
                                 remaindData = []
                                 item["c"]["m"] = str[charNum:]
                                 remaindData.append(item)
-                                remaindData.append(*dataList[itemNum + 1:])
-                                return False, textHeight, drawData, remaindData
+                                if dataList[itemNum + 1:] != []:
+                                    remaindData.append(*dataList[itemNum + 1:])
+                                return False, textHeight, textWidth, drawData, remaindData
 
-                            curY -= self.style["textHeight"] + self.style["lineSpacing"]
-                            textHeight += self.style["textHeight"] + self.style["lineSpacing"]
-                            buffer = ""
-                            textWidth = self.style["chatBoxTextMaxWidth"]
+
+
                         # 将当前字符加入缓冲区中
                         buffer += character
                         curX += charWidth
                 # 处理剩余的暂存字符串
                 if buffer:
-                    drawData.append([pdfDraw.drawText, [buffer, bufStartX, curY, startC]])
                     if curX - self.style["chatBoxTextStartX"] > textWidth:
                         textWidth = curX - self.style["chatBoxTextStartX"]
-                    # curX += self.style["chatBoxTextStartX"]
-                    # curY -= self.style["textHeight"] + self.style["lineSpacing"]
 
-                    # 更新当前坐标到下一行开头，不加行间距
-                    bufStartX = curX
-                    print(bufStartX)
+                    drawData.append([pdfDraw.drawText, [buffer, bufStartX, curY, startC]])
+
 
             # 处理 qqemoji 类型的元素
             elif item["t"] == "qqemoji":
@@ -199,19 +218,21 @@ class DataProcessor:
                     curX = self.style["chatBoxTextStartX"]
                     bufStartX = curX
 
-                    # 待验证
-                    if curY - self.style["textHeight"] + self.style["lineSpacing"] < \
-                            self.style["c"] - style["chatBoxTextMaxY"]:
-                        remaindData = []
-                        remaindData.append(*dataList[itemNum:])
-                        return False, textHeight, drawData, remaindData
 
                     curY -= self.style["textHeight"] + self.style["lineSpacing"]
                     textHeight += self.style["textHeight"] + self.style["lineSpacing"]
                     buffer = ""
                     textWidth = self.style["chatBoxTextMaxWidth"]
+                    # 待验证
+                    if curY - self.style["textHeight"] + self.style["lineSpacing"] - self.style["textHeight"] < \
+                            self.style["c"] - style["chatBoxTextMaxY"]:
+                        remaindData = []
+                        remaindData.append(*dataList[itemNum:])
+                        return False, textHeight, textWidth, drawData, remaindData
+
+
                 # 绘制qq表情符号并更新坐标
-                drawData.append([pdfDraw.drawTextQQEmoji, [item["c"]["path"], curX, curY]])
+                drawData.append([pdfDraw.drawTextQQEmoji, [item["c"]["path"], curX, curY, startC]])
                 curX += self.style["qqemojiWidth"]
 
             # 处理 "img" 类型的元素
@@ -235,7 +256,7 @@ class DataProcessor:
                 if curY - height - style["textHeight"] < style["contentMaxY"]:
                     remaindData = []
                     remaindData.append(*dataList[itemNum:])
-                    return False, textHeight, drawData, remaindData
+                    return False, textHeight, textWidth, drawData, remaindData
                     drawData.append([pdfDraw.drawImg,
                                      [path, name, width, height, self.style["chatBoxPadding"], startY, startC]])
 
@@ -295,7 +316,7 @@ class PdfDraw:
     def drawTextQQEmoji(self, path, x, y, c):
         x = style["pageWidth"] * c + x
         print("emoji", x, y)
-
+        path = "../" + path
         self.pdf_canvas.drawImage(path, x, y,
                                   width=self.style["qqemojiWidth"], height=self.style["qqemojiWidth"],
                                   mask='auto')
@@ -316,7 +337,7 @@ class PdfDraw:
         self.pdf_canvas.drawString(x, y - height - self.style["textHeight"], text)
 
 
-    def drawTextEmoji(self, x, y, c):
+    def drawTextEmoji(self,char, x, y, c):
         1
         # pdf_canvas.setFont('Noto-COLRv1', 12 * mm)
         # pdf_canvas.drawString(7.25 * mm, 10 * mm, "🥺")
@@ -341,6 +362,7 @@ class Generate:
             self.curC = self.curC + 1
         else:
             self.pageNum += 1
+            self.curC = 0
             pdfDraw.nextPage(self.pageNum)
         self.curY = self.style["contentStartY"]
 
@@ -350,6 +372,11 @@ class Generate:
             for line in f:
                 i += 1
                 obj = json.loads(line)
+                try:
+                    obj["t"]
+                except:
+                    print(obj)
+                    continue
                 if obj["t"] == "msg":
                     isFinish = False
                     remaindData = obj["c"]
@@ -383,8 +410,8 @@ class Generate:
                         self.nextPage()
                         self.curY, isFinish = dataprocessor.procImgMessage(data, 0, self.curY, self.curC)
 
-                if i == 40:
-                    break
+                #if i == 80:
+                #    break
                 self.curY -= style["MassageSpacing"]
                 if self.curY <= style["chatBoxTextMaxY"]:
                     self.nextPage()
@@ -393,7 +420,6 @@ class Generate:
 # 为防止设置项被设为小写，使用自己的optionxform函数
 def my_optionxform(optionstr: str) -> str:
     return optionstr
-
 
 # 读取ini文件
 def read_ini_file(file_path: str) -> dict:
@@ -423,7 +449,6 @@ def read_ini_file(file_path: str) -> dict:
             data[key] = value
 
     return data
-
 
 def procStyle(file_path):
     style = read_ini_file(file_path)
@@ -467,3 +492,14 @@ dataprocessor = DataProcessor(style)
 generate = Generate("../output", style)
 generate.main()
 pdfDraw.save()
+
+# 以当前日期时间为文件名
+cur_time = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+dst_file = os.path.join('old', cur_time+".pdf")
+
+# 判断目标目录是否存在，不存在则创建
+if not os.path.exists('old'):
+    os.mkdir('old')
+
+# 复制文件到目标目录
+shutil.copy("chatData.pdf", dst_file)
