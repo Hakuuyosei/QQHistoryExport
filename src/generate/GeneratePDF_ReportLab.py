@@ -248,10 +248,10 @@ class DataProcessor:
                 # py语法糖，将item[1]的所有项作为参数给函数items[0]
                 item[0](*item[1])
                 # print("item", item[1])
-        remaindData.insert(0,{
-            "t": "m",
-            "c": {"m": "【续上：】"}
-        })
+            remaindData.insert(0, {
+                "t": "m",
+                "c": {"m": "【续上：】"}
+            })
         return curY, isFinish, remaindData, isStart
 
     def processMessageList(self, dataList, startY, startC):
@@ -329,7 +329,6 @@ class DataProcessor:
                         if curX + charWidth > self.style["chatBoxTextMaxX"]:
                             # 如果该字符加上前面已暂存字符串的宽度会超出列宽，则将暂存字符串绘制出来并换行
                             if not lineBreak():
-
                                 remaindData = []
                                 item["c"]["m"] = str[charNum:]
                                 remaindData.append(item)
@@ -348,6 +347,7 @@ class DataProcessor:
                         textWidth = curX - self.style["chatBoxTextStartX"]
 
                     drawData.append([self.pdfDraw.drawText, [buffer, bufStartX, curY, startC]])
+                    bufStartX = curX
 
 
             # 处理 qqemoji 类型的元素
