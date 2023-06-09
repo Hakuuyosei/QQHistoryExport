@@ -105,7 +105,6 @@ class PdfDraw:
 
     def drawTextQQEmoji(self, path, x, y, c):
         x = self.style["pageWidth"] * c + x
-        print("emoji", x, y)
         path = self.paths["outputDirPath"] + path
         self.pdf_canvas.drawImage(path, x, y,
                                   width=self.style["qqemojiWidth"], height=self.style["qqemojiWidth"],
@@ -355,30 +354,19 @@ class DataProcessor:
                 if item["e"] == self.ERRCODE.codes.NORMAL.value:
                     if curX + self.style["qqemojiWidth"] > self.style["chatBoxTextMaxX"]:
                         # 如果该字符加上前面已暂存字符串的宽度会超出列宽，则先将暂存字符串绘制出来
-                        if buffer != []:
-                            drawData.append([self.pdfDraw.drawText, [buffer, bufStartX, curY, startC]])
-                        # 更新当前坐标到下一行开头，并清空暂存字符串
-                        curX = self.style["chatBoxTextStartX"]
-                        bufStartX = curX
 
-
-                        curY -= self.style["textHeight"] + self.style["lineSpacing"]
-                        textHeight += self.style["textHeight"] + self.style["lineSpacing"]
-                        buffer = ""
-                        textWidth = self.style["chatBoxTextMaxWidth"]
-                        # 待验证
-                        if curY - self.style["textHeight"] + self.style["lineSpacing"] - self.style["textHeight"] < \
-                                self.style["c"] - self.style["chatBoxTextMaxY"]:
+                        if not lineBreak():
                             remaindData = []
                             remaindData.append(*dataList[itemNum:])
                             return False, textHeight, textWidth, drawData, remaindData
 
 
-                    # 绘制qq表情符号并更新坐标
-                    drawData.append([self.pdfDraw.drawTextQQEmoji, [item["c"]["path"], curX, curY, startC]])
-                    curX += self.style["qqemojiWidth"]
-                    if curX - self.style["chatBoxTextStartX"] > textWidth:
-                        textWidth = curX - self.style["chatBoxTextStartX"]
+
+                # 绘制qq表情符号并更新坐标
+                drawData.append([self.pdfDraw.drawTextQQEmoji, [item["c"]["path"], curX, curY, startC]])
+                curX += self.style["qqemojiWidth"]
+                if curX - self.style["chatBoxTextStartX"] > textWidth:
+                    textWidth = curX - self.style["chatBoxTextStartX"]
 
             # 处理 "img" 类型的元素
             elif item["t"] == "img":
@@ -555,6 +543,19 @@ class Generate:
                         if not isFinish:
                             self.nextPage()
                             self.curY, isFinish = self.dataprocessor.procTipMessage(data, self.curY, self.curC)
+
+                elif obj["t"] == "tip":
+                    if obj["e"]["code"] != self.normalcode:
+                        if obj["e"]["code"] in self.normalerr:
+                            self.procErrMessage(obj["t"], obj["e"])
+                    else:
+                        isFinish = False
+                        data = obj["c"]["text"]
+                        self.curY, isFinish = self.dataprocessor.procTipMessage(data, self.curY, self.curC)
+                        if not isFinish:
+                            self.nextPage()
+                            self.curY, isFinish = self.dataprocessor.procTipMessage(data, self.curY, self.curC)
+
 
                 elif obj["t"] == "img":
                     if obj["e"]["code"] != self.normalcode:
