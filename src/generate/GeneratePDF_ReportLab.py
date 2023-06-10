@@ -93,6 +93,12 @@ class PdfDraw:
         self.pdf_canvas.setFont(self.style["fontName"], self.style["textHeight"])
         self.pdf_canvas.drawString(x, y, text)
 
+    def drawName(self, text, x, y, c):
+        x = self.style["pageWidth"] * c + x
+        self.pdf_canvas.setFillColor(self.style["nameTextColor"])
+        self.pdf_canvas.setFont(self.style["fontName"], self.style["nameTextHeight"])
+        self.pdf_canvas.drawString(x, y, text)
+
     def drawTipText(self, text, x, y, c):
         self.pdf_canvas.setFillColor(self.style["tipTextColor"])
         self.pdf_canvas.setFont(self.style["fontName"], self.style["tipTextHeight"])
@@ -172,6 +178,17 @@ class DataProcessor:
         detaY = - self.style["avatarSize"]
         drawData = [[self.pdfDraw.drawAvatar, [senderAvatarPath, self.style["avatarSize"]],
                      [-MsgWidth, detaY, 0]]]
+
+        return True, MsgHeight, drawData
+
+    def procName(self, senderUin, heightSpace):
+        MsgHeight = self.style["nameTextHeight"] + self.style["nameSpacing"]
+        if MsgHeight > heightSpace:
+            return False, MsgHeight, None
+
+        senderName = self.senders[senderUin][0]
+        detaY = - self.style["nameTextHeight"]
+        drawData = [[self.pdfDraw.drawName, [senderName], [0, detaY, 0]]]
 
         return True, MsgHeight, drawData
 
@@ -294,11 +311,12 @@ class DataProcessor:
             curX = 0
             bufStartX = curX
 
+            textHeight += self.style["textHeight"] + self.style["lineSpacing"]
+
             if curY - self.style["textHeight"] - self.style["lineSpacing"] < 0:
                 return False
             else:
                 curY -= self.style["textHeight"] + self.style["lineSpacing"]
-                textHeight += self.style["textHeight"] + self.style["lineSpacing"]
                 return True
 
         buffer = ""
@@ -495,7 +513,6 @@ class Generate:
 
     def drawDataRun(self, drawData, StartX, StartY, StartC):
         for item in drawData:
-            # print(item)
             item[2][0] = item[2][0] + StartX
             item[2][1] = item[2][1] + StartY
             item[2][2] = item[2][2] + StartC
@@ -513,17 +530,19 @@ class Generate:
         :param isNeedErr:是否需要错误处理
         :return:
         """
-        heightSpace = self.curY - self.style["contentMaxY"]
-        isDrawAvatar = False
-        if isWithAvatar:
+        isShowAvatar = False
+        if self.style["avatarShow"] == "True" and isWithAvatar:
+            # 若消息有头像，且设置了avatarShow则显示头像
+            isShowAvatar = True
             startX = self.style["contentStartX"]
-            isDrawAvatar = True
         else:
             startX = self.style["leftMargin"]
-        # TODO: 显示名称
-        isWithName = False
-        # if isWithName:
-        startY = self.curY
+
+        isShowName = False
+        if self.style["nameShow"] == "True" and isWithAvatar:
+            # 若消息有头像，且设置了nameShow则显示名称
+            isShowName = True
+
 
         if isNeedErr:
             if msgData["e"]["code"] != self.normalcode:
@@ -532,26 +551,53 @@ class Generate:
                     return
 
         drawDataAva = []
-        if isWithAvatar:
-            isFinishAva, msgHeightAva, drawDataAva = self.dataprocessor.procAvatar(msgData["s"], heightSpace)
+        msgHeightAva = 0
+        drawDataName = []
+        msgHeightName = 0
+        
+        senderInfoStartY = self.curY
+        SenderInfoHeightSpace = self.curY - self.style["contentMaxY"]
+        if isShowName:
+            isFinishName, msgHeightName, drawDataName = self.dataprocessor.procName(msgData["s"], SenderInfoHeightSpace)
+            if not isFinishName:
+                self.nextPage()
+                SenderInfoHeightSpace = self.curY - self.style["contentMaxY"]
+                senderInfoStartY = self.curY
+                isFinishName, msgHeightName, drawDataName = self.dataprocessor.procName(msgData["s"], SenderInfoHeightSpace)
+                
+        
+        if isShowAvatar:
+            isFinishAva, msgHeightAva, drawDataAva = self.dataprocessor.procAvatar(msgData["s"], SenderInfoHeightSpace)
             if not isFinishAva:
                 self.nextPage()
-                heightSpace = self.curY - self.style["contentMaxY"]
-                startY = self.curY
-                isFinishAva, msgHeightAva, drawDataAva = self.dataprocessor.procAvatar(msgData["s"], heightSpace)
+                SenderInfoHeightSpace = self.curY - self.style["contentMaxY"]
+                senderInfoStartY = self.curY
+                isFinishAva, msgHeightAva, drawDataAva = self.dataprocessor.procAvatar(msgData["s"], SenderInfoHeightSpace)
                 # msgHeight = max(msgHeight, msgHeightAva)
+
+        heightSpace = self.curY - self.style["contentMaxY"] - msgHeightName
+        startY = self.curY - msgHeightName
+
+        drawDataSenderInfo = []
+        if drawDataAva != []:
+            drawDataSenderInfo.extend(drawDataAva)
+        if drawDataName != []:
+            drawDataSenderInfo.extend(drawDataName)
+        msgHeightSender = max(msgHeightAva, msgHeightName)
 
         if not isDivisible:
             isFinish, msgHeight, drawData = drawFunc(msgData, heightSpace)
             if not isFinish:
                 self.nextPage()
-                heightSpace = self.curY - self.style["contentMaxY"]
-                startY = self.curY
+                heightSpace = self.curY - self.style["contentMaxY"] - msgHeightName
+                startY = self.curY - msgHeightName
+                senderInfoStartY = self.curY
                 isFinish, msgHeight, drawData = drawFunc(msgData, heightSpace)
 
-            if isWithAvatar: drawData.extend(drawDataAva)
+            if isShowAvatar or isShowName:
+                self.drawDataRun(drawDataSenderInfo, startX, senderInfoStartY, self.curC)
             self.drawDataRun(drawData, startX, startY, self.curC)
-            self.curY -= msgHeight
+            self.curY -= max(msgHeight + msgHeightName, msgHeightSender)
 
         else:  # Divisible
             isFinish = False
@@ -561,13 +607,15 @@ class Generate:
                 isFinish, msgHeight, drawData, isStart, remaindData = drawFunc(
                     remaindData, heightSpace)
                 # if isStart: avatarY = self.curY
-                if isWithAvatar:    drawData.extend(drawDataAva)
+                if isShowAvatar or isShowName:
+                    self.drawDataRun(drawDataSenderInfo, startX, senderInfoStartY, self.curC)
                 self.drawDataRun(drawData, startX, startY, self.curC)
-                self.curY -= msgHeight
+                self.curY -= max(msgHeight + msgHeightName, msgHeightSender)
                 if not isFinish:
                     self.nextPage()
-                    heightSpace = self.curY - self.style["contentMaxY"]
-                    startY = self.curY
+                    heightSpace = self.curY - self.style["contentMaxY"] - msgHeightName
+                    startY = self.curY - msgHeightName
+                    senderInfoStartY = self.curY
 
     def main(self):
         with open(self.paths["outputDirPath"] + "output/chatData.txt", "r") as f:
