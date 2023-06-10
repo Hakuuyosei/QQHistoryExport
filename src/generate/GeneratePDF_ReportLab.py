@@ -96,11 +96,11 @@ class PdfDraw:
         self.pdf_canvas.setFont(self.style["fontName"], self.style["textHeight"])
         self.pdf_canvas.drawString(x, y, text)
 
-    def drawTipText(self, text, y, c):
+    def drawTipText(self, text, x, y, c):
         self.pdf_canvas.setFillColor(self.style["tipTextColor"])
         self.pdf_canvas.setFont(self.style["fontName"], self.style["tipTextHeight"])
         x = self.style["pageWidth"] * c + self.style["contentCenter"]
-        y = y - self.style["tipTextHeight"]
+        y = y
         self.pdf_canvas.drawCentredString(x, y, text)
 
     def drawTextQQEmoji(self, path, x, y, c):
@@ -110,32 +110,32 @@ class PdfDraw:
                                   width=self.style["qqemojiWidth"], height=self.style["qqemojiWidth"],
                                   mask='auto')
 
-    def drawImg(self, path, name, width, height, offsetX, y, c):
-        x = self.style["pageWidth"] * c + self.style["contentStartX"] + offsetX
+    def drawImg(self, path, name, width, height, x, y, c):
+        x = self.style["pageWidth"] * c + x
         # print("Img", x, y, width, height)
 
         path = self.paths["outputDirPath"] + path
-        self.pdf_canvas.drawImage(path, x, y - height,
+        self.pdf_canvas.drawImage(path, x, y + self.style["textHeight"],
                                   width=width, height=height,
                                   mask='auto')
         text = f"file:  {name}"
         self.pdf_canvas.setFillColor(self.style["textColor"])
         self.pdf_canvas.setFont(self.style["fontName"], self.style["textHeight"])
-        self.pdf_canvas.drawString(x, y - height - self.style["textHeight"], text)
+        self.pdf_canvas.drawString(x, y, text)
 
     def drawTextEmoji(self,char, x, y, c):
         1
         # pdf_canvas.setFont('Noto-COLRv1', 12 * mm)
         # pdf_canvas.drawString(7.25 * mm, 10 * mm, "🥺")
 
-    def drawChatBox(self, y, c, width, Hight):
-        x = self.style["pageWidth"] * c + self.style["contentStartX"]
+    def drawChatBox(self, width, Hight, x, y, c):
+        x = self.style["pageWidth"] * c + x
         self.pdf_canvas.setFillColor(self.style["chatBoxFillColor"])
         self.pdf_canvas.roundRect(x, y, width, Hight, self.style["chatBoxradius"],
                                   fill=1, stroke=0)
 
-    def drawErrBox(self, y, c, width, Hight):
-        x = self.style["pageWidth"] * c + self.style["contentStartX"]
+    def drawErrBox(self, width, Hight,x, y, c):
+        x = self.style["pageWidth"] * c + x
         self.pdf_canvas.setStrokeColor(self.style["chatBoxFillColor"])
         self.pdf_canvas.roundRect(x, y, width, Hight, self.style["chatBoxradius"],
                                   fill=0, stroke=1)
@@ -148,9 +148,8 @@ class PdfDraw:
         self.pdf_canvas.bookmarkHorizontalAbsolute(Str, y, left=0, fit='XYZ')
 
 
-
-
-
+# drawData说明：[函数,[函数参数],[x,y,c]]
+# DataProcessor的函数不直接绘制内容，而是返回drawData
 class DataProcessor:
     def __init__(self, ERRCODE:errcode.err_code, paths, style, pdfDraw: PdfDraw, drawingQuery:DrawingQuery):
         self.drawingQuery = drawingQuery
@@ -159,53 +158,65 @@ class DataProcessor:
         self.paths = paths
         self.style = style
 
-    def procErrMessage(self, type, data, startY, startC):
-        if data == "":
-            drawText = f"错误消息，消息类型：{type}"
+    def procErrMessage(self, data, heightSpace):
+        text = ""
+        if self.style["errShowDetails"] == "True":
+            text = data["e"]["errinfo"]
+        if self.style["errShowPYDetails"] == "True":
+            if "pyexc" in data["e"]:
+                text += "\n" + data["e"]["pyexc"]
+
+        if text == "":
+            drawText = f"错误消息，消息类型：{data['e']}"
         else:
-            drawText = f"错误消息，消息类型：{type}\n{data}"
+            drawText = f"错误消息，消息类型：{data['e']}\n{text}"
         drawData = [{
             "t": "m",
             "c": {"m": drawText}
         }]
         isFinish = False
-        curY = startY
         isFinish, textHeight, textWidth, drawData, remaindData \
-            = self.processMessageList(drawData, startY - self.style["chatBoxPadding"], startC)
+            = self.processMessageList(drawData, heightSpace)
+
+        errBoxHeight = textHeight + 2 * self.style["chatBoxPadding"]
+        errBoxWidth = textWidth + 2 * self.style["chatBoxPadding"]
+        errBoxY = - errBoxHeight
 
         if isFinish:
             # 绘制错误框
-            errBoxHeight = textHeight + 2 * self.style["chatBoxPadding"]
-            errBoxWidth = textWidth + 2 * self.style["chatBoxPadding"]
-            chatBoxY = startY - errBoxHeight
 
             # print("chatboxsize", chatBoxHeight, chatBoxWidth)
-            self.pdfDraw.drawErrBox(chatBoxY, startC, errBoxWidth, errBoxHeight)
-            curY = chatBoxY
-            # 绘制内容
+            drawData.insert(0, [self.pdfDraw.drawErrBox, [errBoxWidth, errBoxHeight], [0, errBoxY, 0]])
+
             for item in drawData:
-                # py语法糖，将item[1]的所有项作为参数给函数items[0]
-                item[0](*item[1])
+                # 将内容偏移
+                item[2][0] += self.style["chatBoxPadding"]
 
-        return curY, isFinish
+            return isFinish, errBoxHeight, drawData
+        return isFinish, errBoxHeight, None
 
-    def procTipMessage(self, data, startY, startC):
-        if startY - self.style["tipTextHeight"] < self.style["chatBoxTextMaxY"]:
-            return startY, False
-        self.pdfDraw.drawTipText(data, startY, startC)
-        return startY - self.style["tipTextHeight"], True
+    def procTimeMessage(self, data, heightSpace):
+        text = data
+        MsgHeight = self.style["tipTextHeight"]
+        if MsgHeight > heightSpace:
+            return False, MsgHeight, None
+        drawData = [[self.pdfDraw.drawTipText, [text], [0, - self.style["tipTextHeight"], 0]]]
+        return True, MsgHeight, drawData
 
-    def procTimeMessage(self, timeStr, startY, startC):
-        if startY - self.style["tipTextHeight"] < self.style["chatBoxTextMaxY"]:
-            return startY, False
-        self.pdfDraw.drawTipText(timeStr, startY, startC)
-        return startY - self.style["tipTextHeight"], True
+    def procTipMessage(self, data, heightSpace):
+        text = data["c"]["text"]
+        MsgHeight = self.style["tipTextHeight"]
+        if MsgHeight > heightSpace:
+            return False, MsgHeight, None
+        drawData = [[self.pdfDraw.drawTipText, [text], [0, - self.style["tipTextHeight"], 0]]]
+        return True, MsgHeight, drawData
 
-    def procImgMessage(self, data, offsetX, startY, startC):
-        path = data["imgPath"]
-        name = data["name"]
-        imgType = data["imgType"]
+    def procImgMessage(self, data, heightSpace):
+        path = data["c"]["imgPath"]
+        name = data["c"]["name"]
+        imgType = data["c"]["imgType"]
 
+        # 使用PIL读取图片的真实长宽
         with Image.open(self.paths["outputDirPath"] + path) as img:
             imgWidth, imgHeight = img.size
         # 如果是图片表情
@@ -216,59 +227,57 @@ class DataProcessor:
             maxWidth = self.style["imgMaxWidth"]
             maxHeight = self.style["imgMaxHeight"]
 
-
         width, height = self.drawingQuery.resize_image(imgWidth, imgHeight, maxWidth, maxHeight)
 
-        if startY - height - self.style["textHeight"] < self.style["contentMaxY"]:
-            return startY, False
-        # print("image", width, height, imgType)
-        self.pdfDraw.drawImg(path, name, width, height, offsetX, startY, startC)
-        return startY - height - self.style["textHeight"], True
+        detaY = - height - self.style["textHeight"]
+        drawData = [[self.pdfDraw.drawImg, [path, name, width, height], [0, detaY, 0]]]
 
-    def procChatBoxMessage(self, dataList, startY, startC):
+        MsgHeight = self.style["tipTextHeight"] + height
+        if MsgHeight > heightSpace:
+            return False, MsgHeight, None
+        return True, MsgHeight, drawData
+
+    def procChatBoxMessage(self, dataList, heightSpace):
         isFinish = False
         isStart = False
-        curY = startY
         isFinish, textHeight, textWidth, drawData, remaindData \
-            = self.processMessageList(dataList, startY - self.style["chatBoxPadding"], startC)
+            = self.processMessageList(dataList, heightSpace)
+
+        chatBoxHeight = textHeight + 2 * self.style["chatBoxPadding"]
+        chatBoxWidth = textWidth + 2 * self.style["chatBoxPadding"]
+        chatBoxY = - chatBoxHeight
 
         # 绘制聊天框
         if textHeight != 0:
             isStart = True
-            chatBoxHeight = textHeight + 2 * self.style["chatBoxPadding"]
-            chatBoxWidth = textWidth + 2 * self.style["chatBoxPadding"]
-            chatBoxY = startY - chatBoxHeight
 
-            # print("chatboxsize", chatBoxHeight, chatBoxWidth)
-            self.pdfDraw.drawChatBox(chatBoxY, startC, chatBoxWidth, chatBoxHeight)
-            curY = chatBoxY
-            # 绘制内容
             for item in drawData:
-                # py语法糖，将item[1]的所有项作为参数给函数items[0]
-                item[0](*item[1])
-                # print("item", item[1])
+                # 将内容偏移到聊天框内
+                item[2][0] += self.style["chatBoxPadding"]
+                item[2][1] -= self.style["chatBoxPadding"]
+
             remaindData.insert(0, {
                 "t": "m",
                 "c": {"m": "【续上：】"}
             })
-        return curY, isFinish, remaindData, isStart
+            drawData.insert(0, [self.pdfDraw.drawChatBox, [chatBoxWidth, chatBoxHeight], [0, chatBoxY, 0]])
+        return isFinish, chatBoxHeight, drawData, isStart, remaindData
 
-    def processMessageList(self, dataList, startY, startC):
+    def processMessageList(self, dataList, heightSpace):
         def lineBreak():
-            nonlocal buffer, bufStartX, curX, curY, startC, textHeight, textWidth
+            nonlocal buffer, bufStartX, curX, curY, heightSpace, textHeight, textWidth
             if buffer != "":
                 # 绘制缓冲区字符
-                drawData.append([self.pdfDraw.drawText, [buffer, bufStartX, curY, startC]])
+                drawData.append([self.pdfDraw.drawText, [buffer], [bufStartX, curY - heightSpace, 0]])
                 buffer = ""
 
             # 更新当前坐标到下一行开头，并清空暂存字符串
-            if curX - self.style["chatBoxTextStartX"] > textWidth:
-                textWidth = curX - self.style["chatBoxTextStartX"]
-            curX = self.style["chatBoxTextStartX"]
+            if curX > textWidth:
+                textWidth = curX
+            curX = 0
             bufStartX = curX
 
-            if curY - self.style["textHeight"] + self.style["lineSpacing"] < \
-                    self.style["chatBoxTextMaxY"]:
+            if curY - self.style["textHeight"] - self.style["lineSpacing"] < 0:
                 return False
             else:
                 curY -= self.style["textHeight"] + self.style["lineSpacing"]
@@ -279,10 +288,9 @@ class DataProcessor:
         drawData = []
         textWidth = 0
         textHeight = 0
-
-        curX = self.style["chatBoxTextStartX"]
-        curY = startY
-        bufStartX = curX
+        curX = 0
+        curY = heightSpace
+        bufStartX = 0
         if not lineBreak():
             # 没有空间用来换行
             return False, 0, 0, drawData, dataList
@@ -299,18 +307,18 @@ class DataProcessor:
                 # 暂存一行中的文本
                 buffer = ""
                 # 遍历字符串中的每一个字符
-                str = item["c"]["m"]
-                for charNum in range(len(str)):
-                    character = str[charNum]
+                msgStr = item["c"]["m"]
+                for charNum in range(len(msgStr)):
+                    character = msgStr[charNum]
                     # 判断字符是否为表情符号
                     if self.drawingQuery.isEmoji(character):
                         # 如果是表情符号，则绘制符号，并更新当前坐标
 
                         if buffer != "":
-                            drawData.append([self.pdfDraw.drawText, [buffer, bufStartX, curY, startC]])
+                            drawData.append([self.pdfDraw.drawText, [buffer], [bufStartX, curY - heightSpace, 0]])
                             buffer = ""
 
-                        drawData.append([self.pdfDraw.drawTextEmoji, [character, curX, curY, startC]])
+                        drawData.append([self.pdfDraw.drawTextEmoji, [character], [curX, curY - heightSpace, 0]])
                         curX += self.style["emojiWidth"]
                         bufStartX = curX + self.style["emojiWidth"]
 
@@ -325,16 +333,15 @@ class DataProcessor:
                         # 如果不是表情符号，先查询其宽度
                         charWidth = self.drawingQuery.queryCharWidth(character)
                         # 判断是否需要换行
-                        if curX + charWidth > self.style["chatBoxTextMaxX"]:
+                        if curX + charWidth > self.style["chatBoxTextMaxWidth"]:
                             # 如果该字符加上前面已暂存字符串的宽度会超出列宽，则将暂存字符串绘制出来并换行
                             if not lineBreak():
                                 remaindData = []
-                                item["c"]["m"] = str[charNum:]
+                                item["c"]["m"] = msgStr[charNum:]
                                 remaindData.append(item)
                                 if dataList[itemNum + 1:] != []:
                                     remaindData.append(*dataList[itemNum + 1:])
                                 return False, textHeight, textWidth, drawData, remaindData
-
 
 
                         # 将当前字符加入缓冲区中
@@ -342,31 +349,28 @@ class DataProcessor:
                         curX += charWidth
                 # 处理剩余的暂存字符串
                 if buffer:
-                    if curX - self.style["chatBoxTextStartX"] > textWidth:
-                        textWidth = curX - self.style["chatBoxTextStartX"]
+                    if curX > textWidth:
+                        textWidth = curX
 
-                    drawData.append([self.pdfDraw.drawText, [buffer, bufStartX, curY, startC]])
+                    drawData.append([self.pdfDraw.drawText, [buffer], [bufStartX, curY - heightSpace, 0]])
                     bufStartX = curX
 
 
             # 处理 qqemoji 类型的元素
             elif item["t"] == "qqemoji":
                 if item["e"] == self.ERRCODE.codes.NORMAL.value:
-                    if curX + self.style["qqemojiWidth"] > self.style["chatBoxTextMaxX"]:
+                    if curX + self.style["qqemojiWidth"] > self.style["MaxchatBoxTextWidth"]:
                         # 如果该字符加上前面已暂存字符串的宽度会超出列宽，则先将暂存字符串绘制出来
-
                         if not lineBreak():
                             remaindData = []
                             remaindData.append(*dataList[itemNum:])
                             return False, textHeight, textWidth, drawData, remaindData
 
-
-
                 # 绘制qq表情符号并更新坐标
-                drawData.append([self.pdfDraw.drawTextQQEmoji, [item["c"]["path"], curX, curY, startC]])
+                drawData.append([self.pdfDraw.drawTextQQEmoji, [item["c"]["path"]], [curX, curY - heightSpace, 0]])
                 curX += self.style["qqemojiWidth"]
-                if curX - self.style["chatBoxTextStartX"] > textWidth:
-                    textWidth = curX - self.style["chatBoxTextStartX"]
+                if curX > textWidth:
+                    textWidth = curX
 
             # 处理 "img" 类型的元素
             elif item["t"] == "img":
@@ -387,21 +391,19 @@ class DataProcessor:
                     width, height = self.drawingQuery.resize_image(data["imgWidth"], data["imgHeight"], maxWidth,
                                                               maxHeight)
 
-                    if curY - height - self.style["textHeight"] < self.style["contentMaxY"]:
+                    if curY - height - self.style["textHeight"] < 0:
                         remaindData = []
                         remaindData.append(*dataList[itemNum:])
                         return False, textHeight, textWidth, drawData, remaindData
-                        drawData.append([self.pdfDraw.drawImg,
-                                         [path, name, width, height, self.style["chatBoxPadding"], startY, startC]])
 
-
-                # 绘制图片并更新坐标
-                drawData.append([self.pdfDraw.DrawTextImg, [item["c"]["imgPath"], curX, curY]])
-                textHeight += height + self.style["textHeight"]
-                curY = height - self.style["textHeight"]
-                curX = self.style["chatBoxTextStartX"]
-                if width > textWidth:
-                    textWidth = width
+                    # 绘制图片并更新坐标
+                    drawData.append([self.pdfDraw.drawImg,
+                                    [path, name, width, height], [0, curY, 0]])
+                    textHeight += height + self.style["textHeight"]
+                    curY = height - self.style["textHeight"]
+                    curX = 0
+                    if width > textWidth:
+                        textWidth = width
 
         # 留出最后一行的位置
         textHeight += self.style["textHeight"] + self.style["lineSpacing"]
@@ -440,30 +442,9 @@ class Generate:
             self.pdfDraw.nextPage(self.pageNum)
         self.curY = self.style["contentStartY"]
 
-    def procErrMessage(self, type, data):
-        if self.style["errShow"] == "True":
-            text = ""
-            if self.style["errShowDetails"] == "True":
-                text = data["errinfo"]
-            if self.style["errShowPYDetails"] == "True":
-                if "pyexc" in data:
-                    text += "\n" + data["pyexc"]
-            isFinish = False
-            self.curY, isFinish = self.dataprocessor.procErrMessage(type, text, self.curY, self.curC)
-            if not isFinish:
-                self.nextPage()
-                self.curY, isFinish = self.dataprocessor.procErrMessage(type, text, self.curY, self.curC)
-
     def procAvator(self):
         return
 
-    # 处理绘制时间字符
-    def procTimeStr(self, timeStr):
-        isFinish = False
-        self.curY, isFinish = self.dataprocessor.procTimeMessage(timeStr, self.curY, self.curC)
-        if not isFinish:
-            self.nextPage()
-            self.curY, isFinish = self.dataprocessor.procTimeMessage(timeStr, self.curY, self.curC)
 
     # 处理时间，是否显示时间等
     def procTime(self, thisTime):
@@ -473,25 +454,22 @@ class Generate:
         timeStr = time.strftime("%Y年%m月%d日 %H:%M", time.localtime(thisTime))
 
         if thisYear != self.lastYear:
-            self.procTimeStr(thisYear)
+            self.drawMsg(self.dataprocessor.procTimeMessage, thisYear, False, True, False)
             self.pdfDraw.bookmark(thisYear, self.curY + self.style["tipTextHeight"], 0)
         if thisMonth != self.lastMonth:
-            self.procTimeStr(thisMonth)
+            self.drawMsg(self.dataprocessor.procTimeMessage, thisMonth, False, True, False)
             self.pdfDraw.bookmark(thisMonth, self.curY + self.style["tipTextHeight"], 1)
         if thisDate != self.lastDate:
-            self.procTimeStr(thisDate)
+            self.drawMsg(self.dataprocessor.procTimeMessage, thisDate, False, True, False)
             self.pdfDraw.bookmark(thisDate, self.curY + self.style["tipTextHeight"], 2)
 
         # 相差n分钟,添加时间标签
         diffMin = abs(self.lastTime - thisTime)/60
         if diffMin >= self.style["intDiffMin"]:
-            isFinish = False
-            self.curY, isFinish = self.dataprocessor.procTimeMessage(timeStr, self.curY, self.curC)
-            if not isFinish:
-                self.nextPage()
-                self.curY, isFinish = self.dataprocessor.procTimeMessage(timeStr, self.curY, self.curC)
+            self.drawMsg(self.dataprocessor.procTimeMessage, timeStr, False, True, False)
+
             self.curY -= self.style["MassageSpacing"]
-            if self.curY <= self.style["chatBoxTextMaxY"]:
+            if self.curY <= self.style["contentMaxY"]:
                 self.nextPage()
 
         self.lastTime = thisTime
@@ -499,7 +477,66 @@ class Generate:
         self.lastMonth = thisMonth
         self.lastYear = thisYear
 
+    def drawDataRun(self, drawData, StartX, StartY, StartC):
+        for item in drawData:
+            # print(item)
+            item[2][0] = item[2][0] + StartX
+            item[2][1] = item[2][1] + StartY
+            item[2][2] = item[2][2] + StartC
+            # py语法糖，将item[1]的所有项作为参数给函数item[0]
+            item[0](*item[1], *item[2])
 
+    def drawMsg(self, drawFunc, msgData, isDivisible, isWithAvatar, isErr):
+        """
+        绘制消息
+
+        :param drawFunc:绘制消息函数
+        :param msgData:消息内容
+        :param isDivisible:消息是否可分割
+        :param isWithAvatar:是否显示头像
+        :param isErr:是否是错误信息（绘制错误信息）
+        :return:
+        """
+        heightSpace = self.curY - self.style["contentMaxY"]
+        isDrawAvatar = False
+        if isWithAvatar:
+            startX = self.style["contentStartX"]
+            isDrawAvatar = True
+        # TODO: 显示名称
+        isWithName = False
+        # if isWithName:
+        startY = self.curY
+
+        if not isErr:
+            if type(msgData) == dict:
+                if msgData["e"]["code"] != self.normalcode:
+                    if msgData["e"]["code"] in self.normalerr:
+                        self.drawMsg(self.dataprocessor.procErrMessage, msgData, False, True, True)
+                        return
+
+        if not isDivisible:
+            isFinish, msgHeight, drawData = drawFunc(msgData, heightSpace)
+            if not isFinish:
+                self.nextPage()
+                heightSpace = self.curY - self.style["contentMaxY"]
+                isFinish, msgHeight, drawData = drawFunc(msgData, heightSpace)
+            # print(drawData, msgData)
+            self.drawDataRun(drawData, startX, startY, self.curC)
+            self.curY -= msgHeight
+
+        else:# Divisible
+            isFinish = False
+            remaindData = msgData["c"]
+            while not isFinish:
+                avatarY = self.curY
+                isFinish, msgHeight, drawData, isStart, remaindData = drawFunc(
+                    remaindData, heightSpace)
+                # if isStart: avatarY = self.curY
+                self.drawDataRun(drawData, startX, startY, self.curC)
+                self.curY -= msgHeight
+                if not isFinish:
+                    self.nextPage()
+                    heightSpace = self.curY - self.style["contentMaxY"]
 
 
     def main(self):
@@ -508,10 +545,7 @@ class Generate:
 
             for line in f:
                 obj = json.loads(line)
-
                 i += 1
-                avatarY = 0
-
                 try:
                     obj["t"]
                 except:
@@ -521,61 +555,23 @@ class Generate:
                 self.procTime(obj["i"])
                 # 消息类型
                 if obj["t"] == "msg":
-                    isFinish = False
-                    remaindData = obj["c"]
-                    while not isFinish:
-                        avatarY = self.curY
-                        self.curY, isFinish, remaindData, isStart = self.dataprocessor.procChatBoxMessage(
-                            remaindData, self.curY, self.curC)
-                        #if isStart: avatarY = self.curY
-
-                        if not isFinish:
-                            self.nextPage()
+                    self.drawMsg(self.dataprocessor.procChatBoxMessage, obj, True, True, False)
 
                 elif obj["t"] == "revoke":
-                    if obj["e"]["code"] != self.normalcode:
-                        if obj["e"]["code"] in self.normalerr:
-                            self.procErrMessage(obj["t"], obj["e"])
-                    else:
-                        isFinish = False
-                        data = obj["c"]["text"]
-                        self.curY, isFinish = self.dataprocessor.procTipMessage(data, self.curY, self.curC)
-                        if not isFinish:
-                            self.nextPage()
-                            self.curY, isFinish = self.dataprocessor.procTipMessage(data, self.curY, self.curC)
+                    self.drawMsg(self.dataprocessor.procTipMessage, obj, False, True, False)
 
                 elif obj["t"] == "tip":
-                    if obj["e"]["code"] != self.normalcode:
-                        if obj["e"]["code"] in self.normalerr:
-                            self.procErrMessage(obj["t"], obj["e"])
-                    else:
-                        isFinish = False
-                        data = obj["c"]["text"]
-                        self.curY, isFinish = self.dataprocessor.procTipMessage(data, self.curY, self.curC)
-                        if not isFinish:
-                            self.nextPage()
-                            self.curY, isFinish = self.dataprocessor.procTipMessage(data, self.curY, self.curC)
+                    self.drawMsg(self.dataprocessor.procTipMessage, obj, False, True, False)
 
 
                 elif obj["t"] == "img":
-                    if obj["e"]["code"] != self.normalcode:
-                        if obj["e"]["code"] in self.normalerr:
-                            self.procErrMessage(obj["t"], obj["e"])
-                    else:
-                        isFinish = False
-                        data = obj["c"]
-                        self.curY, isFinish = self.dataprocessor.procImgMessage(data, 0, self.curY, self.curC)
-                        if not isFinish:
-                            self.nextPage()
-                            self.curY, isFinish = self.dataprocessor.procImgMessage(data, 0, self.curY, self.curC)
+                    self.drawMsg(self.dataprocessor.procImgMessage, obj, False, True, False)
 
                 #if i == 80:
                 #    break
                 self.curY -= self.style["MassageSpacing"]
-                if self.curY <= self.style["chatBoxTextMaxY"]:
+                if self.curY <= self.style["contentMaxY"]:
                     self.nextPage()
-
-
 
 
 
