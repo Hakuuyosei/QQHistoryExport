@@ -16,6 +16,7 @@ import shutil
 
 from src.errcode import errcode
 
+
 class DrawingQuery:
     def __init__(self, ERRCODE, paths, style):
         self.ERRCODE = ERRCODE
@@ -61,7 +62,7 @@ class DrawingQuery:
 
 
 class PdfDraw:
-    def __init__(self, ERRCODE:errcode.err_code, paths, style):
+    def __init__(self, ERRCODE: errcode.err_code, paths, style):
         self.ERRCODE = ERRCODE
         self.paths = paths
         self.style = style
@@ -74,10 +75,6 @@ class PdfDraw:
     def save(self):
         self.pdf_canvas.save()
 
-    # pdf文档翻页
-    def showPage(self):
-        self.pdf_canvas.showPage()
-
     # pdf绘制页脚
     def drawPageFooter(self, pageNum):
         text = self.style["pageFooterText"].replace("$page", str(pageNum))
@@ -87,7 +84,7 @@ class PdfDraw:
 
     # pdf翻页
     def nextPage(self, pageNum):
-        self.showPage()
+        self.pdf_canvas.showPage()
         self.drawPageFooter(pageNum)
 
     def drawText(self, text, x, y, c):
@@ -123,7 +120,7 @@ class PdfDraw:
         self.pdf_canvas.setFont(self.style["fontName"], self.style["textHeight"])
         self.pdf_canvas.drawString(x, y, text)
 
-    def drawTextEmoji(self,char, x, y, c):
+    def drawTextEmoji(self, char, x, y, c):
         1
         # pdf_canvas.setFont('Noto-COLRv1', 12 * mm)
         # pdf_canvas.drawString(7.25 * mm, 10 * mm, "🥺")
@@ -134,14 +131,20 @@ class PdfDraw:
         self.pdf_canvas.roundRect(x, y, width, Hight, self.style["chatBoxradius"],
                                   fill=1, stroke=0)
 
-    def drawErrBox(self, width, Hight,x, y, c):
+    def drawErrBox(self, width, Hight, x, y, c):
         x = self.style["pageWidth"] * c + x
         self.pdf_canvas.setStrokeColor(self.style["chatBoxFillColor"])
         self.pdf_canvas.roundRect(x, y, width, Hight, self.style["chatBoxradius"],
                                   fill=0, stroke=1)
 
-    def drawAvatar(self, senderUin):
-        return
+    def drawAvatar(self, path, size, x, y, c):
+        x = self.style["pageWidth"] * c + x
+        # print("Img", x, y, width, height)
+
+        path = self.paths["outputDirPath"] + path
+        self.pdf_canvas.drawImage(path, x, y,
+                                  width=size, height=size,
+                                  mask='auto')
 
     def bookmark(self, Str, y, level):
         self.pdf_canvas.addOutlineEntry(Str, Str, level)
@@ -151,12 +154,26 @@ class PdfDraw:
 # drawData说明：[函数,[函数参数],[x,y,c]]
 # DataProcessor的函数不直接绘制内容，而是返回drawData
 class DataProcessor:
-    def __init__(self, ERRCODE:errcode.err_code, paths, style, pdfDraw: PdfDraw, drawingQuery:DrawingQuery):
+    def __init__(self, ERRCODE: errcode.err_code, paths, style, senders, pdfDraw: PdfDraw, drawingQuery: DrawingQuery):
         self.drawingQuery = drawingQuery
         self.pdfDraw = pdfDraw
         self.ERRCODE = ERRCODE
         self.paths = paths
         self.style = style
+        self.senders = senders
+
+    def procAvatar(self, senderUin, heightSpace):
+        MsgHeight = self.style["avatarSize"] + self.style["avatarMargin"]
+        MsgWidth = self.style["avatarSize"] + 2 * self.style["avatarMargin"]
+        if MsgHeight > heightSpace:
+            return False, MsgHeight, None
+
+        senderAvatarPath = self.senders[senderUin][1]
+        detaY = - self.style["avatarSize"]
+        drawData = [[self.pdfDraw.drawAvatar, [senderAvatarPath, self.style["avatarSize"]],
+                     [-MsgWidth, detaY, 0]]]
+
+        return True, MsgHeight, drawData
 
     def procErrMessage(self, data, heightSpace):
         text = ""
@@ -343,7 +360,6 @@ class DataProcessor:
                                     remaindData.append(*dataList[itemNum + 1:])
                                 return False, textHeight, textWidth, drawData, remaindData
 
-
                         # 将当前字符加入缓冲区中
                         buffer += character
                         curX += charWidth
@@ -389,7 +405,7 @@ class DataProcessor:
                         maxHeight = self.style["imgMaxHeight"] - 2 * self.style["chatBoxPadding"]
 
                     width, height = self.drawingQuery.resize_image(data["imgWidth"], data["imgHeight"], maxWidth,
-                                                              maxHeight)
+                                                                   maxHeight)
 
                     if curY - height - self.style["textHeight"] < 0:
                         remaindData = []
@@ -398,7 +414,7 @@ class DataProcessor:
 
                     # 绘制图片并更新坐标
                     drawData.append([self.pdfDraw.drawImg,
-                                    [path, name, width, height], [0, curY, 0]])
+                                     [path, name, width, height], [0, curY, 0]])
                     textHeight += height + self.style["textHeight"]
                     curY = height - self.style["textHeight"]
                     curX = 0
@@ -411,7 +427,7 @@ class DataProcessor:
 
 
 class Generate:
-    def __init__(self, ERRCODE: errcode.err_code, path, style, pdfDraw:PdfDraw, dataprocessor:DataProcessor):
+    def __init__(self, ERRCODE: errcode.err_code, path, style, pdfDraw: PdfDraw, dataprocessor: DataProcessor):
         self.pdfDraw = pdfDraw
         self.dataprocessor = dataprocessor
         self.ERRCODE = ERRCODE
@@ -426,7 +442,8 @@ class Generate:
         self.lastYear = 0
 
         self.ec = self.ERRCODE.codes
-        self.normalerr = [self.ec.IMG_UNKNOWN_TYPE_ERROR.value, self.ec.IMG_DESERIALIZATION_ERROR.value, self.ec.IMG_NOT_EXIST.value,
+        self.normalerr = [self.ec.IMG_UNKNOWN_TYPE_ERROR.value, self.ec.IMG_DESERIALIZATION_ERROR.value,
+                          self.ec.IMG_NOT_EXIST.value,
                           self.ec.MIXMSG_DESERIALIZATION_ERROR.value,
                           self.ec.MARKETFACE_NOT_EXIST.value,
                           self.ec.ALL_EXTSTR_NOT_EXIST_TARGET.value
@@ -445,7 +462,6 @@ class Generate:
     def procAvator(self):
         return
 
-
     # 处理时间，是否显示时间等
     def procTime(self, thisTime):
         thisDate = time.strftime("%Y年%m月%d日", time.localtime(thisTime))
@@ -454,19 +470,19 @@ class Generate:
         timeStr = time.strftime("%Y年%m月%d日 %H:%M", time.localtime(thisTime))
 
         if thisYear != self.lastYear:
-            self.drawMsg(self.dataprocessor.procTimeMessage, thisYear, False, True, False)
+            self.drawMsg(self.dataprocessor.procTimeMessage, thisYear, False, False, False)
             self.pdfDraw.bookmark(thisYear, self.curY + self.style["tipTextHeight"], 0)
         if thisMonth != self.lastMonth:
-            self.drawMsg(self.dataprocessor.procTimeMessage, thisMonth, False, True, False)
+            self.drawMsg(self.dataprocessor.procTimeMessage, thisMonth, False, False, False)
             self.pdfDraw.bookmark(thisMonth, self.curY + self.style["tipTextHeight"], 1)
         if thisDate != self.lastDate:
-            self.drawMsg(self.dataprocessor.procTimeMessage, thisDate, False, True, False)
+            self.drawMsg(self.dataprocessor.procTimeMessage, thisDate, False, False, False)
             self.pdfDraw.bookmark(thisDate, self.curY + self.style["tipTextHeight"], 2)
 
         # 相差n分钟,添加时间标签
-        diffMin = abs(self.lastTime - thisTime)/60
+        diffMin = abs(self.lastTime - thisTime) / 60
         if diffMin >= self.style["intDiffMin"]:
-            self.drawMsg(self.dataprocessor.procTimeMessage, timeStr, False, True, False)
+            self.drawMsg(self.dataprocessor.procTimeMessage, timeStr, False, False, False)
 
             self.curY -= self.style["MassageSpacing"]
             if self.curY <= self.style["contentMaxY"]:
@@ -486,7 +502,7 @@ class Generate:
             # py语法糖，将item[1]的所有项作为参数给函数item[0]
             item[0](*item[1], *item[2])
 
-    def drawMsg(self, drawFunc, msgData, isDivisible, isWithAvatar, isErr):
+    def drawMsg(self, drawFunc, msgData, isDivisible, isWithAvatar, isNeedErr):
         """
         绘制消息
 
@@ -494,7 +510,7 @@ class Generate:
         :param msgData:消息内容
         :param isDivisible:消息是否可分割
         :param isWithAvatar:是否显示头像
-        :param isErr:是否是错误信息（绘制错误信息）
+        :param isNeedErr:是否需要错误处理
         :return:
         """
         heightSpace = self.curY - self.style["contentMaxY"]
@@ -502,17 +518,28 @@ class Generate:
         if isWithAvatar:
             startX = self.style["contentStartX"]
             isDrawAvatar = True
+        else:
+            startX = self.style["leftMargin"]
         # TODO: 显示名称
         isWithName = False
         # if isWithName:
         startY = self.curY
 
-        if not isErr:
-            if type(msgData) == dict:
-                if msgData["e"]["code"] != self.normalcode:
-                    if msgData["e"]["code"] in self.normalerr:
-                        self.drawMsg(self.dataprocessor.procErrMessage, msgData, False, True, True)
-                        return
+        if isNeedErr:
+            if msgData["e"]["code"] != self.normalcode:
+                if msgData["e"]["code"] in self.normalerr:
+                    self.drawMsg(self.dataprocessor.procErrMessage, msgData, False, True, False)
+                    return
+
+        drawDataAva = []
+        if isWithAvatar:
+            isFinishAva, msgHeightAva, drawDataAva = self.dataprocessor.procAvatar(msgData["s"], heightSpace)
+            if not isFinishAva:
+                self.nextPage()
+                heightSpace = self.curY - self.style["contentMaxY"]
+                startY = self.curY
+                isFinishAva, msgHeightAva, drawDataAva = self.dataprocessor.procAvatar(msgData["s"], heightSpace)
+                # msgHeight = max(msgHeight, msgHeightAva)
 
         if not isDivisible:
             isFinish, msgHeight, drawData = drawFunc(msgData, heightSpace)
@@ -521,11 +548,12 @@ class Generate:
                 heightSpace = self.curY - self.style["contentMaxY"]
                 startY = self.curY
                 isFinish, msgHeight, drawData = drawFunc(msgData, heightSpace)
-            # print(drawData, msgData)
+
+            if isWithAvatar: drawData.extend(drawDataAva)
             self.drawDataRun(drawData, startX, startY, self.curC)
             self.curY -= msgHeight
 
-        else:# Divisible
+        else:  # Divisible
             isFinish = False
             remaindData = msgData["c"]
             while not isFinish:
@@ -533,13 +561,13 @@ class Generate:
                 isFinish, msgHeight, drawData, isStart, remaindData = drawFunc(
                     remaindData, heightSpace)
                 # if isStart: avatarY = self.curY
+                if isWithAvatar:    drawData.extend(drawDataAva)
                 self.drawDataRun(drawData, startX, startY, self.curC)
                 self.curY -= msgHeight
                 if not isFinish:
                     self.nextPage()
                     heightSpace = self.curY - self.style["contentMaxY"]
                     startY = self.curY
-
 
     def main(self):
         with open(self.paths["outputDirPath"] + "output/chatData.txt", "r") as f:
@@ -557,32 +585,29 @@ class Generate:
                 self.procTime(obj["i"])
                 # 消息类型
                 if obj["t"] == "msg":
-                    self.drawMsg(self.dataprocessor.procChatBoxMessage, obj, True, True, False)
+                    self.drawMsg(self.dataprocessor.procChatBoxMessage, obj, True, True, True)
 
                 elif obj["t"] == "revoke":
-                    self.drawMsg(self.dataprocessor.procTipMessage, obj, False, True, False)
+                    self.drawMsg(self.dataprocessor.procTipMessage, obj, False, True, True)
 
                 elif obj["t"] == "tip":
-                    self.drawMsg(self.dataprocessor.procTipMessage, obj, False, True, False)
+                    self.drawMsg(self.dataprocessor.procTipMessage, obj, False, False, True)
 
 
                 elif obj["t"] == "img":
-                    self.drawMsg(self.dataprocessor.procImgMessage, obj, False, True, False)
+                    self.drawMsg(self.dataprocessor.procImgMessage, obj, False, True, True)
 
-                #if i == 80:
+                # if i == 80:
                 #    break
                 self.curY -= self.style["MassageSpacing"]
                 if self.curY <= self.style["contentMaxY"]:
                     self.nextPage()
 
 
-
-
-
-
 # 为防止设置项被设为小写，使用自己的optionxform函数
 def my_optionxform(optionstr: str) -> str:
     return optionstr
+
 
 class GenerateInit:
     # 读取ini文件
@@ -642,8 +667,16 @@ class GenerateInit:
         style["imgMaxHeight"] = style["pageHeight"] * style["fltimgDrawScale"]
         return style
 
+    # 读取发送者内容
+    def readSenderInfo(self):
+        with open('output/senders/senders.json', encoding='utf-8') as f:
+            senders = json.load(f)
+
+        return senders
+
     def run(self):
         style = self.procStyle('config/GeneratePDF_ReportLab_config.ini')
+        senders = self.readSenderInfo()
         print(style)
 
         fontName = "simhei"
@@ -660,7 +693,7 @@ class GenerateInit:
         drawingQuery = DrawingQuery(ERRCODE, paths, style)
 
         pdfDraw = PdfDraw(ERRCODE, paths, style)
-        dataprocessor = DataProcessor(ERRCODE, paths, style, pdfDraw, drawingQuery)
+        dataprocessor = DataProcessor(ERRCODE, paths, style, senders, pdfDraw, drawingQuery)
         generate = Generate(ERRCODE, paths, style, pdfDraw, dataprocessor)
         generate.main()
         pdfDraw.save()
@@ -675,4 +708,3 @@ class GenerateInit:
 
         # 复制文件到目标目录
         shutil.copy("output/chatData.pdf", dst_file)
-
