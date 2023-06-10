@@ -4,16 +4,19 @@ import os
 import traceback
 import json
 import shutil
-import binascii
+
 
 from src.errcode import errcode
 from src.dataParsing.unserializedDataParsing import unserializedDataParsing
 from src.dataParsing.textParsing import textParsing
 from src.dataParsing.protoDataParsing import protoDataParsing
+from src.dataParsing.javaSerializedDataParsing import javaSerializedDataParsing
+
 
 # QQ消息类型以及处理方式
-unserializedDataType = [-1000, -1051, -1012, -2042, -2015, -1034, -2005, -3008, -2016, -4008, -1013]
-protoDataType =        [-2000, -1035, -2002, -2022, -5020, -5023, -8018, -5040]
+unserializedDataType =      [-1000, -1051, -1012, -2042, -2015, -1034, -2005, -3008, -2016, -4008, -1013]
+protoDataType =             [-2000, -1035, -2002, -2022, -5020, -5023, -8018, -5040]
+javaSerializedDataType =    [-1049, -2017, -2025, -2011, -5008, -2007, -2025]
 
 
 class QQParse():
@@ -38,6 +41,7 @@ class QQParse():
         self.textParsing = textParsing(self.ERRCODE,self.qqemojiVer)
         self.unserializedDataParsing = unserializedDataParsing(self.ERRCODE, self.textParsing)
         self.protoDataParsing = protoDataParsing(self.ERRCODE, self.textParsing, self.chatimgPath)
+        self.javaSerializedDataParsing = javaSerializedDataParsing(self.ERRCODE, self.textParsing)
 
         self.createOutput()
         self.outputFile = open('output/chatData.txt', 'w')
@@ -166,79 +170,14 @@ class QQParse():
         elif msgType in protoDataType:
             msgOutData = self.protoDataParsing.parse(msgType, msgData, extStr, senderQQ)
             return msgOutData
-        return
+        elif msgType in javaSerializedDataType:
+            msgOutData = self.javaSerializedDataParsing.parse(msgType, msgData, extStr, senderQQ)
+            return msgOutData
         print(msgType)
 
 
-        if msgType == -1049:# 回复引用
-            msgOutData = {
-                "t": "msg",
-                "c": self.textParsing.parse(msgData.decode("utf-8")),
-                "e": self.ERRCODE.NORMAL()
-            }
-            try:
-                # print(extStr)
-                extStrJson = json.loads(extStr)
-                sourceMsgInfo = extStrJson["sens_msg_source_msg_info"]
-                # print(sourceMsgInfo)
-                # sourceMsgInfoJson = jd.javaDeserialization(sourceMsgInfo,"reply")
 
-                # HACK
-                # (目前已弃用)
-                # if len(SourceMsgInfo) > 1048:
-                #     SourceMsgSenderQQnum = int(SourceMsgInfo[1016:1024],base=16)
-                #     SourceMsgTime = int(SourceMsgInfo[1040:1048],base=16)
-                #     msgOutData.append(["source",SourceMsgSenderQQnum,SourceMsgTime])
-                # else:
-                #     print("ERROR,SourceMsgInfo too short",SourceMsgInfo)
-                # #print(msgOutData)
-
-            except:
-                print(traceback.format_exc())
-                pass
-
-        elif msgType == -2011:# 转发的聊天记录，java序列化
-            # jd.javaDeserialization(binascii.hexlify(msgData).decode(), "111")
-
-            return 0
-
-        elif msgType == -2017:# 群文件
-            #jd.javaDeserialization(binascii.hexlify(msgData).decode(),"troopfile")
-            print(binascii.hexlify(msgData).decode())
-            1
-
-        elif msgType == -5008:# 小程序/推荐名片，java 序列化套json
-            #print(-5008,jd.javaDeserialization(binascii.hexlify(msgData).decode(),"miniapp"))
-            print(binascii.hexlify(msgData).decode())
-
-
-
-        # elif msgType ==
-        #     # msgOutData = self.decodeMixMsg(msgData)
-        #     # print(msgOutData)
-        #     print(msgType)
-        #     print(msgData.decode("utf-8"))
-        #     with open("./11.bin", 'wb') as f:  # 二进制流写到.bin文件
-        #         f.write(msgData)
-        #     1
-
-
-
-        elif msgType == -2007:  #推荐名片
-            print(binascii.hexlify(msgData).decode())
-            return 0
-
-        elif msgType == -2025:# 红包
-            print(binascii.hexlify(msgData).decode())
-            return 0
-
-        elif msgType == -2059:# 新人入群 java + unknown
-            print(binascii.hexlify(msgData).decode())
-            #jd.javaDeserialization(binascii.hexlify(msgData).decode(), "111")
-            return 0
-
-
-        elif msgType == -2060:# unknown
+        if msgType == -2060:# unknown
             print(-2060, msgData.decode("utf-8"))
             #-2060 {"text":"xxx","bgColor":-7883789,"ts":16464**,"cover":""}
 

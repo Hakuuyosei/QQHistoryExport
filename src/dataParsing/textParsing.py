@@ -8,7 +8,7 @@ import shutil
 import binascii
 
 
-from ..errcode.errcode import err_code
+from src.errcode.errcode import err_code
 
 class textParsing():
     def __init__(self, errcodeobj: err_code, qqemojiVer):

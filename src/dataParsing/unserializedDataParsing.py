@@ -2,7 +2,7 @@ import os
 import json
 
 
-from ..errcode.errcode import err_code
+from src.errcode.errcode import err_code
 from .textParsing import textParsing
 
 
