@@ -275,7 +275,7 @@ class DataProcessor:
         isFinish = False
         isStart = False
         isFinish, textHeight, textWidth, drawData, remaindData \
-            = self.processMessageList(dataList, heightSpace)
+            = self.processMessageList(dataList, heightSpace - self.style["chatBoxPadding"])
 
         chatBoxHeight = textHeight + 2 * self.style["chatBoxPadding"]
         chatBoxWidth = textWidth + 2 * self.style["chatBoxPadding"]
