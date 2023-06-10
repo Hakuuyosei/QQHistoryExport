@@ -56,6 +56,7 @@ class QQParse():
         os.mkdir(dir_path + "/emoticons/emoticon2")
         os.mkdir(dir_path + "/emoticons/nudgeaction")
         os.mkdir(dir_path + "/images")
+        os.mkdir(dir_path + "/senders")
 
     def fill_cursors(self, cmd):
         cursors = []
@@ -89,6 +90,8 @@ class QQParse():
         self.getFriends()
         self.getTroops()
         self.getTroopMembers()
+        friendOrTroop = "troop"
+        self.senderUins = []
 
         targetQQmd5 = hashlib.md5(self.targetQQ.encode("utf-8")).hexdigest().upper()
 
@@ -102,7 +105,7 @@ class QQParse():
             cmd = "select msgtype,senderuin,msgData,time,extStr from mr_troop_{}_New order by time".format(
                 targetQQmd5)
         else:
-            print("无效QQ号",self.targetQQ)
+            print("无效QQ号", self.targetQQ)
             return
         print(cmd)
 
@@ -118,16 +121,38 @@ class QQParse():
             for row in cs:
                 msgType = row[0]
                 senderQQ = self.decrypt(row[1])
+                if senderQQ not in self.senderUins:
+                    self.senderUins.append(senderQQ)
                 msgData = self.decrypt(row[2])
                 ltime = row[3]
                 extStr = self.decrypt(row[4])
                 msgOutData = self.proMsg(msgType, msgData, extStr, senderQQ)
-                if msgOutData != None:
+                if msgOutData != None and msgOutData != {}:
                     msgOutData["s"] = senderQQ
                     msgOutData["i"] = ltime
                     json_str = json.dumps(msgOutData)
                     self.outputFile.write(json_str + '\n')
         self.outputFile.close()
+
+        print(self.troopMembers[self.targetQQ])
+
+
+        senders = {}
+        if friendOrTroop == "troop":
+            for uin in self.senderUins:
+                if uin == self.targetQQ:
+                    continue
+                    # 如果发送者等于群QQ号，可能是更改群名之类的
+                name = self.troopMembers[self.targetQQ][uin][0]
+                senders[uin] = [name,""]
+
+        filename = "output/senders/senders.json"
+        # 写入 JSON 数据到文件
+
+        with open(filename, "w", encoding="utf-8") as f:
+            json.dump(senders, f, ensure_ascii=False, indent=4)
+
+
 
 
     # 加工信息
@@ -288,7 +313,7 @@ class QQParse():
                 if troopQQNumber in self.troopMembers.keys():
                     self.troopMembers[troopQQNumber][memberQQ] = [memberName,membernick]
                 else:
-                    self.troopMembers[troopQQNumber] = {memberQQ:[memberName,membernick]}
+                    self.troopMembers[troopQQNumber] = {memberQQ: [memberName,membernick]}
         # print(self.troopMembers)
 
 
