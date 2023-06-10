@@ -519,6 +519,7 @@ class Generate:
             if not isFinish:
                 self.nextPage()
                 heightSpace = self.curY - self.style["contentMaxY"]
+                startY = self.curY
                 isFinish, msgHeight, drawData = drawFunc(msgData, heightSpace)
             # print(drawData, msgData)
             self.drawDataRun(drawData, startX, startY, self.curC)
@@ -537,6 +538,7 @@ class Generate:
                 if not isFinish:
                     self.nextPage()
                     heightSpace = self.curY - self.style["contentMaxY"]
+                    startY = self.curY
 
 
     def main(self):
