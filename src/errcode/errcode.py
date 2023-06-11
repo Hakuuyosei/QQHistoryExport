@@ -11,6 +11,9 @@ class codes(Enum):
     MARKETFACE_NOT_EXIST = auto()
     ALL_EXTSTR_NOT_EXIST_TARGET = auto()
     ALL_OS_ERROR = auto()
+    JAVA_DESER_ERR_INPUT_TYPE = auto()
+    JAVA_DESER_JSON_ERR_DECODE = auto()
+    EXTSTR_JSON_ERR_DECODE = auto
 
 class err_code():
     def __init__(self,):
@@ -122,6 +125,33 @@ class err_code():
             "errinfo": f"An error occurred in the file operation path:{data}",
             "data": data,
             "pyexc": pyexc
+        }
+        self.log("PARSE", self.LOG_LEVEL_ERR, info)
+        return info
+
+    def JAVA_DESER_ERR_INPUT_TYPE(self, data, type):
+        info = {
+            "code": codes.JAVA_DESER_ERR_INPUT_TYPE.value,
+            "errinfo": f"The input data type({type}) being deserialized is incorrect ,data is{data}",
+            "data": data
+        }
+        self.log("PARSE", self.LOG_LEVEL_ERR, info)
+        return info
+
+    def JAVA_DESER_JSON_ERR_DECODE(self, data, oridata):
+        info = {
+            "code": codes.JAVA_DESER_JSON_ERR_DECODE.value,
+            "errinfo": f"JSON decoding failed when deserialezing data ,data is{data}, origindata is {oridata}",
+            "data": data
+        }
+        self.log("PARSE", self.LOG_LEVEL_ERR, info)
+        return info
+
+    def EXTSTR_JSON_ERR_DECODE(self, data):
+        info = {
+            "code": codes.EXTSTR_JSON_ERR_DECODE.value,
+            "errinfo": f"JSON decoding failed when load extstr ,data is{data}",
+            "data": data
         }
         self.log("PARSE", self.LOG_LEVEL_ERR, info)
         return info
