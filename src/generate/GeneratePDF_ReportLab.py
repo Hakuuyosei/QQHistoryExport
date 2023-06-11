@@ -81,7 +81,7 @@ class PdfDraw:
         self.style = style
 
         pdfmetrics.registerFont(TTFont(self.style["fontName"], self.paths["fontPath"]))
-        # pdfmetrics.registerFont(TTFont('ColorEmoji', 'fonts/ColorEmoji.ttf'))
+        pdfmetrics.registerFont(TTFont('ColorEmoji', 'lib/fonts/NotoColorEmoji.ttf'))
         self.pdf_canvas = canvas.Canvas("output/chatData.pdf", pagesize=self.style["pageSize"])
         self.drawPageFooter(1)
 
@@ -140,9 +140,11 @@ class PdfDraw:
         self.pdf_canvas.drawString(x, y, text)
 
     def drawTextEmoji(self, char, x, y, c):
-        1
-        # pdf_canvas.setFont('Noto-COLRv1', 12 * mm)
-        # pdf_canvas.drawString(7.25 * mm, 10 * mm, "🥺")
+        x = self.style["pageWidth"] * c + x
+        print("drawTextEmoji")
+        print(ord(char))
+        self.pdf_canvas.setFont('NotoColorEmoji', self.style["textHeight"])
+        self.pdf_canvas.drawString(x, y, char)
 
     def drawChatBox(self, width, hight, x, y, c):
         x = self.style["pageWidth"] * c + x
@@ -256,7 +258,7 @@ class DataProcessor:
         if "fileSize" in data["c"]:
             fileSize = data["c"]["fileSize"]
             fileSizeStr = self.drawingQuery.convert_filesize(fileSize)
-            drawText += f"\n文件大小：{fileName}"
+            drawText += f"\n文件大小：{fileSizeStr}"
         drawData = [{
             "t": "m",
             "c": {"m": drawText}
