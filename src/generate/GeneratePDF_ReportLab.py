@@ -131,17 +131,23 @@ class PdfDraw:
         # pdf_canvas.setFont('Noto-COLRv1', 12 * mm)
         # pdf_canvas.drawString(7.25 * mm, 10 * mm, "🥺")
 
-    def drawChatBox(self, width, Hight, x, y, c):
+    def drawChatBox(self, width, hight, x, y, c):
         x = self.style["pageWidth"] * c + x
         self.pdf_canvas.setFillColor(self.style["chatBoxFillColor"])
-        self.pdf_canvas.roundRect(x, y, width, Hight, self.style["chatBoxradius"],
+        self.pdf_canvas.roundRect(x, y, width, hight, self.style["chatBoxradius"],
                                   fill=1, stroke=0)
 
-    def drawErrBox(self, width, Hight, x, y, c):
+    def drawErrBox(self, width, hight, x, y, c):
         x = self.style["pageWidth"] * c + x
         self.pdf_canvas.setStrokeColor(self.style["chatBoxFillColor"])
-        self.pdf_canvas.roundRect(x, y, width, Hight, self.style["chatBoxradius"],
+        self.pdf_canvas.roundRect(x, y, width, hight, self.style["chatBoxradius"],
                                   fill=0, stroke=1)
+
+    def drawreplyBox(self, width, hight, x, y, c):
+        x = self.style["pageWidth"] * c + x
+        self.pdf_canvas.setFillColor(self.style["replyBoxFillColor"])
+        self.pdf_canvas.roundRect(x, y, width, hight, self.style["chatBoxradius"],
+                                  fill=1, stroke=0)
 
     def drawAvatar(self, path, size, x, y, c):
         x = self.style["pageWidth"] * c + x
@@ -201,9 +207,9 @@ class DataProcessor:
                 text += "\n" + data["e"]["pyexc"]
 
         if text == "":
-            drawText = f"错误消息，消息类型：{data['e']}"
+            drawText = f"错误消息，消息类型：{data['t']}"
         else:
-            drawText = f"错误消息，消息类型：{data['e']}\n{text}"
+            drawText = f"错误消息，消息类型：{data['t']}\n{text}"
         drawData = [{
             "t": "m",
             "c": {"m": drawText}
@@ -218,14 +224,10 @@ class DataProcessor:
 
         if isFinish:
             # 绘制错误框
-
-            # print("chatboxsize", chatBoxHeight, chatBoxWidth)
-            drawData.insert(0, [self.pdfDraw.drawErrBox, [errBoxWidth, errBoxHeight], [0, errBoxY, 0]])
-
             for item in drawData:
                 # 将内容偏移
                 item[2][0] += self.style["chatBoxPadding"]
-
+            drawData.insert(0, [self.pdfDraw.drawErrBox, [errBoxWidth, errBoxHeight], [0, errBoxY, 0]])
             return isFinish, errBoxHeight, drawData
         return isFinish, errBoxHeight, None
 
@@ -282,7 +284,7 @@ class DataProcessor:
         chatBoxY = - chatBoxHeight
 
         # 绘制聊天框
-        if textHeight != 0:
+        if len(drawData) != 0:
             isStart = True
 
             for item in drawData:
@@ -326,19 +328,24 @@ class DataProcessor:
         curX = 0
         curY = heightSpace
         bufStartX = 0
-        if not lineBreak():
-            # 没有空间用来换行
-            return False, 0, 0, drawData, dataList
-        else:
-            # 校正初次换行
-            curY += self.style["lineSpacing"]
-            textHeight = 0
+        lastItem = "start"
+
 
         # 遍历列表中的每一个元素
         for itemNum in range(len(dataList)):
             item = dataList[itemNum]
             # 处理 "m" 类型的元素
             if item["t"] == "m":
+                if lastItem in ["start", "img", "reply"]:
+                    # 校正初次换行
+                    textHeight -= self.style["textHeight"] + self.style["lineSpacing"]
+                    if not lineBreak():
+                        # 没有空间用来换行
+                        return False, textHeight, textWidth, drawData, dataList[itemNum:]
+                    else:
+                        curY += self.style["lineSpacing"]
+
+                lastItem = "m"
                 # 暂存一行中的文本
                 buffer = ""
                 # 遍历字符串中的每一个字符
@@ -360,8 +367,10 @@ class DataProcessor:
                     if character == "\n":
                         if not lineBreak():
                             remaindData = []
+                            item["c"]["m"] = msgStr[charNum:]
+                            remaindData.append(item)
                             if dataList[itemNum + 1:] != []:
-                                remaindData.append(*dataList[itemNum + 1:])
+                                remaindData.extend(dataList[itemNum + 1:])
                             return False, textHeight, textWidth, drawData, remaindData
 
                     else:
@@ -375,7 +384,7 @@ class DataProcessor:
                                 item["c"]["m"] = msgStr[charNum:]
                                 remaindData.append(item)
                                 if dataList[itemNum + 1:] != []:
-                                    remaindData.append(*dataList[itemNum + 1:])
+                                    remaindData.extend(dataList[itemNum + 1:])
                                 return False, textHeight, textWidth, drawData, remaindData
 
                         # 将当前字符加入缓冲区中
@@ -392,12 +401,22 @@ class DataProcessor:
 
             # 处理 qqemoji 类型的元素
             elif item["t"] == "qqemoji":
+                if lastItem in ["start", "img", "reply"]:
+                    # 校正初次换行
+                    textHeight -= self.style["textHeight"] + self.style["lineSpacing"]
+                    if not lineBreak():
+                        # 没有空间用来换行
+                        return False, textHeight, textWidth, drawData, dataList[itemNum:]
+                    else:
+                        curY += self.style["lineSpacing"]
+
+                lastItem = "qqemoji"
                 if item["e"] == self.ERRCODE.codes.NORMAL.value:
                     if curX + self.style["qqemojiWidth"] > self.style["MaxchatBoxTextWidth"]:
                         # 如果该字符加上前面已暂存字符串的宽度会超出列宽，则先将暂存字符串绘制出来
                         if not lineBreak():
                             remaindData = []
-                            remaindData.append(*dataList[itemNum:])
+                            remaindData.extend(dataList[itemNum:])
                             return False, textHeight, textWidth, drawData, remaindData
 
                 # 绘制qq表情符号并更新坐标
@@ -406,8 +425,83 @@ class DataProcessor:
                 if curX > textWidth:
                     textWidth = curX
 
+
+
+            elif item["t"] == "reply":
+                lastItem = "reply"
+                sourceMsgSenderUin = item["c"]["sourceMsgSenderUin"]
+                if sourceMsgSenderUin in self.senders:
+                    senderInfo = self.senders["sourceMsgSenderUin"]
+                else:
+                    senderInfo = sourceMsgSenderUin
+                sourceMsgTime = item["c"]["sourceMsgTime"]
+                sourceMsgTimeStr = time.strftime("%m月%d日 %H:%M", time.localtime(sourceMsgTime))
+                sourceMsgText = item["c"]["sourceMsgText"]
+                sourceMsgInfo = f"\n{senderInfo} {sourceMsgTimeStr}\n{sourceMsgText}"
+
+                replyMsgHeight = 0
+                replyMsgWidth = 0
+                replyMsgCurY = curY
+                # 暂存一行中的文本
+                buffer = ""
+                buffers = []
+                curX = 0
+                # 遍历字符串中的每一个字符
+                for charNum in range(len(sourceMsgInfo)):
+                    character = sourceMsgInfo[charNum]
+
+                    if character == "\n":
+                        buffers.append([buffer, replyMsgCurY])
+                        buffer = ""
+                        replyMsgHeight += self.style["textHeight"] + self.style["lineSpacing"]
+                        replyMsgCurY -= self.style["textHeight"] + self.style["lineSpacing"]
+                        curX = 0
+
+                    else:
+                        charWidth = self.drawingQuery.queryCharWidth(character)
+                        # 判断是否需要换行
+                        if curX + charWidth > self.style["chatBoxTextMaxWidth"] - 2 * self.style["chatBoxPadding"]:
+                            # 如果该字符加上前面已暂存字符串的宽度会超出列宽，则将暂存字符串绘制出来并换行
+                            buffers.append([buffer, replyMsgCurY])
+                            buffer = ""
+                            replyMsgHeight += self.style["textHeight"] + self.style["lineSpacing"]
+                            replyMsgCurY -= self.style["textHeight"] + self.style["lineSpacing"]
+
+                            curX = 0
+
+                        # 将当前字符加入缓冲区中
+                        buffer += character
+                        curX += charWidth
+                        if curX > replyMsgWidth:
+                            replyMsgWidth = curX
+
+                # 处理剩余的暂存字符串
+                if buffer:
+                    if curX > replyMsgWidth:
+                        replyMsgWidth = curX
+                    buffers.append([buffer, replyMsgCurY])
+                    buffer = ""
+                    replyMsgHeight += self.style["textHeight"] + self.style["lineSpacing"]
+                    replyMsgCurY -= self.style["textHeight"] + self.style["lineSpacing"]
+                    curX = 0
+
+                if replyMsgCurY < 0:
+                    remaindData = []
+                    remaindData.extend(dataList[itemNum:])
+                    return False, textHeight, textWidth, drawData, remaindData
+
+                if replyMsgWidth > textWidth:
+                    textWidth = replyMsgWidth
+                textHeight += replyMsgHeight
+                drawData.append([self.pdfDraw.drawChatBox, [replyMsgWidth, textHeight], [0, curY, 0]])
+                curY -= replyMsgHeight
+                for bufferItem, drawY in buffers:
+                    drawData.append([self.pdfDraw.drawText, [bufferItem], [self.style["chatBoxPadding"], drawY - heightSpace, 0]])
+
+
             # 处理 "img" 类型的元素
             elif item["t"] == "img":
+                lastItem = "img"
                 if item["e"] == self.ERRCODE.codes.NORMAL.value:
                     data = item["c"]
                     path = data["imgPath"]
@@ -427,14 +521,14 @@ class DataProcessor:
 
                     if curY - height - self.style["textHeight"] < 0:
                         remaindData = []
-                        remaindData.append(*dataList[itemNum:])
+                        remaindData.extend(dataList[itemNum:])
                         return False, textHeight, textWidth, drawData, remaindData
 
                     # 绘制图片并更新坐标
                     drawData.append([self.pdfDraw.drawImg,
                                      [path, name, width, height], [0, curY, 0]])
                     textHeight += height + self.style["textHeight"]
-                    curY = height - self.style["textHeight"]
+                    curY -= height + self.style["textHeight"]
                     curX = 0
                     if width > textWidth:
                         textWidth = width
@@ -476,9 +570,6 @@ class Generate:
             self.curC = 0
             self.pdfDraw.nextPage(self.pageNum)
         self.curY = self.style["contentStartY"]
-
-    def procAvator(self):
-        return
 
     # 处理时间，是否显示时间等
     def procTime(self, thisTime):
