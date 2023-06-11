@@ -60,6 +60,19 @@ class DrawingQuery:
         new_height = int(img_height * ratio)
         return new_width, new_height
 
+    def convert_filesize(self, size):
+        """
+        将以字节为单位的文件大小转换成合适的单位，并保留两位小数。
+        :param size: 文件大小，单位为字节。
+        :return: 字符串格式的文件大小，包含单位。
+        """
+        units = ['B', 'KB', 'MB', 'GB', 'TB']
+        index = 0
+        while size >= 1024 and index < 4:
+            size /= 1024
+            index += 1
+        return '{:.2f}{}'.format(size, units[index])
+
 
 class PdfDraw:
     def __init__(self, ERRCODE: errcode.err_code, paths, style):
@@ -149,6 +162,12 @@ class PdfDraw:
         self.pdf_canvas.roundRect(x, y, width, hight, self.style["chatBoxradius"],
                                   fill=1, stroke=0)
 
+    def drawGeneralBox(self, width, hight, x, y, c):
+        x = self.style["pageWidth"] * c + x
+        self.pdf_canvas.setStrokeColor(self.style["generalBoxFillColor"])
+        self.pdf_canvas.roundRect(x, y, width, hight, self.style["chatBoxradius"],
+                                  fill=0, stroke=1)
+
     def drawAvatar(self, path, size, x, y, c):
         x = self.style["pageWidth"] * c + x
         # print("Img", x, y, width, height)
@@ -230,6 +249,34 @@ class DataProcessor:
             drawData.insert(0, [self.pdfDraw.drawErrBox, [errBoxWidth, errBoxHeight], [0, errBoxY, 0]])
             return isFinish, errBoxHeight, drawData
         return isFinish, errBoxHeight, None
+
+    def procFileMessage(self, data, heightSpace):
+        fileName = data["c"]["fileName"]
+        drawText = f"发送文件：{fileName}"
+        if "fileSize" in data["c"]:
+            fileSize = data["c"]["fileSize"]
+            fileSizeStr = self.drawingQuery.convert_filesize(fileSize)
+            drawText += f"\n文件大小：{fileName}"
+        drawData = [{
+            "t": "m",
+            "c": {"m": drawText}
+        }]
+        isFinish = False
+        isFinish, textHeight, textWidth, drawData, remaindData \
+            = self.processMessageList(drawData, heightSpace)
+
+        generalBoxHeight = textHeight + 2 * self.style["chatBoxPadding"]
+        generalBoxWidth = textWidth + 2 * self.style["chatBoxPadding"]
+        generalBoxY = - generalBoxHeight
+
+        if isFinish:
+            # 绘制错误框
+            for item in drawData:
+                # 将内容偏移
+                item[2][0] += self.style["chatBoxPadding"]
+            drawData.insert(0, [self.pdfDraw.drawGeneralBox, [generalBoxWidth, generalBoxHeight], [0, generalBoxY, 0]])
+            return isFinish, generalBoxHeight, drawData
+        return isFinish, generalBoxHeight, None
 
     def procTimeMessage(self, data, heightSpace):
         text = data
@@ -735,6 +782,9 @@ class Generate:
 
                 elif obj["t"] == "img":
                     self.drawMsg(self.dataprocessor.procImgMessage, obj, False, True, True)
+
+                elif obj["t"] == "file":
+                    self.drawMsg(self.dataprocessor.procFileMessage, obj, False, True, True)
 
                 # if i == 80:
                 #    break
