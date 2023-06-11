@@ -143,7 +143,7 @@ class PdfDraw:
         self.pdf_canvas.roundRect(x, y, width, hight, self.style["chatBoxradius"],
                                   fill=0, stroke=1)
 
-    def drawreplyBox(self, width, hight, x, y, c):
+    def drawReplyBox(self, width, hight, x, y, c):
         x = self.style["pageWidth"] * c + x
         self.pdf_canvas.setFillColor(self.style["replyBoxFillColor"])
         self.pdf_canvas.roundRect(x, y, width, hight, self.style["chatBoxradius"],
@@ -429,9 +429,9 @@ class DataProcessor:
 
             elif item["t"] == "reply":
                 lastItem = "reply"
-                sourceMsgSenderUin = item["c"]["sourceMsgSenderUin"]
+                sourceMsgSenderUin = str(item["c"]["sourceMsgSenderUin"])
                 if sourceMsgSenderUin in self.senders:
-                    senderInfo = self.senders["sourceMsgSenderUin"]
+                    senderInfo = self.senders[sourceMsgSenderUin][0]
                 else:
                     senderInfo = sourceMsgSenderUin
                 sourceMsgTime = item["c"]["sourceMsgTime"]
@@ -481,8 +481,8 @@ class DataProcessor:
                         replyMsgWidth = curX
                     buffers.append([buffer, replyMsgCurY])
                     buffer = ""
-                    replyMsgHeight += self.style["textHeight"] + self.style["lineSpacing"]
-                    replyMsgCurY -= self.style["textHeight"] + self.style["lineSpacing"]
+                    replyMsgHeight += self.style["chatBoxPadding"]
+                    replyMsgCurY -= self.style["chatBoxPadding"]
                     curX = 0
 
                 if replyMsgCurY < 0:
@@ -493,8 +493,8 @@ class DataProcessor:
                 if replyMsgWidth > textWidth:
                     textWidth = replyMsgWidth
                 textHeight += replyMsgHeight
-                drawData.append([self.pdfDraw.drawChatBox, [replyMsgWidth, textHeight], [0, curY, 0]])
                 curY -= replyMsgHeight
+                drawData.append([self.pdfDraw.drawReplyBox, [replyMsgWidth, textHeight], [0, curY- heightSpace, 0]])
                 for bufferItem, drawY in buffers:
                     drawData.append([self.pdfDraw.drawText, [bufferItem], [self.style["chatBoxPadding"], drawY - heightSpace, 0]])
 
@@ -727,7 +727,7 @@ class Generate:
                     self.drawMsg(self.dataprocessor.procChatBoxMessage, obj, True, True, True)
 
                 elif obj["t"] == "revoke":
-                    self.drawMsg(self.dataprocessor.procTipMessage, obj, False, True, True)
+                    self.drawMsg(self.dataprocessor.procTipMessage, obj, False, False, True)
 
                 elif obj["t"] == "tip":
                     self.drawMsg(self.dataprocessor.procTipMessage, obj, False, False, True)
