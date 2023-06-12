@@ -226,7 +226,7 @@ class PdfDraw:
         :param y: 绘制起始点的 y 坐标
         :param c: 页绘制起始点的 c 坐标（列）
         """
-        x = self.style["pageWidth"] * c + x
+        x = self.style["pageWidth"] * c + x - 10
         # print("drawTextEmoji")
 
         self.pdf_canvas.setFont('emoji', self.style["textHeight"])
@@ -607,6 +607,7 @@ class DataProcessor:
                     character = msgStr[charNum]
                     # 判断字符是否为表情符号
                     if self.drawingQuery.isEmoji(character):
+
                         # 如果是表情符号，则绘制符号，并更新当前坐标
 
                         if buffer != "":
@@ -617,7 +618,7 @@ class DataProcessor:
                         curX += self.style["emojiWidth"]
                         bufStartX = curX + self.style["emojiWidth"]
 
-                    if character == "\n":
+                    elif character == "\n":
                         if not lineBreak():
                             remaindData = []
                             item["c"]["m"] = msgStr[charNum:]
