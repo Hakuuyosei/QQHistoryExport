@@ -989,8 +989,10 @@ class Generate:
                 isFinish, msgHeight, drawData, isStart, remaindData = drawFunc(
                     remaindData, heightSpace)
                 # 绘制头像和名称
-                if isShowAvatar or isShowName:
-                    self.drawDataRun(drawDataSenderInfo, startX, senderInfoStartY, self.curC)
+                if isStart:
+                    # 若在本页/列已经绘制了一部分的消息再绘制头像名称，若没有的话直接换页/列
+                    if isShowAvatar or isShowName:
+                        self.drawDataRun(drawDataSenderInfo, startX, senderInfoStartY, self.curC)
                 # 绘制消息内容
                 self.drawDataRun(drawData, startX, startY, self.curC)
                 self.curY -= max(msgHeight + msgHeightName, msgHeightSender)
