@@ -81,7 +81,7 @@ class PdfDraw:
         self.style = style
 
         pdfmetrics.registerFont(TTFont(self.style["fontName"], self.paths["fontPath"]))
-        pdfmetrics.registerFont(TTFont('ColorEmoji', 'lib/fonts/NotoColorEmoji.ttf'))
+        pdfmetrics.registerFont(TTFont('emoji', 'lib/fonts/seguiemj.ttf'))
         self.pdf_canvas = canvas.Canvas("output/chatData.pdf", pagesize=self.style["pageSize"])
         self.drawPageFooter(1)
 
@@ -142,9 +142,9 @@ class PdfDraw:
     def drawTextEmoji(self, char, x, y, c):
         x = self.style["pageWidth"] * c + x
         print("drawTextEmoji")
-        print(ord(char))
-        self.pdf_canvas.setFont('NotoColorEmoji', self.style["textHeight"])
-        self.pdf_canvas.drawString(x, y, char)
+
+        self.pdf_canvas.setFont('emoji', self.style["textHeight"])
+        self.pdf_canvas.drawString(x, y, char+"标记🌎")
 
     def drawChatBox(self, width, hight, x, y, c):
         x = self.style["pageWidth"] * c + x
