@@ -686,10 +686,23 @@ class DataProcessor:
                                 drawData.append([self.pdfDraw.drawText, [buffer], [bufStartX, curY - heightSpace, 0]])
                                 buffer = ""
 
+
+                            if curX + self.style["emojiWidth"] > self.style["chatBoxTextMaxWidth"]:
+                                # 如果该字符加上前面已暂存字符串的宽度会超出列宽，则将暂存字符串绘制出来并换行
+                                if not lineBreak():
+                                    remaindData = []
+                                    item["c"]["m"] = msgStr[charNum:]
+                                    remaindData.append(item)
+                                    if dataList[itemNum + 1:] != []:
+                                        remaindData.extend(dataList[itemNum + 1:])
+                                    return False, textHeight, textWidth, drawData, remaindData
                             curX += self.style["emojiWidth"]
-                            bufStartX = curX + self.style["emojiWidth"]
+                            bufStartX = curX
                             drawData.append([self.pdfDraw.drawTextEmoji, [emojiStr], [curX, curY - heightSpace, 0]])
-                            break
+                            if curX > textWidth:
+                                textWidth = curX
+
+
                         else:
                             continue
 
