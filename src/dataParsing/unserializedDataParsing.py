@@ -7,12 +7,23 @@ from .textParsing import textParsing
 
 
 class unserializedDataParsing():
+    """未序列化的消息类型解析
+
+    """
     def __init__(self, errcodeobj: err_code, textparsingobj: textParsing):
         self.ERRCODE = errcodeobj
         self.textParsing = textparsingobj
 
     
     def parse(self, msgType, msgData, extStr, senderQQ):
+        """未序列化类型解析
+
+        :param msgType: 消息类型
+        :param msgData: 数据
+        :param extStr:  extStr
+        :param senderQQ: senderQQ
+        :return: msgOutData
+        """
         msgOutData = {}
         # print(msgType)
 

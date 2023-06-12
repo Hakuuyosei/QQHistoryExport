@@ -11,14 +11,20 @@ import binascii
 from src.errcode.errcode import err_code
 
 class textParsing():
+    """解析文本信息
+
+    """
     def __init__(self, errcodeobj: err_code, qqemojiVer):
         self.ERRCODE = errcodeobj
         self.qqemojiVer = qqemojiVer
 
         self.emoji_map = self.mapqqEmoji()
 
-    # 建立表情索引
     def mapqqEmoji(self):
+        """建立表情索引
+
+        :return: 表情索引
+        """
         with open('lib/emoticons/emoticon1/face_config.json', encoding='utf-8') as f:
             emojis = json.load(f)
         new_emoji_map = {}
@@ -30,8 +36,12 @@ class textParsing():
                     new_emoji_map[e["AQLid"]] = str(int(e["EMCode"]) - 100)
         return new_emoji_map
 
-    # 处理文本信息
     def parse(self, msg):
+        """处理文本信息
+
+        :param msg: 文本信息
+        :return: msgOutData
+        """
 
         msgList = []
         lastpos = -2

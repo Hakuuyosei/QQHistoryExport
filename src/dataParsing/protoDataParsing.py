@@ -39,6 +39,9 @@ def crc64(s):
 
 
 class protoDataParsing():
+    """protobuf序列化相关类型解析
+
+    """
     def __init__(self, errcodeobj: err_code, textparsingobj: textParsing, chatImgPath):
         self.ERRCODE = errcodeobj
         self.textParsing = textparsingobj
@@ -48,8 +51,12 @@ class protoDataParsing():
         self.imgMD5Map = {}
         self.imgNum = 1
 
-    # 解码大表情
     def decodeMarketFace(self, data):
+        """解码大表情并移动
+
+        :param data: 数据
+        :return: 错误码，文件路径
+        """
         emoticon_name = data + ".jif"
         output_path = "output/emoticon2/" + emoticon_name
         lib_path = "...lib/emoticon2/" + emoticon_name
@@ -66,8 +73,12 @@ class protoDataParsing():
         except OSError:
             return self.ERRCODE.ALL_OS_ERROR(output_path, traceback.format_exc()), ""
 
-    # 解码图片
     def decodePic(self, data):
+        """解码图片并移动
+
+        :param data: 数据
+        :return: msgOutData
+        """
         msgOutData = {
             "t": "img",
             "c": {"imgPath": "", "imgType": "", "name": ""},
@@ -86,15 +97,17 @@ class protoDataParsing():
             # print(doc.uint32_width, doc.uint32_height, doc.uint32_image_type)
             msgOutData["c"]["imgType"] = "pic"
             # msgOutData["c"]["imgType"] = doc.uint32_image_type
-            # 数据中，这两项宽高顺序未知，请注意！
+            # 数据中，这两项宽高不可靠，请注意！
             # msgOutData["c"]["imgWidth"] = doc.uint32_height
             # msgOutData["c"]["imgHeight"] = doc.uint32_width
 
         except:
+            # protobuf反序列化失败
             msgOutData["e"] = self.ERRCODE.IMG_DESERIALIZATION_ERROR(data)
             return msgOutData
 
         try:
+            #转存图片并去重
 
             # 判断文件是否存在
             if not os.path.exists(relpath):
@@ -138,9 +151,12 @@ class protoDataParsing():
             msgOutData["e"] = self.ERRCODE.ALL_OS_ERROR(imgPath, traceback.format_exc())
 
 
-
-    # 解码混合消息
     def decodeMixMsg(self, data):
+        """解码混合消息
+
+        :param data: 数据
+        :return: 错误码， msgList
+        """
         msgList = []
         try:
             doc = Msg()
@@ -158,14 +174,21 @@ class protoDataParsing():
             return self.ERRCODE.MIXMSG_DESERIALIZATION_ERROR(data, traceback.format_exc()), msgList
 
     def parse(self, msgType, msgData, extStr, senderQQ):
+        """protobuf序列化相关类型解析
+
+        :param msgType: 消息类型
+        :param msgData: 数据
+        :param extStr:  extStr
+        :param senderQQ: senderQQ
+        :return: msgOutData
+        """
         msgOutData = {}
-        #print(msgType)
+
 
         # 图片类型
         if msgType == -2000:
-            # print(msgData)
             msgOutData = self.decodePic(msgData)
-            #print(extStr)
+
 
         # 图文混排
         elif msgType == -1035:

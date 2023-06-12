@@ -10,11 +10,19 @@ from .textParsing import textParsing
 
 
 class javaSerializedDataParsing():
+    """java序列化相关类型的解析
+
+    """
     def __init__(self, errcodeobj: err_code, textparsingobj: textParsing):
         self.ERRCODE = errcodeobj
         self.textParsing = textparsingobj
 
     def javaDeserializationToJson(self, data):
+        """java序列化转json
+
+        :param data: java序列化数据，bytes或者str（形如ACED00...）
+        :return: 错误码，json
+        """
         dataStr = ""
         if type(data) == bytes:
             dataStr = binascii.hexlify(data).decode()
@@ -34,10 +42,19 @@ class javaSerializedDataParsing():
 
 
     def parse(self, msgType, msgData, extStr, senderQQ):
+        """java序列化相关类型解析
+
+        :param msgType: 消息类型
+        :param msgData: 数据
+        :param extStr:  extStr
+        :param senderQQ: senderQQ
+        :return: msgOutData
+        """
         msgOutData = {}
         # print(msgType)
 
-        if msgType == -1049:# 回复引用
+        # 带回复引用的消息
+        if msgType == -1049:
             msgOutData = {
                 "t": "msg",
                 "c": self.textParsing.parse(msgData.decode("utf-8")),
@@ -84,7 +101,8 @@ class javaSerializedDataParsing():
                 #     print("ERROR,SourceMsgInfo too short",SourceMsgInfo)
                 # #print(msgOutData)
 
-        elif msgType == -2017:# 群文件
+        # 群文件
+        elif msgType == -2017:
             err, jsonData = self.javaDeserializationToJson(msgData)
 
             fileName = ""
@@ -107,15 +125,15 @@ class javaSerializedDataParsing():
             }
             print(msgOutData)
 
-
-        elif msgType == -2011:# 转发的聊天记录，java序列化
+        # 转发的聊天记录，java序列化
+        elif msgType == -2011:
             # print("-2011", type(msgData))
             # print(binascii.hexlify(msgData).decode())
             return
 
 
-
-        elif msgType == -5008:# 小程序/推荐名片，java 序列化套json
+        # 小程序/推荐名片，java 序列化套json
+        elif msgType == -5008:
             #print(-5008,jd.javaDeserialization(binascii.hexlify(msgData).decode(),"miniapp"))
             print(binascii.hexlify(msgData).decode())
 
@@ -130,17 +148,18 @@ class javaSerializedDataParsing():
         #         f.write(msgData)
         #     1
 
-
-
-        elif msgType == -2007:  #推荐名片
-            print(binascii.hexlify(msgData).decode())
+        # 推荐名片
+        elif msgType == -2007:
+            print(-2007, binascii.hexlify(msgData).decode())
             return
 
-        elif msgType == -2025:# 红包
-            print(binascii.hexlify(msgData).decode())
+        # 红包
+        elif msgType == -2025:
+            print(-2025, binascii.hexlify(msgData).decode())
             return
 
-        elif msgType == -2059:# 新人入群 java + unknown
+        # 新人入群 java + unknown
+        elif msgType == -2059:
             # print(binascii.hexlify(msgData).decode())
             # jd.javaDeserialization(binascii.hexlify(msgData).decode(), "111")
             return

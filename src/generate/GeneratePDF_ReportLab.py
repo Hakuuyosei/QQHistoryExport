@@ -19,8 +19,11 @@ from src.errcode import errcode
 
 
 class DrawingQuery:
+    """PDF查询相关功能，包括字宽，图片大小等
+
+    """
     def __init__(self, ERRCODE: errcode.err_code, paths, style):
-        """PDF查询相关功能，包括字宽，图片大小等
+        """
 
         :param ERRCODE: errcode.err_code
         :param paths: 相关路径字典
@@ -152,12 +155,13 @@ class DrawingQuery:
         return filePath
 
 
-
-
 class PdfDraw:
+    """
+    直接操作PDF数据的层，除绘制书签外，一般不直接调用，通过PDF消息处理层调用
+    基本上后三个参数为x，y，c，xy为左下角绘制坐标，c为column列数
+    """
     def __init__(self, ERRCODE: errcode.err_code, drawingQuery: DrawingQuery, paths, style):
-        """PDF直接绘制层
-        直接操作PDF数据的层，除绘制书签外，一般不直接调用，通过PDF消息处理层调用
+        """
 
         :param ERRCODE: errcode.err_code
         :param drawingQuery: DrawingQuery
@@ -385,9 +389,13 @@ class PdfDraw:
         self.pdf_canvas.bookmarkHorizontalAbsolute(str, y, left=0, fit='XYZ')
 
 
-# drawData说明：[函数,[函数参数],[x,y,c]]
-# DataProcessor的函数不直接绘制内容，而是返回drawData
 class DataProcessor:
+    """PDF消息处理层
+
+    接收垂直空间，处理消息数据，返回绘制细节数据drawData
+    DataProcessor的函数不直接绘制内容，而是返回drawData
+    drawData说明：[函数,[函数参数],[x,y,c]]
+    """
     def __init__(self, ERRCODE: errcode.err_code, paths, style, senders, pdfDraw: PdfDraw, drawingQuery: DrawingQuery):
         """PDF消息处理层
         接收垂直空间，处理消息数据，返回绘制细节数据
@@ -881,9 +889,12 @@ class DataProcessor:
 
 
 class Generate:
+    """生成PDF总控制层
+
+    """
     def __init__(self, ERRCODE: errcode.err_code, path, style,
                  pdfDraw: PdfDraw, dataprocessor: DataProcessor):
-        """生成PDF总控制层
+        """
 
         :param ERRCODE: errcode.err_code
         :param path: 相关路径字典
@@ -1139,10 +1150,12 @@ def my_optionxform(optionstr: str) -> str:
 
 
 class GenerateInit:
-    def __init__(self):
-        """初始化绘制，加载设置项，初始化绘制层
+    """初始化绘制，加载设置项，初始化绘制层
 
-        """
+    """
+    def __init__(self):
+        pass
+
     def read_ini_file(self, file_path: str) -> dict:
         """读取给定路径下的INI文件，并返回解析后的字典数据。
         将自动将flt开头的数据转化为float，int同理，其它数据若能转化为数字则转化为mm长度数据
