@@ -13,6 +13,7 @@ import json
 import datetime
 import time
 import shutil
+import emoji
 
 from src.errcode import errcode
 
@@ -50,20 +51,6 @@ class DrawingQuery:
 
         return None
 
-    def isEmoji(self, s):
-        """判断字符串是否为Emoji表情
-
-        :param char: 字符
-        :return: bool
-        """
-        emoji_pattern = re.compile("["
-                                   u"\U0001F600-\U0001F64F"  # emoticons
-                                   u"\U0001F300-\U0001F5FF"  # symbols & pictographs
-                                   u"\U0001F680-\U0001F6FF"  # transport & map symbols
-                                   u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
-                                   "]+", flags=re.UNICODE)
-        return emoji_pattern.search(s) is not None
-
     def resize_image(self, img_width, img_height, max_width, max_height):
         """计算图片缩放后的大小
 
@@ -93,23 +80,99 @@ class DrawingQuery:
             index += 1
         return '{:.2f}{}'.format(size, units[index])
 
+    def get_emoji_info(self, str):
+        """获取文本中的emoji信息
+
+        :param str: 输入字符串
+        :return:
+
+        示例输出：[{'match_start': 2, 'match_end': 5, 'emoji': '👩‍🚀'}, {'match_start': 15, 'match_end': 16, 'emoji': '🚀'}]
+        """
+        return emoji.emoji_list(str)
+
+    def is_emoji_start(self, emoji_info, pos):
+        """输入emoji_info和当前位置，返回当前位置是否是emoji字符的起始位置。
+        若是起始位置，则一并返回emoji字符。
+
+        :param emoji_info: 文本中的emoji信息
+        :param pos: 当前位置
+        :return: 是否在emoji中，若是起始位置则返回emoji
+        """
+        for e in emoji_info:
+            if e['match_start'] == pos:
+                return True, e['emoji']
+            elif e['match_start'] < pos < e['match_end']:
+                return True, None
+        return False, None
+
+    def unicode_emoji_to_filename(self, emoji_unicode):
+        """将Unicode emoji转为字符串文件名表示
+
+        :param emoji_unicode: 字符
+        :return: 文件名
+        """
+        fileName = "emoji_u"
+        for char in emoji_unicode:
+            # 获取字符的 Unicode 码并转化为十六进制字符串
+            hex_code = hex(ord(char))[2:]  # 去掉 '0x' 前缀
+            # 补齐到四位十六进制数
+            # hex_code = hex_code.zfill(4)
+            if fileName == "emoji_u":
+                fileName += hex_code
+            else:
+                fileName += f"_{hex_code}"
+        fileName += ".png"
+        return fileName
+
+    def get_unicode_file(self, emoji_unicode):
+        """提取emoji文件（彩色emoji）
+
+        :param emoji_unicode: emoji字符
+        :return:
+        """
+        fileName = self.unicode_emoji_to_filename(emoji_unicode)
+        filePath = f"output/temp/{fileName}"
+        print(filePath, emoji_unicode)
+
+        with sqlite3.connect(self.paths["emojiFontDBPath"]) as conn:
+            cursor = conn.execute('''SELECT start_offset, end_offset FROM files_info
+                                     WHERE file_name = ?''', (fileName,))
+            row = cursor.fetchone()
+            if not row:
+                print("文件不存在")
+                return
+            start_offset, end_offset = row
+
+        # 从大文件中还原小文件
+        with open(self.paths["emojiFontPath"], "rb") as merged_file, \
+                open(filePath, "wb") as output_file:
+            merged_file.seek(start_offset)
+            output_file.write(merged_file.read(end_offset - start_offset))
+
+        return filePath
+
+
+
 
 class PdfDraw:
-    def __init__(self, ERRCODE: errcode.err_code, paths, style):
+    def __init__(self, ERRCODE: errcode.err_code, drawingQuery: DrawingQuery, paths, style):
         """PDF直接绘制层
         直接操作PDF数据的层，除绘制书签外，一般不直接调用，通过PDF消息处理层调用
 
         :param ERRCODE: errcode.err_code
+        :param drawingQuery: DrawingQuery
         :param path: 相关路径字典
         :param style: 样式设置字典
         """
 
         self.ERRCODE = ERRCODE
+        self.drawingQuery = drawingQuery
         self.paths = paths
         self.style = style
 
         pdfmetrics.registerFont(TTFont(self.style["fontName"], self.paths["fontPath"]))
-        pdfmetrics.registerFont(TTFont('emoji', 'lib/fonts/seguiemj.ttf'))
+        if self.style["ifUseColorEmoji"] == "False":
+            pdfmetrics.registerFont(TTFont(self.style["EmojiFontName"], self.paths["emojiFontPath"]))
         self.pdf_canvas = canvas.Canvas("output/chatData.pdf", pagesize=self.style["pageSize"])
         self.drawPageFooter(1)
 
@@ -227,10 +290,16 @@ class PdfDraw:
         :param c: 页绘制起始点的 c 坐标（列）
         """
         x = self.style["pageWidth"] * c + x - 10
-        # print("drawTextEmoji")
 
-        self.pdf_canvas.setFont('emoji', self.style["textHeight"])
-        self.pdf_canvas.drawString(x, y, char+"标记🌎")
+        if self.style["ifUseColorEmoji"] == "False":
+            self.pdf_canvas.setFont(self.paths["emojiFontName"], self.style["textHeight"])
+            self.pdf_canvas.drawString(x, y, char+"标记🌎")
+        elif self.style["ifUseColorEmoji"] == "True":
+            path = self.drawingQuery.get_unicode_file(char)
+            self.pdf_canvas.drawImage(path, x, y,
+                                      width=self.style["emojiWidth"], height=self.style["emojiWidth"],
+                                      mask='auto')
+
 
     def drawChatBox(self, width, hight, x, y, c):
         """绘制聊天框
@@ -603,20 +672,26 @@ class DataProcessor:
                 buffer = ""
                 # 遍历字符串中的每一个字符
                 msgStr = item["c"]["m"]
+                emojiInfo = self.drawingQuery.get_emoji_info(item["c"]["m"])
                 for charNum in range(len(msgStr)):
                     character = msgStr[charNum]
                     # 判断字符是否为表情符号
-                    if self.drawingQuery.isEmoji(character):
+                    isInEmoji, emojiStr = self.drawingQuery.is_emoji_start(emojiInfo, charNum)
+                    if isInEmoji:
+                        if emojiStr:
+                            # print(emojiInfo, msgStr)
+                            # print(emojiStr, character)
+                            # 如果是emoji初位置，则绘制符号，并更新当前坐标
+                            if buffer != "":
+                                drawData.append([self.pdfDraw.drawText, [buffer], [bufStartX, curY - heightSpace, 0]])
+                                buffer = ""
 
-                        # 如果是表情符号，则绘制符号，并更新当前坐标
-
-                        if buffer != "":
-                            drawData.append([self.pdfDraw.drawText, [buffer], [bufStartX, curY - heightSpace, 0]])
-                            buffer = ""
-
-                        drawData.append([self.pdfDraw.drawTextEmoji, [character], [curX, curY - heightSpace, 0]])
-                        curX += self.style["emojiWidth"]
-                        bufStartX = curX + self.style["emojiWidth"]
+                            curX += self.style["emojiWidth"]
+                            bufStartX = curX + self.style["emojiWidth"]
+                            drawData.append([self.pdfDraw.drawTextEmoji, [emojiStr], [curX, curY - heightSpace, 0]])
+                            break
+                        else:
+                            continue
 
                     elif character == "\n":
                         if not lineBreak():
@@ -1141,20 +1216,26 @@ class GenerateInit:
         senders = self.readSenderInfo()
         print(style)
 
-        fontName = "simhei"
-
+        fontName = style["fontName"]
+        emojiFontName = style["emojiFontName"]
         paths = {
             "fontDirPath": "lib/fonts/",
             "outputDirPath": ""
         }
         paths["fontPath"] = paths["fontDirPath"] + fontName + ".ttf"
         paths["fontInfoPath"] = paths["fontDirPath"] + fontName + "_aspect_ratio.db"
+        if style["ifUseColorEmoji"] == "False":
+            paths["emojiFontPath"] = paths["fontDirPath"] + emojiFontName + ".ttf"
+        elif style["ifUseColorEmoji"] == "True":
+            paths["emojiFontPath"] = paths["fontDirPath"] + f"{emojiFontName}/{emojiFontName}"
+            paths["emojiFontDBPath"] = paths["fontDirPath"] + f"{emojiFontName}/{emojiFontName}.db"
+
 
         ERRCODE = errcode.err_code()
 
         drawingQuery = DrawingQuery(ERRCODE, paths, style)
 
-        pdfDraw = PdfDraw(ERRCODE, paths, style)
+        pdfDraw = PdfDraw(ERRCODE, drawingQuery, paths, style)
         dataprocessor = DataProcessor(ERRCODE, paths, style, senders, pdfDraw, drawingQuery)
         generate = Generate(ERRCODE, paths, style, pdfDraw, dataprocessor)
         generate.main()

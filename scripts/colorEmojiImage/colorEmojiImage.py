@@ -8,6 +8,9 @@ import os
 import sqlite3
 
 def merge_files(directory_path, db_path, output_file_path):
+    if os.path.exists(db_path):
+        if os.path.isfile(db_path):
+            os.remove(db_path)
     # 获取文件夹中的所有文件路径
     file_paths = []
     for subdir, _, files in os.walk(directory_path):
@@ -55,7 +58,7 @@ def restore_file(merged_file, db_path, file_name):
 
 # 示例用法
 fonts_Name = "AppleEmoji"
-png_dir = 'E:\Projects/13QQhistoryback/fonts/png/160'
+png_dir = 'E:\Projects/13QQhistoryback/fonts/AppleEmoji/160'
 db_path = f'../../lib/fonts/{fonts_Name}/{fonts_Name}.db'
 merged_file = f'../../lib/fonts/{fonts_Name}/{fonts_Name}'
 

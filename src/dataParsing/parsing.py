@@ -60,6 +60,7 @@ class QQParse():
         os.mkdir(dir_path + "/emoticons/emoticon2")
         os.mkdir(dir_path + "/emoticons/nudgeaction")
         os.mkdir(dir_path + "/images")
+        os.mkdir(dir_path + "/temp")
         os.mkdir(dir_path + "/senders")
 
     def fill_cursors(self, cmd):
