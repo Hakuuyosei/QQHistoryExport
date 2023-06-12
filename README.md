@@ -1,8 +1,46 @@
+# QQHistoryExport
 
+安卓设备聊天记录导出，支持图片视频/音频/引用/文件 大部分消息，支持几乎所有的重要消息类型，支持PDF导出，未来将支持web导出
 
-支持图片视频/音频/引用/文件消息，几乎所有的重要消息类型的
+## 前言
 
-## 可能存在的缺陷
+本项目的消息解码，数据库读取，QQ表情（emoticon1）来自[Yiyiyimu/QQ-History-Backup](https://github.com/Yiyiyimu/QQ-History-Backup)，感谢为QQ聊天记录解析的一众大佬
+
+本项目支持更多（大部分重要的消息类型）解析了java序列化类型消息，支持PDF导出，未来将支持html导出。
+
+## features
+
+-  支持对话，群聊导出
+-  支持自动查找密钥
+-  自动合并 db 和 slow-table
+-  支持新旧 QQ emoji
+- 支持混合消息，图片消息
+
+以上功能来自[Yiyiyimu/QQ-History-Backup](https://github.com/Yiyiyimu/QQ-History-Backup)
+
+以下为本项目独立实现的功能
+
+- 有详细的文档
+- 支持java序列化类型消息解析
+- 支持读取好友表，群聊表，群友表数据库
+- 支持引用消息
+- 支持文件类型消息
+- 支持QQ大表情（marketFace）
+- 支持将图片从巨大的chatimg中复制出来，猜测类型并md5防重复
+- 支持大部分灰条消息（包括但不限于 撤回 修改群名称 获得群标签 戳一戳）
+- 自动通过网络接口获取头像
+- 支持导出带书签带头像带时间带页脚的PDF文件
+- PDF可设置间距大小栏数，字体大小，是否显示头像等等
+- 支持视频消息
+
+## TODO
+
+- [ ] web导出
+- [ ] 音频消息导出
+- [ ] PDF生成程序的错误处理
+- [ ] 程序UI
+
+## limitations
 
 ### 消息解析
 

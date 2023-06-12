@@ -1,4 +1,6 @@
-from PIL import ImageFont
+"""
+通过PIL计算字体的宽高比，存入数据库中，方便绘制PDF时排版
+"""
 import sqlite3
 
 import os
