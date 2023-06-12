@@ -18,7 +18,13 @@ from src.errcode import errcode
 
 
 class DrawingQuery:
-    def __init__(self, ERRCODE, paths, style):
+    def __init__(self, ERRCODE: errcode.err_code, paths, style):
+        """PDF查询相关功能，包括字宽，图片大小等
+
+        :param ERRCODE: errcode.err_code
+        :param paths: 相关路径字典
+        :param style: 样式设置字典
+        """
         self.ERRCODE = ERRCODE
         self.paths = paths
         self.style = style
@@ -27,7 +33,11 @@ class DrawingQuery:
         self.conn = sqlite3.connect(paths["fontInfoPath"])
 
     def queryCharWidth(self, char):
-        # 查询宽高比
+        """查询字体宽度
+
+        :param char: 字符
+        :return: 宽度
+        """
         c = self.conn.cursor()
         c.execute(f"SELECT aspect_ratio FROM font_metrics WHERE unicode={ord(char)}")
         result = c.fetchone()
@@ -41,8 +51,10 @@ class DrawingQuery:
         return None
 
     def isEmoji(self, s):
-        """
-        判断字符串是否为Emoji表情
+        """判断字符串是否为Emoji表情
+
+        :param char: 字符
+        :return: bool
         """
         emoji_pattern = re.compile("["
                                    u"\U0001F600-\U0001F64F"  # emoticons
@@ -53,6 +65,14 @@ class DrawingQuery:
         return emoji_pattern.search(s) is not None
 
     def resize_image(self, img_width, img_height, max_width, max_height):
+        """计算图片缩放后的大小
+
+        :param img_width: 图片宽度
+        :param img_height: 图片高度
+        :param max_width: 最大宽度
+        :param max_height: 最大高度
+        :return: 新宽度，新高度
+        """
         # 比较宽高的大小，计算缩放比例
         ratio = min(max_width / img_width, max_height / img_height)
         # 根据比例计算新的宽高
@@ -61,8 +81,8 @@ class DrawingQuery:
         return new_width, new_height
 
     def convert_filesize(self, size):
-        """
-        将以字节为单位的文件大小转换成合适的单位，并保留两位小数。
+        """将以字节为单位的文件大小转换成合适的单位，并保留两位小数。
+
         :param size: 文件大小，单位为字节。
         :return: 字符串格式的文件大小，包含单位。
         """
@@ -76,6 +96,14 @@ class DrawingQuery:
 
 class PdfDraw:
     def __init__(self, ERRCODE: errcode.err_code, paths, style):
+        """PDF直接绘制层
+        直接操作PDF数据的层，除绘制书签外，一般不直接调用，通过PDF消息处理层调用
+
+        :param ERRCODE: errcode.err_code
+        :param path: 相关路径字典
+        :param style: 样式设置字典
+        """
+
         self.ERRCODE = ERRCODE
         self.paths = paths
         self.style = style
@@ -86,10 +114,17 @@ class PdfDraw:
         self.drawPageFooter(1)
 
     def save(self):
+        """保存PDF文件
+
+        """
         self.pdf_canvas.save()
 
     # pdf绘制页脚
     def drawPageFooter(self, pageNum):
+        """绘制指定页码的页面底部文本
+
+        :param pageNum: 当前页码
+        """
         text = self.style["pageFooterText"].replace("$page", str(pageNum))
         self.pdf_canvas.setFillColor(self.style["textColor"])
         self.pdf_canvas.setFont(self.style["fontName"], self.style["pageFooterTextHeight"])
@@ -97,22 +132,48 @@ class PdfDraw:
 
     # pdf翻页
     def nextPage(self, pageNum):
+        """结束当前页面，并开始绘制下一页。同时绘制下一页的页面底部文本
+        若需翻页请调用Generate.nextPage而不是此函数
+
+        :param pageNum: 当前页码
+        """
         self.pdf_canvas.showPage()
         self.drawPageFooter(pageNum)
 
     def drawText(self, text, x, y, c):
+        """绘制文本
+
+        :param text: 要绘制的文本
+        :param x: 绘制起始点的 x 坐标
+        :param y: 绘制起始点的 y 坐标
+        :param c: 绘制起始点的 c 坐标（列）
+        """
         x = self.style["pageWidth"] * c + x
         self.pdf_canvas.setFillColor(self.style["textColor"])
         self.pdf_canvas.setFont(self.style["fontName"], self.style["textHeight"])
         self.pdf_canvas.drawString(x, y, text)
 
     def drawName(self, text, x, y, c):
+        """绘制名称
+
+        :param text: 要绘制的名称文本
+        :param x: 绘制起始点的 x 坐标
+        :param y: 绘制起始点的 y 坐标
+        :param c: 绘制起始点的 c 坐标（列）
+        """
         x = self.style["pageWidth"] * c + x
         self.pdf_canvas.setFillColor(self.style["nameTextColor"])
         self.pdf_canvas.setFont(self.style["fontName"], self.style["nameTextHeight"])
         self.pdf_canvas.drawString(x, y, text)
 
     def drawTipText(self, text, x, y, c):
+        """绘制灰条提示文本
+
+        :param text: 要绘制的提示文本
+        :param x: 绘制起始点的 x 坐标
+        :param y: 绘制起始点的 y 坐标
+        :param c: 绘制起始点的 c 坐标（列）
+        """
         self.pdf_canvas.setFillColor(self.style["tipTextColor"])
         self.pdf_canvas.setFont(self.style["fontName"], self.style["tipTextHeight"])
         x = self.style["pageWidth"] * c + self.style["contentCenter"]
@@ -120,6 +181,14 @@ class PdfDraw:
         self.pdf_canvas.drawCentredString(x, y, text)
 
     def drawTextQQEmoji(self, path, x, y, c):
+        """绘制QQ表情
+
+        :param path: QQ表情图像的路径
+        :param x: 绘制起始点的 x 坐标
+        :param y: 绘制起始点的 y 坐标
+        :param c: 绘制起始点的 c 坐标（列）
+        """
+
         x = self.style["pageWidth"] * c + x
         path = self.paths["outputDirPath"] + path
         self.pdf_canvas.drawImage(path, x, y,
@@ -127,6 +196,16 @@ class PdfDraw:
                                   mask='auto')
 
     def drawImg(self, path, name, width, height, x, y, c):
+        """绘制图像并绘制图像名称文本
+
+        :param path: 图像文件的路径
+        :param name: 图像的名称
+        :param width: 图像的宽度
+        :param height: 图像的高度
+        :param x: 绘制起始点的 x 坐标
+        :param y: 绘制起始点的 y 坐标
+        :param c: 绘制起始点的 c 坐标（列）
+        """
         x = self.style["pageWidth"] * c + x
         # print("Img", x, y, width, height)
 
@@ -140,37 +219,84 @@ class PdfDraw:
         self.pdf_canvas.drawString(x, y, text)
 
     def drawTextEmoji(self, char, x, y, c):
+        """绘制文本unicode表情
+
+        :param char: 要绘制的emoji字符
+        :param x: 绘制起始点的 x 坐标
+        :param y: 绘制起始点的 y 坐标
+        :param c: 页绘制起始点的 c 坐标（列）
+        """
         x = self.style["pageWidth"] * c + x
-        print("drawTextEmoji")
+        # print("drawTextEmoji")
 
         self.pdf_canvas.setFont('emoji', self.style["textHeight"])
         self.pdf_canvas.drawString(x, y, char+"标记🌎")
 
     def drawChatBox(self, width, hight, x, y, c):
+        """绘制聊天框
+
+        :param width: 聊天框的宽度
+        :param hight: 聊天框的高度
+        :param x: 绘制起始点的 x 坐标
+        :param y: 绘制起始点的 y 坐标
+        :param c: 页绘制起始点的 c 坐标（列）
+        """
         x = self.style["pageWidth"] * c + x
         self.pdf_canvas.setFillColor(self.style["chatBoxFillColor"])
         self.pdf_canvas.roundRect(x, y, width, hight, self.style["chatBoxradius"],
                                   fill=1, stroke=0)
 
     def drawErrBox(self, width, hight, x, y, c):
+        """绘制错误框
+
+        :param width: 错误框的宽度
+        :param hight: 错误框的高度
+        :param x: 绘制起始点的 x 坐标
+        :param y: 绘制起始点的 y 坐标
+        :param c: 绘制起始点的 c 坐标（列）
+        """
         x = self.style["pageWidth"] * c + x
         self.pdf_canvas.setStrokeColor(self.style["chatBoxFillColor"])
         self.pdf_canvas.roundRect(x, y, width, hight, self.style["chatBoxradius"],
                                   fill=0, stroke=1)
 
     def drawReplyBox(self, width, hight, x, y, c):
+        """绘制回复框
+
+        :param width: 回复框的宽度
+        :param hight: 回复框的高度
+        :param x: 绘制起始点的 x 坐标
+        :param y: 绘制起始点的 y 坐标
+        :param c: 绘制起始点的 c 坐标（列）
+        """
         x = self.style["pageWidth"] * c + x
         self.pdf_canvas.setFillColor(self.style["replyBoxFillColor"])
         self.pdf_canvas.roundRect(x, y, width, hight, self.style["chatBoxradius"],
                                   fill=1, stroke=0)
 
     def drawGeneralBox(self, width, hight, x, y, c):
+        """绘制通用框
+
+        :param width: 通用框的宽度
+        :param hight: 通用框的高度
+        :param x: 绘制起始点的 x 坐标
+        :param y: 绘制起始点的 y 坐标
+        :param c: 绘制起始点的 c 坐标（列）
+        """
         x = self.style["pageWidth"] * c + x
         self.pdf_canvas.setStrokeColor(self.style["generalBoxFillColor"])
         self.pdf_canvas.roundRect(x, y, width, hight, self.style["chatBoxradius"],
                                   fill=0, stroke=1)
 
     def drawAvatar(self, path, size, x, y, c):
+        """绘制头像
+
+        :param path: 头像图像的路径
+        :param size: 头像的尺寸
+        :param x: 绘制起始点的 x 坐标
+        :param y: 绘制起始点的 y 坐标
+        :param c: 绘制起始点的 c 坐标（列）
+        """
         x = self.style["pageWidth"] * c + x
         # print("Img", x, y, width, height)
 
@@ -179,15 +305,32 @@ class PdfDraw:
                                   width=size, height=size,
                                   mask='auto')
 
-    def bookmark(self, Str, y, level):
-        self.pdf_canvas.addOutlineEntry(Str, Str, level)
-        self.pdf_canvas.bookmarkHorizontalAbsolute(Str, y, left=0, fit='XYZ')
+    def bookmark(self, str, y, level):
+        """添加书签
+
+        :param str: 书签的名称
+        :param y: 书签在页面上的垂直位置
+        :param level: 书签的级别
+        """
+        self.pdf_canvas.addOutlineEntry(str, str, level)
+        self.pdf_canvas.bookmarkHorizontalAbsolute(str, y, left=0, fit='XYZ')
 
 
 # drawData说明：[函数,[函数参数],[x,y,c]]
 # DataProcessor的函数不直接绘制内容，而是返回drawData
 class DataProcessor:
     def __init__(self, ERRCODE: errcode.err_code, paths, style, senders, pdfDraw: PdfDraw, drawingQuery: DrawingQuery):
+        """PDF消息处理层
+        接收垂直空间，处理消息数据，返回绘制细节数据
+
+        :param ERRCODE: errcode.err_code
+        :param path: 相关路径字典
+        :param style: 样式设置字典
+        :param senders: 发送者信息字典
+        :param pdfDraw: PdfDraw
+        :param drawingQuery: DrawingQuery
+        """
+
         self.drawingQuery = drawingQuery
         self.pdfDraw = pdfDraw
         self.ERRCODE = ERRCODE
@@ -196,6 +339,12 @@ class DataProcessor:
         self.senders = senders
 
     def procAvatar(self, senderUin, heightSpace):
+        """处理头像绘制相关的细节，并返回绘制细节数据
+
+        :param senderUin: 发送者Uin
+        :param heightSpace: 可用的垂直空间
+        :return: 是否绘制完毕，消息高度，绘制数据
+        """
         MsgHeight = self.style["avatarSize"] + self.style["avatarMargin"]
         MsgWidth = self.style["avatarSize"] + 2 * self.style["avatarMargin"]
         if MsgHeight > heightSpace:
@@ -209,6 +358,12 @@ class DataProcessor:
         return True, MsgHeight, drawData
 
     def procName(self, senderUin, heightSpace):
+        """处理姓名绘制相关的细节，并返回绘制细节数据
+
+        :param senderUin: 发送者Uin
+        :param heightSpace: 可用的垂直空间
+        :return: 是否绘制完毕，消息高度，绘制数据
+        """
         MsgHeight = self.style["nameTextHeight"] + self.style["nameSpacing"]
         if MsgHeight > heightSpace:
             return False, MsgHeight, None
@@ -220,6 +375,13 @@ class DataProcessor:
         return True, MsgHeight, drawData
 
     def procErrMessage(self, data, heightSpace):
+        """根据给定的数据和可用的垂直空间处理错误消息，并返回绘制细节数据
+        
+        :param data: 消息数据
+        :param heightSpace: 可用的垂直空间
+        :return: 是否绘制完毕，消息框高度，绘制数据
+        """
+
         text = ""
         if self.style["errShowDetails"] == "True":
             text = data["e"]["errinfo"]
@@ -253,6 +415,12 @@ class DataProcessor:
         return isFinish, errBoxHeight, None
 
     def procFileMessage(self, data, heightSpace):
+        """根据给定的数据和可用的垂直空间处理文件消息，并返回绘制细节数据
+
+        :param data: 消息数据
+        :param heightSpace: 可用的垂直空间
+        :return: 是否绘制完毕，消息框高度，绘制数据
+        """
         fileName = data["c"]["fileName"]
         drawText = f"发送文件：{fileName}"
         if "fileSize" in data["c"]:
@@ -281,6 +449,12 @@ class DataProcessor:
         return isFinish, generalBoxHeight, None
 
     def procTimeMessage(self, data, heightSpace):
+        """根据给定的数据和可用的垂直空间处理时间信息，并返回绘制细节数据
+
+        :param data: 消息数据
+        :param heightSpace: 可用的垂直空间
+        :return: 是否绘制完毕，消息框高度，绘制数据
+        """
         text = data
         MsgHeight = self.style["tipTextHeight"]
         if MsgHeight > heightSpace:
@@ -289,6 +463,12 @@ class DataProcessor:
         return True, MsgHeight, drawData
 
     def procTipMessage(self, data, heightSpace):
+        """根据给定的数据和可用的垂直空间处理灰条提示信息，并返回绘制细节数据
+
+        :param data: 消息数据
+        :param heightSpace: 可用的垂直空间
+        :return: 是否绘制完毕，消息框高度，绘制数据
+        """
         text = data["c"]["text"]
         MsgHeight = self.style["tipTextHeight"]
         if MsgHeight > heightSpace:
@@ -297,6 +477,12 @@ class DataProcessor:
         return True, MsgHeight, drawData
 
     def procImgMessage(self, data, heightSpace):
+        """根据给定的数据和可用的垂直空间处理图片消息，并返回绘制细节数据
+
+        :param data: 消息数据
+        :param heightSpace: 可用的垂直空间
+        :return: 是否绘制完毕，消息框高度，绘制数据
+        """
         path = data["c"]["imgPath"]
         name = data["c"]["name"]
         imgType = data["c"]["imgType"]
@@ -323,6 +509,12 @@ class DataProcessor:
         return True, MsgHeight, drawData
 
     def procChatBoxMessage(self, dataList, heightSpace):
+        """根据给定的数据和可用的垂直空间处理带框消息（普通消息，混合消息，回复消息等），并返回绘制细节数据
+
+        :param data: 消息数据
+        :param heightSpace: 可用的垂直空间
+        :return: 是否绘制完毕，消息框高度，绘制数据，在当前页是否已经开始绘制，剩余数据
+        """
         isFinish = False
         isStart = False
         isFinish, textHeight, textWidth, drawData, remaindData \
@@ -349,7 +541,19 @@ class DataProcessor:
         return isFinish, chatBoxHeight, drawData, isStart, remaindData
 
     def processMessageList(self, dataList, heightSpace):
+        """根据给定的数据和可用的垂直空间处理混合文本列表，并返回绘制细节数据
+        本函数包含计算文本换行，手动文本排版等内容
+        注意，一般不直接调用
+
+        :param dataList: 消息数据
+        :param heightSpace: 可用的垂直空间
+        :return: 文本高度，文本宽度，绘制数据，剩余数据
+        """
         def lineBreak():
+            """根据当前绘制状态和样式进行换行操作，并更新绘制数据、当前坐标等
+
+            :return: 是否成功换行
+            """
             nonlocal buffer, bufStartX, curX, curY, heightSpace, textHeight, textWidth
             if buffer != "":
                 # 绘制缓冲区字符
@@ -588,7 +792,16 @@ class DataProcessor:
 
 
 class Generate:
-    def __init__(self, ERRCODE: errcode.err_code, path, style, pdfDraw: PdfDraw, dataprocessor: DataProcessor):
+    def __init__(self, ERRCODE: errcode.err_code, path, style,
+                 pdfDraw: PdfDraw, dataprocessor: DataProcessor):
+        """生成PDF总控制层
+
+        :param ERRCODE: errcode.err_code
+        :param path: 相关路径字典
+        :param style: 样式设置字典
+        :param pdfDraw: PdfDraw
+        :param dataprocessor: DataProcessor
+        """
         self.pdfDraw = pdfDraw
         self.dataprocessor = dataprocessor
         self.ERRCODE = ERRCODE
@@ -612,6 +825,9 @@ class Generate:
         self.normalcode = self.ec.NORMAL.value
 
     def nextPage(self):
+        """根据当前的页码和列数，判断是否需要翻页或是换列，并更新相关的页码和列数。
+
+        """
         if self.curC + 1 < self.style["intcolumn"]:
             self.curC = self.curC + 1
         else:
@@ -620,8 +836,12 @@ class Generate:
             self.pdfDraw.nextPage(self.pageNum)
         self.curY = self.style["contentStartY"]
 
-    # 处理时间，是否显示时间等
     def procTime(self, thisTime):
+        """时间管理，是否显示时间，添加书签等，在绘制每条消息前调用
+
+        :param thisTime: 当前消息时间戳
+        :return:
+        """
         thisDate = time.strftime("%Y年%m月%d日", time.localtime(thisTime))
         thisMonth = time.strftime("%Y年%m月", time.localtime(thisTime))
         thisYear = time.strftime("%Y年", time.localtime(thisTime))
@@ -652,6 +872,14 @@ class Generate:
         self.lastYear = thisYear
 
     def drawDataRun(self, drawData, StartX, StartY, StartC):
+        """运行绘制函数
+
+        :param drawData: 格式为[[func,[args],[x,y,c(column)]]]的绘制命令列表
+        :param StartX: X偏移量
+        :param StartY: Y偏移量
+        :param StartC: Column偏移量
+        :return:无
+        """
         for item in drawData:
             item[2][0] = item[2][0] + StartX
             item[2][1] = item[2][1] + StartY
@@ -660,17 +888,18 @@ class Generate:
             item[0](*item[1], *item[2])
 
     def drawMsg(self, drawFunc, msgData, isDivisible, isWithAvatar, isNeedErr):
-        """
-        绘制消息
+        """绘制消息
 
-        :param drawFunc:绘制消息函数
-        :param msgData:消息内容
-        :param isDivisible:消息是否可分割
-        :param isWithAvatar:是否显示头像
-        :param isNeedErr:是否需要错误处理
-        :return:
+        :param drawFunc: 绘制消息函数
+        :param msgData: 消息内容
+        :param isDivisible: 消息是否可分割
+        :param isWithAvatar: 消息本身是否显示头像名称
+        :param isNeedErr: 是否需要错误处理
+        :return:无
         """
+        # 判断是否显示头像
         isShowAvatar = False
+        # 若设置显示头像，并且此消息类型也需要显示头像
         if self.style["avatarShow"] == "True" and isWithAvatar:
             # 若消息有头像，且设置了avatarShow则显示头像
             isShowAvatar = True
@@ -678,46 +907,55 @@ class Generate:
         else:
             startX = self.style["leftMargin"]
 
+        # 判断是否显示名称
         isShowName = False
         if self.style["nameShow"] == "True" and isWithAvatar:
             # 若消息有头像，且设置了nameShow则显示名称
             isShowName = True
 
-
+        # 错误处理
         if isNeedErr:
             if msgData["e"]["code"] != self.normalcode:
                 if msgData["e"]["code"] in self.normalerr:
                     self.drawMsg(self.dataprocessor.procErrMessage, msgData, False, True, False)
                     return
 
+        # 初始化头像和名称的绘制数据和高度，若不用绘制则会使用初始化的值
         drawDataAva = []
         msgHeightAva = 0
         drawDataName = []
         msgHeightName = 0
-        
+
+        # 发送者信息的起始位置
         senderInfoStartY = self.curY
         SenderInfoHeightSpace = self.curY - self.style["contentMaxY"]
+
+        # 处理名称的绘制数据和高度
         if isShowName:
             isFinishName, msgHeightName, drawDataName = self.dataprocessor.procName(msgData["s"], SenderInfoHeightSpace)
             if not isFinishName:
+                # 假如没有绘制成功，需要分页处理
                 self.nextPage()
                 SenderInfoHeightSpace = self.curY - self.style["contentMaxY"]
                 senderInfoStartY = self.curY
                 isFinishName, msgHeightName, drawDataName = self.dataprocessor.procName(msgData["s"], SenderInfoHeightSpace)
-                
-        
+
+        # 处理头像的绘制数据和高度
         if isShowAvatar:
             isFinishAva, msgHeightAva, drawDataAva = self.dataprocessor.procAvatar(msgData["s"], SenderInfoHeightSpace)
             if not isFinishAva:
+                # 假如没有绘制成功，需要分页处理
                 self.nextPage()
                 SenderInfoHeightSpace = self.curY - self.style["contentMaxY"]
                 senderInfoStartY = self.curY
                 isFinishAva, msgHeightAva, drawDataAva = self.dataprocessor.procAvatar(msgData["s"], SenderInfoHeightSpace)
                 # msgHeight = max(msgHeight, msgHeightAva)
 
+        # 计算消息内容的起始位置和高度
         heightSpace = self.curY - self.style["contentMaxY"] - msgHeightName
         startY = self.curY - msgHeightName
 
+        # 添加准备绘制细节信息
         drawDataSenderInfo = []
         if drawDataAva != []:
             drawDataSenderInfo.extend(drawDataAva)
@@ -725,39 +963,48 @@ class Generate:
             drawDataSenderInfo.extend(drawDataName)
         msgHeightSender = max(msgHeightAva, msgHeightName)
 
+        # 绘制不可分割的消息
         if not isDivisible:
             isFinish, msgHeight, drawData = drawFunc(msgData, heightSpace)
             if not isFinish:
+                # 假如没有绘制成功，需要分页处理
                 self.nextPage()
                 heightSpace = self.curY - self.style["contentMaxY"] - msgHeightName
                 startY = self.curY - msgHeightName
                 senderInfoStartY = self.curY
                 isFinish, msgHeight, drawData = drawFunc(msgData, heightSpace)
 
+            # 绘制头像和名称
             if isShowAvatar or isShowName:
                 self.drawDataRun(drawDataSenderInfo, startX, senderInfoStartY, self.curC)
+            # 绘制消息内容
             self.drawDataRun(drawData, startX, startY, self.curC)
             self.curY -= max(msgHeight + msgHeightName, msgHeightSender)
 
-        else:  # Divisible
+        # 绘制可分割的消息
+        else:
             isFinish = False
             remaindData = msgData["c"]
             while not isFinish:
-                avatarY = self.curY
                 isFinish, msgHeight, drawData, isStart, remaindData = drawFunc(
                     remaindData, heightSpace)
-                # if isStart: avatarY = self.curY
+                # 绘制头像和名称
                 if isShowAvatar or isShowName:
                     self.drawDataRun(drawDataSenderInfo, startX, senderInfoStartY, self.curC)
+                # 绘制消息内容
                 self.drawDataRun(drawData, startX, startY, self.curC)
                 self.curY -= max(msgHeight + msgHeightName, msgHeightSender)
                 if not isFinish:
+                    # 若没有绘制完成则分页处理
                     self.nextPage()
                     heightSpace = self.curY - self.style["contentMaxY"] - msgHeightName
                     startY = self.curY - msgHeightName
                     senderInfoStartY = self.curY
 
     def main(self):
+        """绘制PDF主函数
+
+        """
         with open(self.paths["outputDirPath"] + "output/chatData.txt", "r") as f:
             i = 1
 
@@ -801,8 +1048,18 @@ def my_optionxform(optionstr: str) -> str:
 
 
 class GenerateInit:
-    # 读取ini文件
+    def __init__(self):
+        """初始化绘制，加载设置项，初始化绘制层
+
+        """
     def read_ini_file(self, file_path: str) -> dict:
+        """读取给定路径下的INI文件，并返回解析后的字典数据。
+        将自动将flt开头的数据转化为float，int同理，其它数据若能转化为数字则转化为mm长度数据
+
+        :param file_path: INI文件的路径
+        :return: 解析后的字典数据
+        """
+
         parser = configparser.ConfigParser(allow_no_value=True, inline_comment_prefixes=';', comment_prefixes=';')
         parser.optionxform = my_optionxform
         parser.read(file_path, encoding="utf-8")
@@ -832,6 +1089,11 @@ class GenerateInit:
 
     # 加载style
     def procStyle(self, file_path):
+        """加载给定路径下的样式设置文件，计算有关数据，并返回样式设置数据
+
+        :param file_path: 样式文件的路径
+        :return: 样式设置字典
+        """
         style = self.read_ini_file(file_path)
         # Page
         style["pageHeight"] = style["pageSize"][1]  # 纸张高度
@@ -858,14 +1120,20 @@ class GenerateInit:
         style["imgMaxHeight"] = style["pageHeight"] * style["fltimgDrawScale"]
         return style
 
-    # 读取发送者内容
     def readSenderInfo(self):
+        """读取发送者信息
+
+        :return: 发送者数据字典
+        """
         with open('output/senders/senders.json', encoding='utf-8') as f:
             senders = json.load(f)
 
         return senders
 
     def run(self):
+        """运行PDF绘制
+
+        """
         style = self.procStyle('config/GeneratePDF_ReportLab_config.ini')
         senders = self.readSenderInfo()
         print(style)
