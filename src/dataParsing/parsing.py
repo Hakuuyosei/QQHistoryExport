@@ -30,24 +30,6 @@ class QQParse():
 
         self.DBcursor1 = None
 
-        # 从测试文件中读取测试用信息
-        with open('test.json', 'r', encoding='utf-8') as f:
-            data = json.load(f)
-            self.targetQQ = data["targetQQ"]
-            self.dbPath = data["fileName"]
-            self.chatimgPath = data["chatimgPath"]
-            self.key = data["key"]
-            self.cmdpre = data["cmd"]
-            self.qqemojiVer = 1
-
-        self.ERRCODE = errcode.err_code()
-        self.textParsing = textParsing(self.ERRCODE,self.qqemojiVer)
-        self.unserializedDataParsing = unserializedDataParsing(self.ERRCODE, self.textParsing)
-        self.protoDataParsing = protoDataParsing(self.ERRCODE, self.textParsing, self.chatimgPath)
-        self.javaSerializedDataParsing = javaSerializedDataParsing(self.ERRCODE, self.textParsing)
-
-        self.createOutput()
-        self.outputFile = open('output/chatData.txt', 'w')
 
     def createOutput(self):
         """创建输出文件夹
@@ -68,6 +50,100 @@ class QQParse():
         os.mkdir(dir_path + "/images")
         os.mkdir(dir_path + "/temp")
         os.mkdir(dir_path + "/senders")
+
+    def parseInit(self, isTest, configs):
+        """初始化解析
+
+        :param isTest: 是否是测试模式
+        :param configs: 设置项
+        :return:
+        """
+        # 从测试文件中读取测试用信息
+        if isTest:
+            with open('test.json', 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                self.targetQQ = data["targetQQ"]
+                self.dbPath = data["fileName"]
+                self.chatimgPath = data["chatimgPath"]
+                self.key = data["key"]
+                self.cmdpre = data["cmd"]
+                self.qqemojiVer = 1
+        else:
+            self.targetQQ = configs["targetQQ"]
+            self.selfQQ = configs["selfQQ"]
+
+
+            if not os.path.exists(configs["dataDirPath"]):
+                return False
+
+            if os.path.exists(configs["dataDirPath"] + "/databases"):
+                dbDirPath = configs["dataDirPath"] + "/databases"
+            elif os.path.exists(configs["dataDirPath"] + "/db"):
+                dbDirPath = configs["dataDirPath"] + "/db"
+            else:
+                return False
+
+            if os.path.exists(f"{dbDirPath}/{self.selfQQ}.db"):
+                self.dbPath = f"{dbDirPath}/{self.selfQQ}.db"
+            else:
+                return False
+
+            if os.path.exists(f"{dbDirPath}/slowtable_{self.selfQQ}.db"):
+                self.dbPath2 = f"{dbDirPath}/slowtable_{self.selfQQ}.db"
+            else:
+                return False
+
+            if configs["needKey"]:
+                if os.path.exists(configs["dataDirPath"] + "/files"):
+                    kcDirPath = configs["dataDirPath"] + "/files"
+                elif os.path.exists(configs["dataDirPath"] + "/f"):
+                    kcDirPath = configs["dataDirPath"] + "/f"
+                else:
+                    return False
+
+                if os.path.exists(f"{kcDirPath}/kc"):
+                    self.dbPath2 = f"{kcDirPath}/kc"
+                else:
+                    return False
+            else:
+                self.key = configs["key"]
+
+            if configs["needImages"]:
+                chatimgPath = configs["chatimgPath"]
+
+                if os.path.exists(chatimgPath):
+                    self.chatimgPath = chatimgPath
+                else:
+                    return False
+
+            if configs["needShortVideo"]:
+                shortvideoPath = configs["shortvideoPath"]
+
+                if os.path.exists(chatimgPath):
+                    self.chatimgPath = chatimgPath
+                else:
+                    return False
+
+            if configs["needVoice"]:
+                shortvideoPath = configs["shortvideoPath"]
+
+                if os.path.exists(chatimgPath):
+                    self.chatimgPath = chatimgPath
+                else:
+                    return False
+
+
+
+
+        self.ERRCODE = errcode.err_code()
+        self.textParsing = textParsing(self.ERRCODE, self.qqemojiVer)
+        self.unserializedDataParsing = unserializedDataParsing(self.ERRCODE, self.textParsing)
+        self.protoDataParsing = protoDataParsing(self.ERRCODE, self.textParsing, self.chatimgPath)
+        self.javaSerializedDataParsing = javaSerializedDataParsing(self.ERRCODE, self.textParsing)
+
+        self.createOutput()
+        self.outputFile = open('output/chatData.txt', 'w')
+
 
     def fill_cursors(self, cmd):
         cursors = []

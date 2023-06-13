@@ -7,7 +7,7 @@ import imghdr
 import shutil
 import blackboxprotobuf
 
-from ..errcode.errcode import err_code
+from src.errcode.errcode import err_code
 from .textParsing import textParsing
 
 

@@ -1,0 +1,21 @@
+{
+  //说明：下面的所有路径，不要带\斜杠！请使用/斜杠
+  //文件夹路径需要包含文件夹本身
+  //例子：（E:/xxx/com.tencent.mobileqq）
+
+  "mode":"Friend",  //Friend好友，Troop群组
+  "targetQQ":"",    //目标QQ号，字符串，保留英文引号
+  "selfQQ":"",      //自己的QQ号，字符串，保留英文引号
+
+  "dataDirPath":"", //com.tencent.mobileqq文件夹的路径
+
+  "needKey":true,     //是否需要自动提取秘钥
+  "key":"",           //若不使用自动提取秘钥，手动输入手机IMEI码，字符串，保留英文引号
+  //若自动提取秘钥，key留空即可
+  
+  "needImages":true,  //是否需要图片
+  "chatimgPath":"",   //chatimg文件夹路径
+
+  "needShortVideo":true,//是否需要短视频
+  "shortvideoPath":"",  //shortvideo文件夹路径
+}
