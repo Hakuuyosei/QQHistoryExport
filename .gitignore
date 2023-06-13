@@ -1,8 +1,5 @@
-/1.bin
 /test.json
-/格式 - 副本.xlsx
 /SQLiteSpy/
-/src/proto/RichMsg_pb2.py2
 /lib/slkamr/1.amr
 /lib/slkamr/1.pcm
 /lib/slkamr/1.slk
@@ -11,12 +8,8 @@
 /lib/slkamr/ffmpeg-lgpl/
 /lib/slkamr/ptt/
 /QQdb/
-/~$格式.xlsx
+/~$QQ消息格式.xlsx
 /testdata.txt
-/example.txt
 /output/
 /scripts/nudgeactionResDownload/nudgeaction/
-/src/generate/chatData.pdf
-/src/generate/old/
-/src/generate/fonts/
 /old/

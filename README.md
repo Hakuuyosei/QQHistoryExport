@@ -37,7 +37,7 @@
 - PDF生成支持**彩色emoji**
 - 支持**视频消息**
 
-## 使用说明
+## Instruction for use
 
 目前该仓库处于私有仓库测试阶段
 
@@ -59,6 +59,44 @@ key可填IMEI码
 ```
 
 先修改main函数的测试部分到你需要的测试部分，再测试
+
+## Instruction for folders
+
+config:设置，设置样本文件
+
+lib:依赖库，依赖文件等
+
+scripts:独立脚本
+
+​	colorEmojiImage:将文件夹中unicode emoji表情图片合并成一个文件并创建信息数据库
+
+​	fontQuerySize:通过PIL查询字体宽高比并存入字体信息数据库
+
+​	nudgeactionResDownload:下载nudgeaction类型图片（还未投入使用）
+
+src:主程序
+
+​	errcode:错误管理模块
+
+​	dataParsing:数据解析模块
+
+​		parsing.py:总解析模块
+
+​		textParsing.py:文本信息解析
+
+​		unserializedDataParsing.py:未序列化类型数据解析
+
+​		javaSerializedDataParsing.py:java序列化类型数据解析
+
+​		protoDataParsing.py:protobuf序列化类型解析
+
+​	avatarDownload:通过接口下载头像模块
+
+​	generate:生成可视文件图片
+
+​		GeneratePDF_ReportLab.py:使用ReportLab生成PDF
+
+​	proto:proto反序列化相关文件
 
 ## TODO
 
