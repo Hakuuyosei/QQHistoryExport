@@ -22,7 +22,7 @@ class unserializedDataParsing():
         """
         # 数据第一个字符是0x16，先去除
         callDatas = data[1:].decode("utf-8").split("|")
-        print(callDatas)
+
         if len(callDatas) != 4:
             return None
         else:
@@ -94,7 +94,6 @@ class unserializedDataParsing():
             fileData = msgData[1:].decode("utf-8").split("|")
             filePath = fileData[-5]
             fileSize = int(fileData[-4])
-            print(fileSize)
             fileName = os.path.basename(filePath)
             file = {
                 "received": True,
@@ -175,7 +174,6 @@ class unserializedDataParsing():
                 "c": {"text": msgDataAlreadyDecode, "type": "friendcall"},
                 "e": self.ERRCODE.NORMAL()
             }
-            print(-2009, msgDataAlreadyDecode)
 
         # 私聊语音通话异常
         elif msgType == -1001:
@@ -185,6 +183,17 @@ class unserializedDataParsing():
                 "c": {"text": msgDataAlreadyDecode, "type": "friendcall"},
                 "e": self.ERRCODE.NORMAL()
             }
-            print(-1001, msgDataAlreadyDecode)
+
+        # 戳一戳
+        elif msgType == -5018:
+            msgDataAlreadyDecode = json.loads(msgData.decode("utf-8"))
+            msgText = msgDataAlreadyDecode["msg"]
+            msgSummary = msgDataAlreadyDecode["summary"]
+            msgOutData = {
+                "t": "nudge",
+                "c": {"text": msgText, "summary": msgSummary},
+                "e": self.ERRCODE.NORMAL()
+            }
+
 
         return msgOutData
