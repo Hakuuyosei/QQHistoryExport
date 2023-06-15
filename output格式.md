@@ -155,10 +155,10 @@ xxx今日第1个打卡 icon 我也要打卡
 
 ### call  语音通话
 
-| 键   | 值                           |
-| ---- | ---------------------------- |
-| text | 文本内容，xxx发起了语音通话  |
-| type | troopcallstart，troopcallend |
+| 键   | 值                                       |
+| ---- | ---------------------------------------- |
+| text | 文本内容，xxx发起了语音通话              |
+| type | troopcallstart，troopcallend，friendcall |
 
 ### file 文件
 

@@ -17,7 +17,8 @@ from src.dataParsing.javaSerializedDataParsing import javaSerializedDataParsing
 
 
 # QQ消息类型以及处理方式
-unserializedDataType =      [-1000, -1051, -1012, -2042, -2015, -1034, -2005, -3008, -2016, -4008, -1013]
+unserializedDataType =      [-1000, -1051, -1012, -2042, -2015, -1034, -2005, -3008,
+                             -2016, -4008, -1013, -2009, -1001, -5018]
 protoDataType =             [-2000, -1035, -2002, -2022, -5020, -5023, -8018, -5040]
 javaSerializedDataType =    [-1049, -2017, -2025, -2011, -5008, -2007, -2025]
 

@@ -14,6 +14,20 @@ class unserializedDataParsing():
         self.ERRCODE = errcodeobj
         self.textParsing = textparsingobj
 
+    def c2cCallParse(self, data):
+        """解析私聊电话信息
+
+        :param data: btyes
+        :return:data
+        """
+        # 数据第一个字符是0x16，先去除
+        callDatas = data[1:].decode("utf-8").split("|")
+        print(callDatas)
+        if len(callDatas) != 4:
+            return None
+        else:
+            return callDatas[0]
+
     
     def parse(self, msgType, msgData, extStr, senderQQ):
         """未序列化类型解析
@@ -152,5 +166,25 @@ class unserializedDataParsing():
             }
 
             print(msgDataAlreadyDecode)
+
+        # 私聊语音通话
+        elif msgType == -2009:
+            msgDataAlreadyDecode = self.c2cCallParse(msgData)
+            msgOutData = {
+                "t": "tip",
+                "c": {"text": msgDataAlreadyDecode, "type": "friendcall"},
+                "e": self.ERRCODE.NORMAL()
+            }
+            print(-2009, msgDataAlreadyDecode)
+
+        # 私聊语音通话异常
+        elif msgType == -1001:
+            msgDataAlreadyDecode = self.c2cCallParse(msgData)
+            msgOutData = {
+                "t": "call",
+                "c": {"text": msgDataAlreadyDecode, "type": "friendcall"},
+                "e": self.ERRCODE.NORMAL()
+            }
+            print(-1001, msgDataAlreadyDecode)
 
         return msgOutData
