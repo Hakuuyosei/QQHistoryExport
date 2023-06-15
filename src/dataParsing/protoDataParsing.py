@@ -57,10 +57,9 @@ class protoDataParsing():
         :param data: 数据
         :return: 错误码，文件路径
         """
-        emoticon_name = data + ".jif"
-        output_path = "output/emoticon2/" + emoticon_name
-        lib_path = "...lib/emoticon2/" + emoticon_name
-
+        emoticon_name = data + ".gif"
+        output_path = "output/emoticons/emoticon2/" + emoticon_name
+        lib_path = "lib/emoticons/emoticon2/" + emoticon_name
 
         try:
             if os.path.exists(output_path):
@@ -227,7 +226,7 @@ class protoDataParsing():
 
             doc = Msg_pb2.marketFace()
             doc.ParseFromString(msgData)
-            marketFaceName = doc.field7.decode("utf-8")
+            marketFaceName = doc.field7.decode("utf-8")[1:]
             descErrcode, msgDeseData = self.decodeMarketFace(marketFaceName)
             msgOutData = {
                 "t": "img",
@@ -309,7 +308,7 @@ class protoDataParsing():
                         "e": self.ERRCODE.NORMAL()
                     }
 
-                # 可能是拍一拍
+                # 灰条戳一戳
                 elif busi_type == "12":
                     doc = Msg_pb2.grayTipBar()
                     doc.ParseFromString(msgData)

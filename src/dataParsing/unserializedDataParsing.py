@@ -187,7 +187,7 @@ class unserializedDataParsing():
         # 戳一戳
         elif msgType == -5012:
             msgDataAlreadyDecode = json.loads(msgData.decode("utf-8"))
-            print(-5012, msgDataAlreadyDecode)
+            # print(-5012, msgDataAlreadyDecode)
             msgText = msgDataAlreadyDecode["msg"]
             msgOutData = {
                 "t": "nudge",
