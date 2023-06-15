@@ -2,12 +2,12 @@ from src import errcode
 from src.dataParsing import parsing
 from src.generate import GeneratePDF_ReportLab
 from src.avatarDownload import download
-test = 2
+test = 1
 if __name__ == '__main__':
     if test == 1:
         qqParse = parsing.QQParse()
-        qqParse.parseInit(True, None)
-        qqParse.processdb()
+        print(qqParse.configsInit(False, None))
+        qqParse.procDb()
     if test == 2:
         generateInit = GeneratePDF_ReportLab.GenerateInit()
         generateInit.run()

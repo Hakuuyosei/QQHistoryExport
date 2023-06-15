@@ -78,8 +78,9 @@ class unserializedDataParsing():
 
         elif msgType == -2005:  # 已经被保存到本地的文件，内容为路径
             fileData = msgData[1:].decode("utf-8").split("|")
-            filePath = int(fileData[-5])
-            fileSize = fileData[-4]
+            filePath = fileData[-5]
+            fileSize = int(fileData[-4])
+            print(fileSize)
             fileName = os.path.basename(filePath)
             file = {
                 "received": True,

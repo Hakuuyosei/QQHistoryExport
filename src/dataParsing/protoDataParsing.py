@@ -69,7 +69,7 @@ class protoDataParsing():
                 shutil.copy(lib_path, output_path)
                 return self.ERRCODE.NORMAL(), output_path
             else:
-                return self.ERRCODE.MARKETFACE_NOT_EXIST(), ""
+                return self.ERRCODE.MARKETFACE_NOT_EXIST(data), ""
         except OSError:
             return self.ERRCODE.ALL_OS_ERROR(output_path, traceback.format_exc()), ""
 
@@ -224,9 +224,10 @@ class protoDataParsing():
 
         # 大号表情
         elif msgType == -8018:
+
             doc = Msg_pb2.marketFace()
             doc.ParseFromString(msgData)
-            marketFaceName = doc.u7.decode("utf-8")
+            marketFaceName = doc.field7.decode("utf-8")
             descErrcode, msgDeseData = self.decodeMarketFace(marketFaceName)
             msgOutData = {
                 "t": "img",

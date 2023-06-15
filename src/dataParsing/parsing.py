@@ -4,6 +4,9 @@ import os
 import traceback
 import json
 import shutil
+import commentjson
+
+
 
 
 from src.errcode import errcode
@@ -26,6 +29,7 @@ class QQParse():
     def __init__(self):
         self.targetQQ = None
         self.key = None
+        self.configs = {}
         self.qqemojiVer = 1
 
         self.DBcursor1 = None
@@ -51,7 +55,7 @@ class QQParse():
         os.mkdir(dir_path + "/temp")
         os.mkdir(dir_path + "/senders")
 
-    def parseInit(self, isTest, configs):
+    def configsInit(self, isTest, configs):
         """初始化解析
 
         :param isTest: 是否是测试模式
@@ -59,6 +63,7 @@ class QQParse():
         :return:
         """
         # 从测试文件中读取测试用信息
+
         if isTest:
             with open('test.json', 'r', encoding='utf-8') as f:
                 data = json.load(f)
@@ -69,9 +74,26 @@ class QQParse():
                 self.cmdpre = data["cmd"]
                 self.qqemojiVer = 1
         else:
-            self.targetQQ = configs["targetQQ"]
-            self.selfQQ = configs["selfQQ"]
+            # 读取带注释的json
+            with open('config/parse_config.json', 'r', encoding="utf-8") as file:
+                configs = commentjson.load(file)
 
+            if type(configs["targetQQ"]) != str:
+                return False
+            if configs["targetQQ"] == "":
+                return False
+            if type(configs["selfQQ"]) != str:
+                return False
+            if configs["selfQQ"] == "":
+                return False
+
+            self.configs["selfQQ"] = configs["selfQQ"]
+            self.configs["targetQQ"] = configs["targetQQ"]
+
+            if configs["mode"] not in ["Friend", "Troop"]:
+                return False
+            else:
+                self.configs["mode"] = configs["mode"]
 
             if not os.path.exists(configs["dataDirPath"]):
                 return False
@@ -83,15 +105,17 @@ class QQParse():
             else:
                 return False
 
-            if os.path.exists(f"{dbDirPath}/{self.selfQQ}.db"):
-                self.dbPath = f"{dbDirPath}/{self.selfQQ}.db"
+            if os.path.exists(f"{dbDirPath}/{self.configs['selfQQ']}.db"):
+                self.configs["dbPath"] = f"{dbDirPath}/{self.configs['selfQQ']}.db"
             else:
                 return False
 
-            if os.path.exists(f"{dbDirPath}/slowtable_{self.selfQQ}.db"):
-                self.dbPath2 = f"{dbDirPath}/slowtable_{self.selfQQ}.db"
+
+            if os.path.exists(f"{dbDirPath}/slowtable_{self.configs['selfQQ']}.db"):
+                self.configs["needSlowtable"] = True
+                self.configs["dbslPath"] = f"{dbDirPath}/slowtable_{self.configs['selfQQ']}.db"
             else:
-                return False
+                self.configs["needSlowtable"] = False
 
             if configs["needKey"]:
                 if os.path.exists(configs["dataDirPath"] + "/files"):
@@ -102,7 +126,8 @@ class QQParse():
                     return False
 
                 if os.path.exists(f"{kcDirPath}/kc"):
-                    self.dbPath2 = f"{kcDirPath}/kc"
+                    with open(f"{kcDirPath}/kc", 'r') as file:
+                        self.configs["key"] = file.read()
                 else:
                     return False
             else:
@@ -112,23 +137,23 @@ class QQParse():
                 chatimgPath = configs["chatimgPath"]
 
                 if os.path.exists(chatimgPath):
-                    self.chatimgPath = chatimgPath
+                    self.configs["chatimgPath"] = chatimgPath
                 else:
                     return False
 
             if configs["needShortVideo"]:
                 shortvideoPath = configs["shortvideoPath"]
 
-                if os.path.exists(chatimgPath):
-                    self.chatimgPath = chatimgPath
+                if os.path.exists(shortvideoPath):
+                    self.configs["shortvideoPath"] = shortvideoPath
                 else:
                     return False
 
             if configs["needVoice"]:
-                shortvideoPath = configs["shortvideoPath"]
+                voicePath = configs["voicePath"]
 
-                if os.path.exists(chatimgPath):
-                    self.chatimgPath = chatimgPath
+                if os.path.exists(voicePath):
+                    self.configs["voicePath"] = voicePath
                 else:
                     return False
 
@@ -138,11 +163,12 @@ class QQParse():
         self.ERRCODE = errcode.err_code()
         self.textParsing = textParsing(self.ERRCODE, self.qqemojiVer)
         self.unserializedDataParsing = unserializedDataParsing(self.ERRCODE, self.textParsing)
-        self.protoDataParsing = protoDataParsing(self.ERRCODE, self.textParsing, self.chatimgPath)
+        self.protoDataParsing = protoDataParsing(self.ERRCODE, self.textParsing, self.configs["chatimgPath"])
         self.javaSerializedDataParsing = javaSerializedDataParsing(self.ERRCODE, self.textParsing)
 
         self.createOutput()
         self.outputFile = open('output/chatData.txt', 'w')
+        return True
 
 
     def fill_cursors(self, cmd):
@@ -162,53 +188,62 @@ class QQParse():
         :return: str数据
         """
         msg = b''
+        key = self.configs["key"]
         if type(data) == bytes:
             msg = b''
             for i in range(0, len(data)):
-                msg += bytes([data[i] ^ ord(self.key[i % len(self.key)])])
+                msg += bytes([data[i] ^ ord(key[i % len(key)])])
             return msg
         elif type(data) == str:
             msg = ''
             for i in range(0, len(data)):
-                msg += chr(ord(data[i]) ^ ord(self.key[i % len(self.key)]))
+                msg += chr(ord(data[i]) ^ ord(key[i % len(key)]))
             return msg
 
 
     # 处理数据库
-    def processdb(self):
+    def procDb(self):
         """处理数据库
 
         """
-        self.DBcursor1 = sqlite3.connect(self.dbPath).cursor()
+        targetQQ = self.configs["targetQQ"]
+        targetQQmd5 = hashlib.md5(targetQQ.encode("utf-8")).hexdigest().upper()
+        mode = self.configs["mode"]
+
+
+        self.DBcursor1 = sqlite3.connect(self.configs["dbPath"]).cursor()
+        if self.configs["needSlowtable"]:
+            self.DBcursor2 = sqlite3.connect(self.configs["dbslPath"]).cursor()
 
         self.getFriends()
         self.getTroops()
         self.getTroopMembers()
-        friendOrTroop = "troop"
+
         self.senderUins = []
 
-        targetQQmd5 = hashlib.md5(self.targetQQ.encode("utf-8")).hexdigest().upper()
+        if mode == "Friend":
+            if targetQQ not in self.friends.keys():
+                return False # 查无此人/无聊天内容
+            else:
+                cmd = "select msgtype,senderuin,msgData,time,extStr from mr_friend_{}_New order by time".format(
+                    targetQQmd5)
 
-        if self.targetQQ in self.friends.keys():
-            self.Mode = "friend"
-            cmd = "select msgtype,senderuin,msgData,time,extStr from mr_friend_{}_New order by time".format(
-                targetQQmd5)
+        elif mode == "Troop":
+            if targetQQ not in self.troops.keys():
+                return False# 查无此群/无聊天内容
+            else:
+                cmd = "select msgtype,senderuin,msgData,time,extStr from mr_troop_{}_New order by time".format(
+                    targetQQmd5)
 
-        elif self.targetQQ in self.troops.keys():
-            self.Mode = "troop"
-            cmd = "select msgtype,senderuin,msgData,time,extStr from mr_troop_{}_New order by time".format(
-                targetQQmd5)
-        else:
-            print("无效QQ号", self.targetQQ)
-            return
+
+
         print(cmd)
 
-        if self.cmdpre != "":
-            cmd = self.cmdpre
+        # if self.cmdpre != "":
+        #     cmd = self.cmdpre
 
         cursors = self.fill_cursors(cmd)
 
-        allmsg = []
         for cs in cursors:
             for row in cs:
                 msgType = row[0]
@@ -226,12 +261,12 @@ class QQParse():
                     self.outputFile.write(json_str + '\n')
         self.outputFile.close()
 
-        print(self.troopMembers[self.targetQQ])
+        # print(self.troopMembers[targetQQ])
 
 
         # 读取发送者数据
         senders = {}
-        if friendOrTroop == "troop":
+        if mode == "troop":
             for uin in self.senderUins:
                 if uin == self.targetQQ:
                     continue
@@ -244,8 +279,6 @@ class QQParse():
 
         with open(filename, "w", encoding="utf-8") as f:
             json.dump(senders, f, ensure_ascii=False, indent=4)
-
-
 
 
     def proMsg(self, msgType, msgData, extStr, senderQQ):
@@ -275,11 +308,11 @@ class QQParse():
 
         if msgType == -2060:# unknown
             print(-2060, msgData.decode("utf-8"))
-            #-2060 {"text":"xxx","bgColor":-7883789,"ts":16464**,"cover":""}
+            # -2060 {"text":"xxx","bgColor":-7883789,"ts":16464**,"cover":""}
 
         elif msgType == -7010:# unknown
             print(-7010, msgData.decode("utf-8"))
-            #-7010 [{"key_profile_introduction":"人际交往笨拙xxxxx","key_ts":16****,"key_type":20019}]
+            # -7010 [{"key_profile_introduction":"人际交往笨拙xxxxx","key_ts":16****,"key_type":20019}]
 
 
         else:
@@ -297,7 +330,7 @@ class QQParse():
         :return: {friendQQNumber: [FriendName, FriendRemark]}
         """
         self.friends = {}
-        cmd = "SELECT uin, name ,remark FROM Friends"#从Friends表中取uin, name,remark
+        cmd = "SELECT uin, name ,remark FROM Friends"# 从Friends表中取uin, name,remark
         cursors = self.fill_cursors(cmd)
         for cs in cursors:
             for row in cs:
@@ -318,7 +351,7 @@ class QQParse():
             if isin == 0:
                 # 假如并不存在聊天数据表就剔除消息
                 self.friends.pop(friendQQNumber)
-        print(self.friends)#还有gulid待分析！！！！！！
+        print(self.friends)# 还有gulid待分析！！！！！！
 
     def getTroops(self):
         """获取群列表
@@ -328,7 +361,6 @@ class QQParse():
 
         self.troops = {}
         cmd = "SELECT troopuin, troopname FROM TroopInfoV2"#从Friends表中取uin, remark
-        #cmd = "SELECT troopuin, troopInfoExtByte FROM TroopInfoV2"  # 从Friends表中取uin, remark
 
         cursors = self.fill_cursors(cmd)
         for cs in cursors:
