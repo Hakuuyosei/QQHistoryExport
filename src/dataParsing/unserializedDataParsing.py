@@ -185,13 +185,24 @@ class unserializedDataParsing():
             }
 
         # 戳一戳
+        elif msgType == -5012:
+            msgDataAlreadyDecode = json.loads(msgData.decode("utf-8"))
+            print(-5012, msgDataAlreadyDecode)
+            msgText = msgDataAlreadyDecode["msg"]
+            msgOutData = {
+                "t": "nudge",
+                "c": {"text": msgText},
+                "e": self.ERRCODE.NORMAL()
+            }
+
+        # 戳一戳
         elif msgType == -5018:
             msgDataAlreadyDecode = json.loads(msgData.decode("utf-8"))
             msgText = msgDataAlreadyDecode["msg"]
             msgSummary = msgDataAlreadyDecode["summary"]
             msgOutData = {
                 "t": "nudge",
-                "c": {"text": msgText, "summary": msgSummary},
+                "c": {"text": msgText},
                 "e": self.ERRCODE.NORMAL()
             }
 
