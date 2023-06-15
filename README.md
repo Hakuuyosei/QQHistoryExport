@@ -37,7 +37,9 @@
 - PDF生成支持**彩色emoji**
 - 支持**视频消息**
 
-## Instruction for use
+## How to use
+
+### 测试方法
 
 目前该仓库处于私有仓库测试阶段
 
@@ -59,6 +61,39 @@ key可填IMEI码
 ```
 
 先修改main函数的测试部分到你需要的测试部分，再测试
+
+### 需要提取的文件
+
+#### 根目录
+
+**data/data/com.tencent.mobileqq**
+
+方案一：（有root）直接提取出来整个文件夹并填写目录即可
+
+方案二：（有root）只提取以下三个文件,和上述方法的效果是一样的
+
+```
+data/data/com.tencent.mobileqq/databases/{你的QQ号}.db
+data/data/com.tencent.mobileqq/databases/slowtable_{QQ}.db
+//下面这一项其实是手机IMEI码，你也可以不提取这个，直接将IMEI码输入程序
+data/data/com.tencent.mobileqq/files/kc
+```
+
+方案三：（无root）通过手机备份功能拿出QQ的数据，里面有db，f等文件夹，不需要重命名，直接输入程序即可
+
+#### 内部存储
+
+**Android/data/com.tencent.mobileqq/Tencent/MobileQQ/**
+
+该目录不需要root权限，按需提取：
+
+```
+图片文件：上述目录/chatpic/chatimg（文件夹）
+视频文件：上述目录/shortvideo（文件夹）
+语音文件：上述目录/{你的QQ号}/ptt(文件夹）
+```
+
+
 
 ## Instruction for folders
 
@@ -102,6 +137,7 @@ src:主程序
 
 - [ ] web导出
 - [ ] 音频消息导出（coding）
+- [ ] 视频消息导出（coding）
 - [ ] PDF生成程序的错误处理
 - [ ] 程序UI
 - [ ] 使用说明
@@ -141,3 +177,20 @@ src:主程序
 
 由于本项目的特殊性质，本项目禁止一切形式的商业用途。
 
+## Final thanks to
+
+https://github.com/Yiyiyimu/QQ_History_Backup
+
+https://github.com/roadwide/qqmessageoutput
+
+https://gist.github.com/WincerChan/362331456a6e0417c5aa1cf3ff7be2b7
+
+https://github.com/protocolbuffers/protobuf
+
+https://github.com/nccgroup/blackboxprotobuf（测试阶段使用，不在项目代码中）
+
+https://github.com/rohankumardubey/SerializationDumper（测试阶段使用，不在项目代码中）
+
+https://github.com/kn007/silk-v3-decoder
+
+https://github.com/FFmpeg/FFmpeg （LGPL bulid）
