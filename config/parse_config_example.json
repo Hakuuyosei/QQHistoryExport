@@ -9,6 +9,7 @@
 
   "findFilesMode": "dir", // dir(填写com.tencent.mobileqq文件夹的路径自动搜索数据库)或files(手动输入每个文件路径)
 
+  "needSlowtable": true, //是否需要两个月以前的聊天记录, 若是，且选了files，则填"dbstPath"，否则不填
   // 以下为选dir后的必须选项，选Files填了无效-----------------------
   "dataDirPath":"", //com.tencent.mobileqq文件夹的路径
   // 以上为选dir后的必须选项--------------------------------------
@@ -16,17 +17,18 @@
 
   // 以下为选files后的必须选项，选Dir填了无效-----------------------
   "dbPath": "",       //数据库路径，QQ号.db，本位于/databases/QQ号.db或者/db/QQ号.db
-
-  "needSlowtable": true, //是否需要两个月以前的聊天记录, 若是则填下面一项，反之不填
-  "dbstPath": "",       //slowtable数据库路径，位于/databases/slowtable_QQ号.db或者/db/slowtable_QQ号.db
+  "dbstPath": "",     //slowtable数据库路径，位于/databases/slowtable_QQ号.db或者/db/slowtable_QQ号.db
 
   "needKey":true,     //是否需要自动提取秘钥，是的话填keypath，否的话填key
   "key":"",           //若不使用自动提取秘钥，手动输入手机IMEI码，字符串，保留英文引号
   "keyPath":"",       //kc文件路径，本位于/files/kc
   // 以下为选files后的必须选项------------------------------------
-  
+
+  "needQQEmoji": true, //是否需要QQ表情，若需要则需要填下面一项
+  "QQEmojiVer": "new", //QQ表情版本，新or旧 new old
+
   "needImages":true,    //是否需要图片解析
-  "chatimgPath":"",     //chatimg文件夹路径
+  "imagesPath":"",     //chatimg文件夹路径
 
   "needShortVideo":false,//是否需要短视频解析
   "shortvideoPath":"",    //shortvideo文件夹路径

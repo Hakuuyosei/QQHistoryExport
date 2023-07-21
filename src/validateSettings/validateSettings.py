@@ -54,6 +54,15 @@ def validate_settings(is_json_file, configs_data):
         state = state_new and state
         info += info_new
 
+    exist_state_needsl, info_new = validate_key_exist(configs, "needSlowtable")
+    state = exist_state_needsl and state
+    info += info_new
+    if exist_state_needsl:
+        if "needSlowtable" not in [True, False]:
+            exist_state_needsl = False
+            info += "needSlowtable的值非布尔true, false！\n"
+
+
     # 数据库
     exist_state, info_new = validate_key_exist(configs, "findFilesMode")
     state = exist_state and state
@@ -85,11 +94,12 @@ def validate_settings(is_json_file, configs_data):
                     state = exist_state and state
                     info += info_new
 
-                    # slowtable_QQ号.db文件
-                    exist_state, info_new, configs_validated["dbstPath"] = \
-                        validate_file_exist(f"{dbDirPath}/slowtable_{configs['selfQQ']}.db")
-                    state = exist_state and state
-                    info += info_new
+                    if exist_state_needsl:
+                        # slowtable_QQ号.db文件
+                        exist_state, info_new, configs_validated["dbstPath"] = \
+                            validate_file_exist(f"{dbDirPath}/slowtable_{configs['selfQQ']}.db")
+                        state = exist_state and state
+                        info += info_new
 
                 exist_state1, info_new1, path_new1 = validate_folder_exist(configs["dataDirPath"] + "/files")
                 exist_state2, info_new2, path_new2 = validate_folder_exist(configs["dataDirPath"] + "/f")
@@ -124,10 +134,7 @@ def validate_settings(is_json_file, configs_data):
                 info += info_new
                 state = exist_state and state
 
-            exist_state, info_new = validate_key_exist(configs, "needSlowtable")
-            state = exist_state and state
-            info += info_new
-            if exist_state:
+            if exist_state_needsl:
                 # 需要Slowtable
                 if configs["needSlowtable"] == True:
                     exist_state, info_new = validate_key_exist(configs, "dbstPath")
@@ -141,11 +148,10 @@ def validate_settings(is_json_file, configs_data):
                             state_new, info_new, configs_validated["kc"] = read_kc(configs["dbstPath"])
                             state = exist_state and state
                             info += info_new
-                elif configs["needSlowtable"] == False:
-                    pass
                 else:
-                    state = False
-                    info += "needSlowtable非True or False！\n"
+                    pass
+                # 此处exist_state_needsl在前面已经判断了needSlowtable不合法的情况
+
 
             exist_state, info_new = validate_key_exist(configs, "needKey")
             state = exist_state and state
@@ -184,17 +190,35 @@ def validate_settings(is_json_file, configs_data):
             state = False
             info += "数据库文件寻找模式无效（不是dir也不是files）！\n"
 
+    exist_state, info_new = validate_key_exist(configs, "needQQEmoji")
+    state = exist_state and state
+    info += info_new
+    if exist_state:
+        if configs["needQQEmoji"] == True:
+            if configs["QQEmoji"] == "new" or configs["needQQEmoji"] == "old":
+                configs_validated["needQQEmoji"] = configs["needQQEmoji"]
+            else:
+                state = False
+                info += "needImages非True or False！\n"
+            configs_validated["needQQEmoji"] = True
+        elif configs["needQQEmoji"] == False:
+            configs_validated["needQQEmoji"] = False
+        else:
+            state = False
+            info += "needImages非True or False！\n"
+
     exist_state, info_new = validate_key_exist(configs, "needImages")
     state = exist_state and state
     info += info_new
     if exist_state:
         if configs["needImages"] == True:
-            exist_state, info_new, path_new = validate_folder_exist(configs["chatimgPath"], "chatimgPath")
+            exist_state, info_new, configs_validated["imagesPath"] = validate_folder_exist(configs["imagesPath"], "imagesPath")
+            state = exist_state and state
             info += info_new
-            if exist_state:
-                configs_validated["chatimgPath"] = path_new
+            configs_validated["needImages"] = True
+
         elif configs["needImages"] == False:
-            pass
+            configs_validated["needImages"] = False
         else:
             state = False
             info += "needImages非True or False！\n"
