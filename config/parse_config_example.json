@@ -5,19 +5,27 @@
 
   "mode":"Friend",  //Friend好友，Troop群组
   "targetQQ":"",    //目标QQ号，字符串，保留英文引号
-  "selfQQ":"",      //自己的QQ号，字符串，保留英文引号
+  "selfQQ":"",      //自己的QQ号，字符串，保留英文引号，示例："selfQQ":"123456"
 
+  "findFilesMode": "Dir", // Dir(填写com.tencent.mobileqq文件夹的路径自动搜索数据库)或Files(手动输入每个文件路径)
+
+  // 以下为选Dir后的必须选项，选Files填了无效-----------------------
   "dataDirPath":"", //com.tencent.mobileqq文件夹的路径
+  // 以上为选Dir后的必须选项--------------------------------------
 
-  "needKey":true,     //是否需要自动提取秘钥
+
+  // 以下为选Files后的必须选项，选Dir填了无效-----------------------
+  "dbPath": "",       //数据库路径，QQ号.db，本位于/databases/QQ号.db或者/db/QQ号.db
+  "dbstPath": "",       //数据库路径，QQ号.db，本位于/databases/QQ号.db或者/db/QQ号.db
+  "needKey":true,     //是否需要自动提取秘钥，是的话填keypath，否的话填key
   "key":"",           //若不使用自动提取秘钥，手动输入手机IMEI码，字符串，保留英文引号
-  //若自动提取秘钥，key留空即可
+  "keyPath":"",       //kc文件路径，本位于/files/kc
   
-  "needImages":true,  //是否需要图片解析
-  "chatimgPath":"",   //chatimg文件夹路径
+  "needImages":true,    //是否需要图片解析
+  "chatimgPath":"",     //chatimg文件夹路径
 
   "needShortVideo":false,//是否需要短视频解析
-  "shortvideoPath":"", //shortvideo文件夹路径
+  "shortvideoPath":"",    //shortvideo文件夹路径
 
   "needVoice":false,//是否需要语音解析
   "voicePath":""  //ptt文件夹路径
