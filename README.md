@@ -4,7 +4,7 @@
 
 ## 前言
 
-本项目的消息解码，数据库读取，QQ表情（emoticon1）来自[Yiyiyimu/QQ-History-Backup](https://github.com/Yiyiyimu/QQ-History-Backup)，感谢为QQ聊天记录解析的一众大佬
+本项目的消息解密，数据库读取，QQ表情（emoticon1）来自[Yiyiyimu/QQ-History-Backup](https://github.com/Yiyiyimu/QQ-History-Backup)，感谢为QQ聊天记录解析的一众大佬
 
 本项目支持更多（大部分重要的消息类型）解析了java序列化类型消息，支持PDF导出，未来将支持html导出。
 
@@ -20,7 +20,7 @@
 
 以下为本项目独立实现的功能
 
-- 有详细的文档
+- 详细的文档
 - 支持java序列化类型消息解析
 - 支持读取**好友表，群聊表，群友表**数据库
 - 支持extStr解析，获取了**消息的更多属性**
@@ -36,29 +36,14 @@
 - PDF**可设置**间距大小栏数，字体大小，是否显示头像等等
 - PDF生成支持**彩色emoji**
 - 支持**视频消息**
+- 有很多自定义**可设置**项
+- 有**GUI界面**
 
 ## How to use
 
-### 测试方法
+### 有关测试
 
 目前该仓库处于私有仓库测试阶段
-
-测试方法如下
-
-test.json格式：
-
-key可填IMEI码
-
-```json
-{
-	"targetQQ":"7xxxxx",
-	"fileName":"./QQdb/xxxxx.db",
-	"chatimgPath":"xxxx/chatimg",
-	"key":"8xxxxxxxx",
-	"cmd":"",
-	"ext":""
-}
-```
 
 先修改main函数的测试部分到你需要的测试部分，再测试
 
@@ -95,57 +80,62 @@ data/data/com.tencent.mobileqq/files/kc
 
 
 
-## Instruction for folders
+## folders
 
+```
 config:设置，设置样本文件
-
 lib:依赖库，依赖文件等
-
+	emoticons:QQ表情资源文件
+		emoticon1:QQ小表情
+		emoticon2:QQ大表情
+		nudgeaction:戳一戳等表情（还未投入使用）
+	fonts:字体
+	javaDeserialization:java反序列化程序
+	
 scripts:独立脚本
-
-​	colorEmojiImage:将文件夹中unicode emoji表情图片合并成一个文件并创建信息数据库
-
-​	fontQuerySize:通过PIL查询字体宽高比并存入字体信息数据库
-
-​	nudgeactionResDownload:下载nudgeaction类型图片（还未投入使用）
-
+	colorEmojiImage:将文件夹中unicode emoji表情图片合并成一个文件并创建信息数据库
+	fontQuerySize:通过PIL查询字体宽高比并存入字体信息数据库
+	nudgeactionResDownload:下载nudgeaction类型图片（还未投入使用）
+	
 src:主程序
+	errcode:错误管理模块
+	dataParsing:数据解析模块
+		parsing.py:总解析模块
+		textParsing.py:文本信息解析
+		unserializedDataParsing.py:未序列化类型数据解析
+		javaSerializedDataParsing.py:java序列化类型数据解析
+		protoDataParsing.py:protobuf序列化类型解析
+	avatarDownload:通过接口下载头像模块
+	generate:生成可视文件图片
+		GeneratePDF_ReportLab.py:使用ReportLab生成PDF
+	proto:proto反序列化相关文件
+	GUI:GUI模块
+		res:资源文件夹
+		GUI.py:GUI操作文件
+		mainInterface.py:由pyuic5生成的界面代码
+		mainInterface.ui:由QtDesigner绘制的界面
+		res_rc.py:由pyrcc5生成的资源文件代码
+	validateSettings:设置项验证模块
+		
+```
 
-​	errcode:错误管理模块
 
-​	dataParsing:数据解析模块
-
-​		parsing.py:总解析模块
-
-​		textParsing.py:文本信息解析
-
-​		unserializedDataParsing.py:未序列化类型数据解析
-
-​		javaSerializedDataParsing.py:java序列化类型数据解析
-
-​		protoDataParsing.py:protobuf序列化类型解析
-
-​	avatarDownload:通过接口下载头像模块
-
-​	generate:生成可视文件图片
-
-​		GeneratePDF_ReportLab.py:使用ReportLab生成PDF
-
-​	proto:proto反序列化相关文件
 
 ## TODO
+
+说明：因为此项目功能数量多，功能分散，测试样本具有局限性，开发时间跨度大，难以保证每行代码都没问题，各位遇到问题积极提出Issue，有能力的可以直接提pr
 
 - [ ] web导出
 - [ ] 音频消息导出（coding）
 - [ ] 视频消息导出（coding）
 - [ ] PDF生成程序的错误处理
-- [ ] 程序UI
+- [x] 程序UI
 - [ ] 使用说明
 - [ ] 支持卡片消息
-- [ ] 完善错误管理
+- [x] 完善错误管理
 - [ ] 添加多几种emoji表情供选择
 - [ ] 增加PDF绘制图片自定义尺寸，非统一管理缩放
-- [ ] 明确设置群组好友格式，防止QQ群号和用户号重复
+- [x] 明确设置群组好友格式，防止QQ群号和用户号重复
 
 
 
@@ -175,9 +165,15 @@ src:主程序
 
 ## license
 
-由于本项目的特殊性质，本项目禁止一切形式的商业用途。
+***由于本项目的特殊性质，本项目禁止一切形式的商业用途。***
 
-## Final thanks to
+***由于本项目的特殊性质，本项目禁止一切形式的商业用途。***
+
+***由于本项目的特殊性质，本项目禁止一切形式的商业用途。***
+
+## thanks to
+
+本项目的本消息解密，数据库读取，QQ表情（emoticon1），来自：
 
 https://github.com/Yiyiyimu/QQ_History_Backup
 
@@ -185,11 +181,15 @@ https://github.com/roadwide/qqmessageoutput
 
 https://gist.github.com/WincerChan/362331456a6e0417c5aa1cf3ff7be2b7
 
+消息反序列化分析用到了：
+
 https://github.com/protocolbuffers/protobuf
 
 https://github.com/nccgroup/blackboxprotobuf（测试阶段使用，不在项目代码中）
 
 https://github.com/rohankumardubey/SerializationDumper（测试阶段使用，不在项目代码中）
+
+音频转码用到了：
 
 https://github.com/kn007/silk-v3-decoder
 
