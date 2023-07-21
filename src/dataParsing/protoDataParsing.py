@@ -42,11 +42,10 @@ class protoDataParsing():
     """protobuf序列化相关类型解析
 
     """
-    def __init__(self, errcodeobj: err_code, textparsingobj: textParsing, chatImgPath):
+    def __init__(self, errcodeobj: err_code, textparsingobj: textParsing, configs):
         self.ERRCODE = errcodeobj
         self.textParsing = textparsingobj
-
-        self.chatImgPath = chatImgPath
+        self.configs = configs
 
         self.imgMD5Map = {}
         self.imgNum = 1
@@ -63,14 +62,14 @@ class protoDataParsing():
 
         try:
             if os.path.exists(output_path):
-                return self.ERRCODE.NORMAL(), output_path
+                return {}, output_path
             elif os.path.exists(lib_path):
                 shutil.copy(lib_path, output_path)
-                return self.ERRCODE.NORMAL(), output_path
+                return {}, output_path
             else:
-                return self.ERRCODE.MARKETFACE_NOT_EXIST(data), ""
+                return self.ERRCODE.parse_err("MARKETFACE_NOT_EXIST", [data]), None
         except OSError:
-            return self.ERRCODE.ALL_OS_ERROR(output_path, traceback.format_exc()), ""
+            return self.ERRCODE.parse_err("IO_ERROR", [traceback.format_exc()]), None
 
     def decodePic(self, data):
         """解码图片并移动
@@ -91,7 +90,7 @@ class protoDataParsing():
             url = 'chatimg:' + doc.md5
             filename = hex(crc64(url))
             filename = 'Cache_' + filename.replace('0x', '')
-            relpath = os.path.join(self.chatImgPath, filename[-3:], filename)
+            relpath = os.path.join(self.configs["imagesPath"], filename[-3:], filename)
             imgPath = os.path.join(filename[-3:], filename)
             # print(doc.uint32_width, doc.uint32_height, doc.uint32_image_type)
             msgOutData["c"]["imgType"] = "pic"
@@ -102,7 +101,7 @@ class protoDataParsing():
 
         except:
             # protobuf反序列化失败
-            msgOutData["e"] = self.ERRCODE.IMG_DESERIALIZATION_ERROR(data)
+            msgOutData["e"] = self.ERRCODE.parse_err("IMG_DESERIALIZATION_ERROR", [data]), None
             return msgOutData
 
         try:
@@ -110,7 +109,7 @@ class protoDataParsing():
 
             # 判断文件是否存在
             if not os.path.exists(relpath):
-                msgOutData["e"] = self.ERRCODE.IMG_NOT_EXIST(imgPath)
+                msgOutData["e"] = self.ERRCODE.parse_err("IMG_NOT_EXIST", [relpath]), None
                 return msgOutData
 
             # 计算图片的MD5值
@@ -120,7 +119,7 @@ class protoDataParsing():
 
             # 查找图片的MD5值是否已经存在
             if md5 in self.imgMD5Map:
-                msgOutData["e"] = self.ERRCODE.NORMAL()
+                msgOutData["e"] = {}
                 msgOutData["c"]["imgPath"] = self.imgMD5Map[md5][0]
                 msgOutData["c"]["name"] = self.imgMD5Map[md5][1]
                 return msgOutData
@@ -128,7 +127,7 @@ class protoDataParsing():
             # 确定图片类型并添加后缀名
             img_type = imghdr.what(relpath)
             if img_type is None:
-                msgOutData["e"] = self.ERRCODE.IMG_UNKNOWN_TYPE_ERROR(imgPath)
+                msgOutData["e"] = self.ERRCODE.parse_err("IMG_UNKNOWN_TYPE_ERROR", [imgPath]), None
                 return msgOutData
 
             new_filename = f'{self.imgNum}.{img_type}'
@@ -142,12 +141,12 @@ class protoDataParsing():
             # 将MD5和新文件路径添加到imgMD5Map中
             self.imgMD5Map[md5] = [new_file_path, new_filename]
 
-            msgOutData["e"] = self.ERRCODE.NORMAL()
+            msgOutData["e"] = {}
             msgOutData["c"]["imgPath"] = new_file_path
             msgOutData["c"]["name"] = new_filename
             return msgOutData
         except OSError:
-            msgOutData["e"] = self.ERRCODE.ALL_OS_ERROR(imgPath, traceback.format_exc())
+            msgOutData["e"] = self.ERRCODE.parse_err("OS_ERROR", [traceback.format_exc()])
 
 
     def decodeMixMsg(self, data):
@@ -168,17 +167,16 @@ class protoDataParsing():
                     if msgText != " ":
                         for msgElem2 in self.textParsing.parse(msgText):
                             msgList.append(msgElem2)
-            return self.ERRCODE.NORMAL(), msgList
+            return {}, msgList
         except:
-            return self.ERRCODE.MIXMSG_DESERIALIZATION_ERROR(data, traceback.format_exc()), msgList
+            return self.ERRCODE.parse_err("MIXMSG_DESERIALIZATION_ERROR", [data, traceback.format_exc()]), None
 
-    def parse(self, msgType, msgData, extStr, senderQQ):
+    def parse(self, msgType, msgData, extStr):
         """protobuf序列化相关类型解析
 
         :param msgType: 消息类型
         :param msgData: 数据
         :param extStr:  extStr
-        :param senderQQ: senderQQ
         :return: msgOutData
         """
         msgOutData = {}
@@ -250,7 +248,7 @@ class protoDataParsing():
                     msgOutData = {
                         "t": "revoke",
                         "c": {"text": msgText, "type": "bySelf"},
-                        "e": self.ERRCODE.NORMAL()
+                        "e": {}
                     }
                     # print(extStr)
                 # 群主（或管理员，待验证）撤回
@@ -258,7 +256,7 @@ class protoDataParsing():
                     msgOutData = {
                         "t": "revoke",
                         "c": {"text": msgData, "type": "byAdmin"},
-                        "e": self.ERRCODE.NORMAL()
+                        "e": {}
                     }
                     # print(extStr)
                 else:
@@ -281,13 +279,13 @@ class protoDataParsing():
                     msgOutData = {
                         "t": "tip",
                         "c": {"text": msgDecodedData, "type": "invite", "ext": items},
-                        "e": self.ERRCODE.NORMAL()
+                        "e": {}
                     }
                 else:
                     msgOutData = {
                         "t": "tip",
                         "c": {"type": "invite"},
-                        "e": self.ERRCODE.ALL_EXTSTR_NOT_EXIST_TARGET(extStr, "invitee or invitor ")
+                        "e": self.ERRCODE.parse_err("EXTSTR_NOT_EXIST_TARGET", [extStr, "invitee or invitor "])
                     }
 
 
@@ -305,7 +303,7 @@ class protoDataParsing():
                     msgOutData = {
                         "t": "tip",
                         "c": {"text": msgDecodedData, "type": "dailyattendance"},
-                        "e": self.ERRCODE.NORMAL()
+                        "e": {}
                     }
 
                 # 灰条戳一戳
@@ -318,7 +316,7 @@ class protoDataParsing():
                     msgOutData = {
                         "t": "tip",
                         "c": {"text": msgDecodedData, "type": "paiyipai"},
-                        "e": self.ERRCODE.NORMAL()
+                        "e": {}
                     }
 
                 else:
@@ -329,7 +327,7 @@ class protoDataParsing():
                     msgOutData = {
                         "t": "tip",
                         "c": {"text": msgDecodedData, "type": "unknown"},
-                        "e": self.ERRCODE.NORMAL()
+                        "e": {}
                     }
                     print(extStr)
 
@@ -341,7 +339,7 @@ class protoDataParsing():
                 msgOutData = {
                     "t": "tip",
                     "c": {"text": msgDecodedData, "type": "unknown"},
-                    "e": self.ERRCODE.NORMAL()
+                    "e": {}
                 }
                 print(extStr)
 
@@ -355,7 +353,7 @@ class protoDataParsing():
             msgOutData = {
                 "t": "tip",
                 "c": {"text": msgDecodedData, "type": "unknown"},
-                "e": self.ERRCODE.NORMAL()
+                "e": {}
             }
 
         elif msgType == -5023:  # 该用户通过***向你发起临时会话，前往设置。

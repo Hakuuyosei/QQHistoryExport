@@ -13,9 +13,10 @@ class javaSerializedDataParsing():
     """java序列化相关类型的解析
 
     """
-    def __init__(self, errcodeobj: err_code, textparsingobj: textParsing):
+    def __init__(self, errcodeobj: err_code, textparsingobj: textParsing, configs):
         self.ERRCODE = errcodeobj
         self.textParsing = textparsingobj
+        self.configs = configs
 
     def javaDeserializationToJson(self, data):
         """java序列化转json
@@ -29,25 +30,24 @@ class javaSerializedDataParsing():
         elif type(data) == str:
             dataStr = data
         else:
-            return self.ERRCODE.JAVA_DESER_ERR_INPUT_TYPE(str(data), str(type(data))), None
+            return self.ERRCODE.parse_err("JAVA_DESER_ERR_INPUT_TYPE", [str(data), str(type(data))]), None
 
         javaDeserCmd = "java -jar ./lib/javaDeserialization/QQdecode-1.0.jar " + dataStr
         javaDeserCmdOutput = subprocess.getoutput(javaDeserCmd)
 
         try:
             jsonData = json.loads(javaDeserCmdOutput)
-            return self.ERRCODE.NORMAL(), jsonData
+            return {}, jsonData
         except json.JSONDecodeError as e:
-            return self.ERRCODE.JAVA_DESER_JSON_ERR_DECODE(javaDeserCmdOutput, dataStr), None
+            return self.ERRCODE.parse_err("JAVA_DESER_JSON_ERR_DECODE", [dataStr]), None
 
 
-    def parse(self, msgType, msgData, extStr, senderQQ):
+    def parse(self, msgType, msgData, extStr):
         """java序列化相关类型解析
 
         :param msgType: 消息类型
         :param msgData: 数据
         :param extStr:  extStr
-        :param senderQQ: senderQQ
         :return: msgOutData
         """
         msgOutData = {}
@@ -58,14 +58,14 @@ class javaSerializedDataParsing():
             msgOutData = {
                 "t": "msg",
                 "c": self.textParsing.parse(msgData.decode("utf-8")),
-                "e": self.ERRCODE.NORMAL()
+                "e": {}
             }
 
             try:
                 # print(extStr)
                 extStrJson = json.loads(extStr)
             except json.JSONDecodeError as e:
-                return self.ERRCODE.EXTSTR_JSON_ERR_DECODE(), None
+                return self.ERRCODE.parse_err("EXTSTR_JSON_ERR_DECODE", []), None
 
             if extStrJson:
                 start_time = time.time()

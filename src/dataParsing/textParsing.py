@@ -14,11 +14,12 @@ class textParsing():
     """解析文本信息
 
     """
-    def __init__(self, errcodeobj: err_code, qqemojiVer):
+    def __init__(self, errcodeobj: err_code, configs):
         self.ERRCODE = errcodeobj
-        self.qqemojiVer = qqemojiVer
+        self.configs = configs
 
-        self.emoji_map = self.mapqqEmoji()
+        if self.configs["needQQEmoji"]:
+            self.emoji_map = self.mapqqEmoji()
 
     def mapqqEmoji(self):
         """建立表情索引
@@ -29,7 +30,7 @@ class textParsing():
             emojis = json.load(f)
         new_emoji_map = {}
         for e in emojis['sysface']:
-            if self.qqemojiVer == 1:
+            if self.configs["QQEmojiVer"] == "new":
                 new_emoji_map[e["AQLid"]] = e["QSid"]
             else:
                 if len(e["EMCode"]) == 3:
@@ -51,7 +52,7 @@ class textParsing():
             msgOutData = {
                 "t": "m",
                 "c": {"m": msg},
-                "e": self.ERRCODE.NORMAL()
+                "e": {}
             }
             msgList.append(msgOutData)
             return msgList
@@ -63,7 +64,7 @@ class textParsing():
                     msgOutData = {
                         "t": "m",
                         "c": {"m": msg[lastpos + 2:]},
-                        "e": self.ERRCODE.NORMAL()
+                        "e": {}
                     }
                     msgList.append(msgOutData)
                 break
@@ -71,47 +72,55 @@ class textParsing():
             msgOutData = {
                 "t": "m",
                 "c": {"m": msg[lastpos + 2:pos]},
-                "e": self.ERRCODE.NORMAL()
+                "e": {}
             }
             msgList.append(msgOutData)
             num = ord(msg[pos + 1])
 
-            msgOutData = {
-                "t": "qqemoji",
-                "c": {"path": "", "index": ""},
-                "e": None
-            }
+            if self.configs["needQQEmoji"]:
+                msgOutData = {
+                    "t": "qqemoji",
+                    "c": {"path": "", "index": ""},
+                    "e": {}
+                }
 
-            if str(num) in self.emoji_map:
-                index = self.emoji_map[str(num)]
-                if self.qqemojiVer == 1:
-                    filename = "new/s" + index + ".png"
+                if str(num) in self.emoji_map:
+                    index = self.emoji_map[str(num)]
+                    if self.configs["QQEmojiVer"] == "new":
+                        filename = "new/s" + index + ".png"
+                    else:
+                        filename = "old/" + index + ".gif"
+
+                    output_path = "output/emoticons/emoticon1/" + filename
+                    lib_path = "lib/emoticons/emoticon1/" + filename
+
+                    if os.path.exists(output_path):
+                        msgOutData["c"]["path"] = output_path
+                        msgOutData["c"]["index"] = index
+                        msgList.append(msgOutData)
+
+                    elif os.path.exists(lib_path):
+                        shutil.copy(lib_path, output_path)
+
+                        msgOutData["c"]["path"] = output_path
+                        msgOutData["c"]["index"] = index
+                        msgList.append(msgOutData)
+                    else:
+                        msgOutData["e"] = self.ERRCODE.parse_err("EMOJI_NOT_EXIST", [self.configs["QQEmojiVer"], str(num)])
+                        msgList.append(msgOutData)
+
                 else:
-                    filename = "old/" + index + ".gif"
-
-                output_path = "output/emoticons/emoticon1/" + filename
-                lib_path = "lib/emoticons/emoticon1/" + filename
-
-                if os.path.exists(output_path):
-                    msgOutData["e"] = self.ERRCODE.NORMAL()
-                    msgOutData["c"]["path"] = output_path
-                    msgOutData["c"]["index"] = index
+                    msgOutData["e"] = self.ERRCODE.parse_err("EMOJI_NOT_EXIST", [self.configs["QQEmojiVer"], str(num)])
                     msgList.append(msgOutData)
-
-                elif os.path.exists(lib_path):
-                    shutil.copy(lib_path, output_path)
-
-                    msgOutData["e"] = self.ERRCODE.NORMAL()
-                    msgOutData["c"]["path"] = output_path
-                    msgOutData["c"]["index"] = index
-                    msgList.append(msgOutData)
-                else:
-                    msgOutData["e"] = self.ERRCODE.EMOJI_NOT_EXIST(self.qqemojiVer, str(num))
-                    msgList.append(msgOutData)
-
-            else:
-                msgOutData["e"] = self.ERRCODE.EMOJI_NOT_EXIST(self.qqemojiVer, str(num))
+            elif self.configs["noSelectNeedDisplay"] == True:
+                msgOutData = {
+                    "t": "uns",
+                    "c": {"text": "[表情]"},
+                    "e": {}
+                }
                 msgList.append(msgOutData)
+
+
 
             lastpos = pos
         return msgList

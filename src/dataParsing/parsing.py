@@ -23,20 +23,29 @@ protoDataType =             [-2000, -1035, -2002, -2022, -5020, -5023, -8018, -5
 javaSerializedDataType =    [-1049, -2017, -2025, -2011, -5008, -2007, -2025]
 
 
-class QQParse():
+class QQParse:
     """QQ数据库读取，解析
 
     """
-    def __init__(self):
-        self.targetQQ = None
+    def __init__(self, configs, errcode_obj):
+        self.configs = configs
         self.key = None
-        self.configs = {}
-        self.qqemojiVer = 1
+
+        self.configs = configs
 
         self.DBcursor1 = None
+        self.DBcursor2 = None
+
+        self.ERRCODE = errcode_obj
+        self.textParsing = textParsing(self.ERRCODE, self.configs)
+        self.unserializedDataParsing = unserializedDataParsing(self.ERRCODE, self.textParsing, self.configs)
+        self.protoDataParsing = protoDataParsing(self.ERRCODE, self.textParsing, self.configs)
+        self.javaSerializedDataParsing = javaSerializedDataParsing(self.ERRCODE, self.textParsing, self.configs)
+
+        self.createOutputFolder()
 
 
-    def createOutput(self):
+    def createOutputFolder(self):
         """创建输出文件夹
 
         """
@@ -57,27 +66,14 @@ class QQParse():
         os.mkdir(dir_path + "/senders")
 
 
-
-
-
-
-        self.ERRCODE = errcode.err_code()
-        self.textParsing = textParsing(self.ERRCODE, self.qqemojiVer)
-        self.unserializedDataParsing = unserializedDataParsing(self.ERRCODE, self.textParsing)
-        self.protoDataParsing = protoDataParsing(self.ERRCODE, self.textParsing, self.configs["chatimgPath"])
-        self.javaSerializedDataParsing = javaSerializedDataParsing(self.ERRCODE, self.textParsing)
-
-        self.createOutput()
         self.outputFile = open('output/chatData.txt', 'w')
-        return True
+        return
 
 
     def fill_cursors(self, cmd):
         cursors = []
-        try:
-            cursors.append(self.DBcursor1.execute(cmd))
-        except:
-            pass
+        if self.configs["needSlowTable"]:
+            cursors.append(self.DBcursor2.execute(cmd))
         cursors.append(self.DBcursor1.execute(cmd))
         return cursors
 
@@ -111,39 +107,51 @@ class QQParse():
         targetQQmd5 = hashlib.md5(targetQQ.encode("utf-8")).hexdigest().upper()
         mode = self.configs["mode"]
 
+        try:
+            self.DBcursor1 = sqlite3.connect(self.configs["dbPath"]).cursor()
+            if self.configs["needSlowtable"]:
+                self.DBcursor2 = sqlite3.connect(self.configs["dbslPath"]).cursor()
+        except:
+            return False, "数据库连接错误！sqlite3.connect error"
 
-        self.DBcursor1 = sqlite3.connect(self.configs["dbPath"]).cursor()
-        if self.configs["needSlowtable"]:
-            self.DBcursor2 = sqlite3.connect(self.configs["dbslPath"]).cursor()
 
-        self.getFriends()
-        self.getTroops()
-        self.getTroopMembers()
+        friends = self.getFriends()
+        troops = self.getTroops()
+        troopMembers = self.getTroopMembers()
 
         self.senderUins = []
 
         if mode == "Friend":
-            if targetQQ not in self.friends.keys():
-                return False # 查无此人/无聊天内容
+            if targetQQ not in friends.keys():
+                return False, "查无此人/无聊天内容"
             else:
                 cmd = "select msgtype,senderuin,msgData,time,extStr from mr_friend_{}_New order by time".format(
                     targetQQmd5)
 
         elif mode == "Troop":
-            if targetQQ not in self.troops.keys():
-                return False# 查无此群/无聊天内容
+            if targetQQ not in troops.keys():
+                return False, "查无此群/无聊天内容"
             else:
                 cmd = "select msgtype,senderuin,msgData,time,extStr from mr_troop_{}_New order by time".format(
                     targetQQmd5)
 
-
-
         print(cmd)
+
+
 
         # if self.cmdpre != "":
         #     cmd = self.cmdpre
 
-        cursors = self.fill_cursors(cmd)
+        # TODO:行数统计
+
+        try:
+            cursors = self.fill_cursors(cmd)
+        except:
+            return False, "数据库查询出错！sqlite3.execute error"
+
+        info = """数据库解析初始化成功，开始解析……
+        提示：出现较多的图片未找到等错误是正常的，有可能没接收、被清理"""
+        self.ERRCODE.log("parse", self.ERRCODE.LOG_LEVEL_INFO, info)
 
         for cs in cursors:
             for row in cs:
@@ -154,7 +162,7 @@ class QQParse():
                 msgData = self.decrypt(row[2])
                 ltime = row[3]
                 extStr = self.decrypt(row[4])
-                msgOutData = self.proMsg(msgType, msgData, extStr, senderQQ)
+                msgOutData = self.proMsg(msgType, msgData, extStr)
                 if msgOutData != None and msgOutData != {}:
                     msgOutData["s"] = senderQQ
                     msgOutData["i"] = ltime
@@ -163,16 +171,18 @@ class QQParse():
         self.outputFile.close()
 
         # print(self.troopMembers[targetQQ])
-
+        info = """聊天记录解析完毕！恭喜！
+                """
+        self.ERRCODE.log("parse", self.ERRCODE.LOG_LEVEL_INFO, info)
 
         # 读取发送者数据
         senders = {}
         if mode == "troop":
             for uin in self.senderUins:
-                if uin == self.targetQQ:
+                if uin == targetQQ:
                     continue
                     # 如果发送者等于群QQ号，可能是更改群名之类的
-                name = self.troopMembers[self.targetQQ][uin][0]
+                name = troopMembers[targetQQ][uin][0]
                 senders[uin] = [name, ""]
 
         filename = "output/senders/senders.json"
@@ -182,26 +192,25 @@ class QQParse():
             json.dump(senders, f, ensure_ascii=False, indent=4)
 
 
-    def proMsg(self, msgType, msgData, extStr, senderQQ):
+    def proMsg(self, msgType, msgData, extStr):
         """处理单条信息
 
         :param msgType: 消息类型
         :param msgData: 数据
         :param extStr:  extStr
-        :param senderQQ: senderQQ
         :return: msgOutData
         """
         msgOutData = {}
 
 
         if msgType in unserializedDataType:
-            msgOutData = self.unserializedDataParsing.parse(msgType, msgData, extStr, senderQQ)
+            msgOutData = self.unserializedDataParsing.parse(msgType, msgData, extStr)
             return msgOutData
         elif msgType in protoDataType:
-            msgOutData = self.protoDataParsing.parse(msgType, msgData, extStr, senderQQ)
+            msgOutData = self.protoDataParsing.parse(msgType, msgData, extStr)
             return msgOutData
         elif msgType in javaSerializedDataType:
-            msgOutData = self.javaSerializedDataParsing.parse(msgType, msgData, extStr, senderQQ)
+            msgOutData = self.javaSerializedDataParsing.parse(msgType, msgData, extStr)
             return msgOutData
         print(msgType)
 
@@ -209,11 +218,11 @@ class QQParse():
 
         if msgType == -2060:# unknown
             print(-2060, msgData.decode("utf-8"))
-            # -2060 {"text":"xxx","bgColor":-7883789,"ts":16464**,"cover":""}
+            # -2060 {"text":"xxx","bgColor":-xxxxx,"ts":16xxxx**,"cover":""}
 
         elif msgType == -7010:# unknown
             print(-7010, msgData.decode("utf-8"))
-            # -7010 [{"key_profile_introduction":"人际交往笨拙xxxxx","key_ts":16****,"key_type":20019}]
+            # -7010 [{"key_profile_introduction":"人际交往xxxxx","key_ts":16****,"key_type":xxxx}]
 
 
         else:
@@ -230,7 +239,7 @@ class QQParse():
 
         :return: {friendQQNumber: [FriendName, FriendRemark]}
         """
-        self.friends = {}
+        friends = {}
         cmd = "SELECT uin, name ,remark FROM Friends"# 从Friends表中取uin, name,remark
         cursors = self.fill_cursors(cmd)
         for cs in cursors:
@@ -238,8 +247,8 @@ class QQParse():
                 friendQQNumber = self.decrypt(row[0])
                 FriendName = self.decrypt(row[1])
                 FriendRemark = self.decrypt(row[2])
-                self.friends[friendQQNumber] = [FriendName, FriendRemark]
-        friendsKeys = list(self.friends.keys())
+                friends[friendQQNumber] = [FriendName, FriendRemark]
+        friendsKeys = list(friends.keys())
         for friendQQNumber in friendsKeys:
             # 计算qq号的md5值
             friendQQNumbermd5 = hashlib.md5(friendQQNumber.encode("utf-8")).hexdigest().upper()
@@ -251,8 +260,8 @@ class QQParse():
                 isin = cs[0]
             if isin == 0:
                 # 假如并不存在聊天数据表就剔除消息
-                self.friends.pop(friendQQNumber)
-        print(self.friends)# 还有gulid待分析！！！！！！
+                friends.pop(friendQQNumber)
+        return friends
 
     def getTroops(self):
         """获取群列表
@@ -260,7 +269,7 @@ class QQParse():
         :return: {troopQQNumber:[troopName]}
         """
 
-        self.troops = {}
+        troops = {}
         cmd = "SELECT troopuin, troopname FROM TroopInfoV2"#从Friends表中取uin, remark
 
         cursors = self.fill_cursors(cmd)
@@ -268,16 +277,16 @@ class QQParse():
             for row in cs:
                 troopQQNumber = self.decrypt(row[0])
                 troopName = self.decrypt(row[1])
-                self.troops[troopQQNumber] = [troopName]
+                troops[troopQQNumber] = [troopName]
                 # 解码并添加进friends字典
-        print(self.troops)
+        return troops
 
     def getTroopMembers(self):
         """获取群友列表（所有群友实际上都在同一个表里）
 
         :return: {[troopQQNumber]: {memberQQ: [memberName, membernick]}}
         """
-        self.troopMembers = {}
+        troopMembers = {}
         cmd = "SELECT troopuin, memberuin, friendnick, troopnick FROM TroopMemberInfo"
         cursors = self.fill_cursors(cmd)
         for cs in cursors:
@@ -285,12 +294,13 @@ class QQParse():
                 troopQQNumber = self.decrypt(row[0])
                 memberQQ = self.decrypt(row[1])
                 memberName = self.decrypt(row[2])
-                membernick = self.decrypt(row[3])
+                memberNick = self.decrypt(row[3])
                 self.decrypt(row[2])
-                if troopQQNumber in self.troopMembers.keys():
-                    self.troopMembers[troopQQNumber][memberQQ] = [memberName, membernick]
+                if troopQQNumber in troopMembers.keys():
+                    troopMembers[troopQQNumber][memberQQ] = [memberName, memberNick]
                 else:
-                    self.troopMembers[troopQQNumber] = {memberQQ: [memberName, membernick]}
+                    troopMembers[troopQQNumber] = {memberQQ: [memberName, memberNick]}
+        return troopMembers
         # print(self.troopMembers)
 
 

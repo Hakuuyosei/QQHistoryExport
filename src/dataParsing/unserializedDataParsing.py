@@ -10,9 +10,10 @@ class unserializedDataParsing():
     """未序列化的消息类型解析
 
     """
-    def __init__(self, errcodeobj: err_code, textparsingobj: textParsing):
+    def __init__(self, errcodeobj: err_code, textparsingobj: textParsing, configs):
         self.ERRCODE = errcodeobj
         self.textParsing = textparsingobj
+        self.configs = configs
 
     def c2cCallParse(self, data):
         """解析私聊电话信息
@@ -29,13 +30,12 @@ class unserializedDataParsing():
             return callDatas[0]
 
     
-    def parse(self, msgType, msgData, extStr, senderQQ):
+    def parse(self, msgType, msgData, extStr):
         """未序列化类型解析
 
         :param msgType: 消息类型
         :param msgData: 数据
         :param extStr:  extStr
-        :param senderQQ: senderQQ
         :return: msgOutData
         """
         msgOutData = {}
@@ -46,7 +46,7 @@ class unserializedDataParsing():
             msgOutData = {
                 "t": "msg",
                 "c": self.textParsing.parse(msgData.decode("utf-8")),
-                "e": self.ERRCODE.NORMAL()
+                "e": {}
             }
             # print(msgOutData)
             # print(extStr)
@@ -62,7 +62,7 @@ class unserializedDataParsing():
             msgOutData = {
                 "t": "tip",
                 "c": {"text": msgDecodedData, "type": "jointroop", "ext": items},
-                "e": self.ERRCODE.NORMAL()
+                "e": {}
             }
             print(extStr)
 
@@ -80,7 +80,7 @@ class unserializedDataParsing():
             msgOutData = {
                 "t": "tip",
                 "c": {"text": msgDecodedData, "type": "qbotjointroop", "ext": items},
-                "e": self.ERRCODE.NORMAL()
+                "e": {}
             }
 
 
@@ -108,19 +108,19 @@ class unserializedDataParsing():
                     msgOutData = {
                         "t": "fileimg",
                         "c": filePath,
-                        "e": self.ERRCODE.NORMAL()
+                        "e": {}
                     }
                 else:
                     msgOutData = {
                         "t": "file",
                         "c": file,
-                        "e": self.ERRCODE.NORMAL()
+                        "e": {}
                     }
             else:
                 msgOutData = {
                     "t": "file",
                     "c": file,
-                    "e": self.ERRCODE.NORMAL()
+                    "e": {}
                 }
             print(fileData, extStr)
 
@@ -133,7 +133,7 @@ class unserializedDataParsing():
             msgOutData = {
                 "t": "file",
                 "c": file,
-                "e": self.ERRCODE.NORMAL()
+                "e": {}
             }
             print(extStr)
 
@@ -144,7 +144,7 @@ class unserializedDataParsing():
             msgOutData = {
                 "t": "call",
                 "c": {"text": msgDecodedData, "type": "troopcallstart"},
-                "e": self.ERRCODE.NORMAL()
+                "e": {}
             }
 
         elif msgType == -4008:  # 群语音通话结束
@@ -153,7 +153,7 @@ class unserializedDataParsing():
             msgOutData = {
                 "t": "call",
                 "c": {"text": msgDataAlreadyDecode, "type": "troopcallend"},
-                "e": self.ERRCODE.NORMAL()
+                "e": {}
             }
 
         elif msgType == -1013:  # 你已经和xxx成为好友，现在可以开始聊天了。
@@ -161,7 +161,7 @@ class unserializedDataParsing():
             msgOutData = {
                 "t": "tip",
                 "c": {"text": msgDataAlreadyDecode, "type": "newfriend", "ext": {}},
-                "e": self.ERRCODE.NORMAL()
+                "e": {}
             }
 
             print(msgDataAlreadyDecode)
@@ -172,7 +172,7 @@ class unserializedDataParsing():
             msgOutData = {
                 "t": "tip",
                 "c": {"text": msgDataAlreadyDecode, "type": "friendcall"},
-                "e": self.ERRCODE.NORMAL()
+                "e": {}
             }
 
         # 私聊语音通话异常
@@ -181,7 +181,7 @@ class unserializedDataParsing():
             msgOutData = {
                 "t": "call",
                 "c": {"text": msgDataAlreadyDecode, "type": "friendcall"},
-                "e": self.ERRCODE.NORMAL()
+                "e": {}
             }
 
         # 戳一戳
@@ -192,7 +192,7 @@ class unserializedDataParsing():
             msgOutData = {
                 "t": "nudge",
                 "c": {"text": msgText},
-                "e": self.ERRCODE.NORMAL()
+                "e": {}
             }
 
         # 戳一戳
@@ -203,7 +203,7 @@ class unserializedDataParsing():
             msgOutData = {
                 "t": "nudge",
                 "c": {"text": msgText},
-                "e": self.ERRCODE.NORMAL()
+                "e": {}
             }
 
 
