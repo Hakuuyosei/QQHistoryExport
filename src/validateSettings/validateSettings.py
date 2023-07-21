@@ -190,6 +190,18 @@ def validate_settings(is_json_file, configs_data):
             state = False
             info += "数据库文件寻找模式无效（不是dir也不是files）！\n"
 
+    exist_state, info_new = validate_key_exist(configs, "noSelectNeedDisplay")
+    state = exist_state and state
+    info += info_new
+    if exist_state:
+        if configs["noSelectNeedDisplay"] in [True, False]:
+            configs_validated["noSelectNeedDisplay"] = configs["noSelectNeedDisplay"]
+        else:
+            state = False
+            info += "noSelectNeedDisplay非true or false！\n"
+
+
+
     exist_state, info_new = validate_key_exist(configs, "needQQEmoji")
     state = exist_state and state
     info += info_new
@@ -221,7 +233,7 @@ def validate_settings(is_json_file, configs_data):
             configs_validated["needImages"] = False
         else:
             state = False
-            info += "needImages非True or False！\n"
+            info += "needImages非true or false！\n"
 
     # if configs["needShortVideo"]:
     #     shortvideoPath = configs["shortvideoPath"]
@@ -238,6 +250,38 @@ def validate_settings(is_json_file, configs_data):
     #         self.configs["voicePath"] = voicePath
     #     else:
     #         return False
+
+    exist_state, info_new = validate_key_exist(configs, "needMarketFace")
+    state = exist_state and state
+    info += info_new
+    if exist_state:
+        if configs["needMarketFace"] in [True ,False]:
+            configs_validated["needMarketFace"] = configs["needMarketFace"]
+        else:
+            state = False
+            info += "needMarketFace非true or false！\n"
+
+    exist_state, info_new = validate_key_exist(configs, "needMarketFace")
+    state = exist_state and state
+    info += info_new
+    if exist_state:
+        if configs["needMarketFace"] in [True, False]:
+            configs_validated["needMarketFace"] = configs["needMarketFace"]
+        else:
+            state = False
+            info += "needMarketFace非true or false！\n"
+
+    exist_state, info_new = validate_key_exist(configs, "needReplyMsg")
+    state = exist_state and state
+    info += info_new
+    if exist_state:
+        if configs["needReplyMsg"] in [True, False]:
+            configs_validated["needReplyMsg"] = configs["needReplyMsg"]
+        else:
+            state = False
+            info += "needReplyMsg非true or false！\n"
+
+
     print(info, state)
     return state, info, configs_validated
 
