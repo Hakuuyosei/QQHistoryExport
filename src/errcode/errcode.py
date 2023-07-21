@@ -1,22 +1,26 @@
 from enum import Enum, auto
 
 # 错误码
-class codes(Enum):
-    NORMAL = auto()
-    EMOJI_NOT_EXIST = auto()
-    IMG_NOT_EXIST = auto()
-    IMG_DESERIALIZATION_ERROR = auto()
-    IMG_UNKNOWN_TYPE_ERROR = auto()
-    MIXMSG_DESERIALIZATION_ERROR = auto()
-    MARKETFACE_NOT_EXIST = auto()
-    ALL_EXTSTR_NOT_EXIST_TARGET = auto()
-    ALL_OS_ERROR = auto()
-    JAVA_DESER_ERR_INPUT_TYPE = auto()
-    JAVA_DESER_JSON_ERR_DECODE = auto()
-    EXTSTR_JSON_ERR_DECODE = auto
+codes = {
+    'Normal': '一切正常',
+    'EMOJI_NOT_EXIST': '表情不存在',
+    'IMG_NOT_EXIST': '图片不存在',
+    'MARKETFACE_NOT_EXIST': '大表情不存在',
+    'IMG_DESERIALIZATION_ERROR': '图片反序列化错误',
+    'IMG_UNKNOWN_TYPE': '图片类型未知',
+    'MIXMSG_DESERIALIZATION_ERROR': '混合消息反序列化错误',
+    'EXTSTR_NOT_EXIST_TARGET': 'EXTSTR不存在目标',
+    'EXTSTR_JSON_ERR_DECODE': 'EXTSTR JSON解码错误',
+    'IO_ERROR': 'IO读取写入错误',
+    'JAVA_DESER_ERR_INPUT_TYPE': 'Java反序列化错误  输入类型错误',
+    'JAVA_DESER_JSON_ERR_DECODE': 'Java反序列化错误 - JSON解码错误'
+
+}
+
 
 class err_code():
-    def __init__(self,):
+    def __init__(self, mode):
+        self.mode = mode
         #日志等级
         self.LOG_LEVEL_INFO = 0
         self.LOG_LEVEL_WARNING = 1
@@ -26,133 +30,40 @@ class err_code():
 
         self.codes = codes
 
+        self.counts = None
+
 
     #设置日志等级
-    def setLogLevel(self,logLevel):
+    def setLogLevel(self, logLevel):
         self.logLevel = logLevel
 
 
     def log(self, tag, logLevel, info):
         if logLevel >= self.logLevel:
-            print(tag + " :" + info["errinfo"])
-            if "pyexc" in info.keys():
-                print(info["pyexc"])
+            if self.mode == "print":
+                print(tag + " :" + "errinfo")
+            elif self.mode == "log":
+                pass
 
+    def parse_err(self, code, errdata):
+        if code not in codes:
+            print(f"code not in codes! code is {code}")
+            return {}
 
-    # 无错误
-    def NORMAL(self):
-        info = {
-            "code": codes.NORMAL.value
+        if code == 'Normal':
+            return {"s": True}
+        if code in self.counts:
+            self.counts[code] += 1
+        else:
+            self.counts[code] = 1
+
+        err = {
+            "s": False,
+            "errinfo": codes[code] + f"相关信息：{errdata}"
+
         }
-        return info
+        return {}
 
 
-    # 表情未找到
-    def EMOJI_NOT_EXIST(self,qqemojiVer,emojiID):
-        info = {
-            "code": codes.EMOJI_NOT_EXIST.value,
-            "errinfo": "emoji not EXIST in emoticon,emojiType is {},emojiID is {}".format(qqemojiVer, emojiID),
-            "qqemojiVer": qqemojiVer,
-            "emojiID": emojiID
-        }
-        self.log("PARSE", self.LOG_LEVEL_ERR, info)
-        return info
 
-    # 图片未找到
-    def IMG_NOT_EXIST(self, data):
-        info = {
-            "code": codes.IMG_NOT_EXIST.value,
-            "errinfo": "imgPath is not exist in files,imgPath is {}".format(data),
-            "data": data
-        }
-        #self.log("PARSE", self.LOG_LEVEL_ERR, info)
-        return info
-
-    # 图片反序列化失败
-    def IMG_DESERIALIZATION_ERROR(self, data):
-        info = {
-            "code": codes.IMG_DESERIALIZATION_ERROR.value,
-            "errinfo": "Image information deserialization failed",
-            "data": data
-        }
-        self.log("PARSE", self.LOG_LEVEL_ERR, info)
-        return info
-
-    # 图片类型判断失败
-    def IMG_UNKNOWN_TYPE_ERROR(self, data):
-        info = {
-            "code": codes.IMG_UNKNOWN_TYPE_ERROR.value,
-            "errinfo": "Unknown type for this image : {}".format(data),
-            "data": data
-        }
-        self.log("PARSE", self.LOG_LEVEL_ERR, info)
-        return info
-
-    # 混合消息反序列化失败
-    def MIXMSG_DESERIALIZATION_ERROR(self, data, pyexc):
-        info = {
-            "code": codes.MIXMSG_DESERIALIZATION_ERROR.value,
-            "errinfo": "Mixmsg information deserialization failed",
-            "data": data,
-            "pyexc": pyexc
-        }
-        self.log("PARSE", self.LOG_LEVEL_ERR, info)
-        return info
-
-    # MARKETFACE未找到
-    def MARKETFACE_NOT_EXIST(self, data):
-        info = {
-            "code": codes.MARKETFACE_NOT_EXIST.value,
-            "errinfo": "imgPath is not exist in files,imgPath is {}".format(data),
-            "data": data
-        }
-        self.log("PARSE", self.LOG_LEVEL_ERR, info)
-        return info
-
-    # 在extstr中没有找到目标字段
-    def ALL_EXTSTR_NOT_EXIST_TARGET(self, data, target):
-        info = {
-            "code": codes.ALL_EXTSTR_NOT_EXIST_TARGET.value,
-            "errinfo": "The target field({}) was not found in extstr {}".format(target, data),
-            "data": data
-        }
-        self.log("PARSE", self.LOG_LEVEL_ERR, info)
-        return info
-
-    def ALL_OS_ERROR(self, data, pyexc):
-        info = {
-            "code": codes.ALL_OS_ERROR.value,
-            "errinfo": f"An error occurred in the file operation path:{data}",
-            "data": data,
-            "pyexc": pyexc
-        }
-        self.log("PARSE", self.LOG_LEVEL_ERR, info)
-        return info
-
-    def JAVA_DESER_ERR_INPUT_TYPE(self, data, type):
-        info = {
-            "code": codes.JAVA_DESER_ERR_INPUT_TYPE.value,
-            "errinfo": f"The input data type({type}) being deserialized is incorrect ,data is{data}",
-            "data": data
-        }
-        self.log("PARSE", self.LOG_LEVEL_ERR, info)
-        return info
-
-    def JAVA_DESER_JSON_ERR_DECODE(self, data, oridata):
-        info = {
-            "code": codes.JAVA_DESER_JSON_ERR_DECODE.value,
-            "errinfo": f"JSON decoding failed when deserialezing data ,data is{data}, origindata is {oridata}",
-            "data": data
-        }
-        self.log("PARSE", self.LOG_LEVEL_ERR, info)
-        return info
-
-    def EXTSTR_JSON_ERR_DECODE(self, data):
-        info = {
-            "code": codes.EXTSTR_JSON_ERR_DECODE.value,
-            "errinfo": f"JSON decoding failed when load extstr ,data is{data}",
-            "data": data
-        }
-        self.log("PARSE", self.LOG_LEVEL_ERR, info)
-        return info
 
