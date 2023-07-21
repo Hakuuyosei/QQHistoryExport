@@ -60,46 +60,52 @@ class javaSerializedDataParsing():
                 "c": self.textParsing.parse(msgData.decode("utf-8")),
                 "e": {}
             }
+            if self.configs["needReplyMsg"] == False:
+                msgOutData["c"].insert(0, {"t": "uns",
+                                           "c": {"text": "[回复消息]"},
+                                           "e": {}
+                                           })
+            elif self.configs["needReplyMsg"] == True:
 
-            try:
-                # print(extStr)
-                extStrJson = json.loads(extStr)
-            except json.JSONDecodeError as e:
-                return self.ERRCODE.parse_err("EXTSTR_JSON_ERR_DECODE", []), None
+                try:
+                    # print(extStr)
+                    extStrJson = json.loads(extStr)
+                except json.JSONDecodeError as e:
+                    return self.ERRCODE.parse_err("EXTSTR_JSON_ERR_DECODE", []), None
 
-            if extStrJson:
-                start_time = time.time()
-                sourceMsgInfo = extStrJson["sens_msg_source_msg_info"]
-                err, jsonData = self.javaDeserializationToJson(sourceMsgInfo)
+                if extStrJson:
+                    start_time = time.time()
+                    sourceMsgInfo = extStrJson["sens_msg_source_msg_info"]
+                    err, jsonData = self.javaDeserializationToJson(sourceMsgInfo)
 
-                # 记录程序结束时间
-                end_time = time.time()
-                run_time = end_time - start_time
-                print(f"程序运行时间为{run_time:.6f}秒")
-                if jsonData:
-                    mSourceMsgText = jsonData["mSourceMsgText"]
-                    mSourceMsgSenderUin = jsonData["mSourceMsgSenderUin"]
-                    mSourceMsgTime = jsonData["mSourceMsgTime"]
-                    replyData = {
-                        "sourceMsgText": mSourceMsgText,
-                        "sourceMsgSenderUin": mSourceMsgSenderUin,
-                        "sourceMsgTime": mSourceMsgTime
-                    }
-                    msgOutData["c"].insert(0, {"t": "reply",
-                                         "c": replyData,
-                                         "e": err
-                                         })
-                    print(msgOutData)
+                    # 记录程序结束时间
+                    end_time = time.time()
+                    run_time = end_time - start_time
+                    print(f"程序运行时间为{run_time:.6f}秒")
+                    if jsonData:
+                        mSourceMsgText = jsonData["mSourceMsgText"]
+                        mSourceMsgSenderUin = jsonData["mSourceMsgSenderUin"]
+                        mSourceMsgTime = jsonData["mSourceMsgTime"]
+                        replyData = {
+                            "sourceMsgText": mSourceMsgText,
+                            "sourceMsgSenderUin": mSourceMsgSenderUin,
+                            "sourceMsgTime": mSourceMsgTime
+                        }
+                        msgOutData["c"].insert(0, {"t": "reply",
+                                             "c": replyData,
+                                             "e": err
+                                             })
+                        print(msgOutData)
 
-                # HACK
-                # (目前已弃用)
-                # if len(SourceMsgInfo) > 1048:
-                #     SourceMsgSenderQQnum = int(SourceMsgInfo[1016:1024],base=16)
-                #     SourceMsgTime = int(SourceMsgInfo[1040:1048],base=16)
-                #     msgOutData.append(["source",SourceMsgSenderQQnum,SourceMsgTime])
-                # else:
-                #     print("ERROR,SourceMsgInfo too short",SourceMsgInfo)
-                # #print(msgOutData)
+                    # HACK
+                    # (目前已弃用)
+                    # if len(SourceMsgInfo) > 1048:
+                    #     SourceMsgSenderQQnum = int(SourceMsgInfo[1016:1024],base=16)
+                    #     SourceMsgTime = int(SourceMsgInfo[1040:1048],base=16)
+                    #     msgOutData.append(["source",SourceMsgSenderQQnum,SourceMsgTime])
+                    # else:
+                    #     print("ERROR,SourceMsgInfo too short",SourceMsgInfo)
+                    # #print(msgOutData)
 
         # 群文件
         elif msgType == -2017:

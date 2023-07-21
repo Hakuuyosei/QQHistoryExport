@@ -26,7 +26,7 @@
 
   "noSelectNeedDisplay": true,//没选择解析的类型是否用[xxx]代替，比如[图片]
 
-  "needQQEmoji": true, //是否需要QQ表情，若需要则需要填下面一项
+  "needQQEmoji": true, //是否需要QQ小表情，若需要则需要填下面一项
   "QQEmojiVer": "new", //QQ表情版本，新or旧 new old
 
   "needImages": true,    //是否需要图片解析

@@ -77,77 +77,84 @@ class protoDataParsing():
         :param data: 数据
         :return: msgOutData
         """
-        msgOutData = {
-            "t": "img",
-            "c": {"imgPath": "", "imgType": "", "name": ""},
-            "e": None
-        }
-        try:
-            doc = PicRec()
-            doc.ParseFromString(data)
-
-
-            url = 'chatimg:' + doc.md5
-            filename = hex(crc64(url))
-            filename = 'Cache_' + filename.replace('0x', '')
-            relpath = os.path.join(self.configs["imagesPath"], filename[-3:], filename)
-            imgPath = os.path.join(filename[-3:], filename)
-            # print(doc.uint32_width, doc.uint32_height, doc.uint32_image_type)
-            msgOutData["c"]["imgType"] = "pic"
-            # msgOutData["c"]["imgType"] = doc.uint32_image_type
-            # 数据中，这两项宽高不可靠，请注意！
-            # msgOutData["c"]["imgWidth"] = doc.uint32_height
-            # msgOutData["c"]["imgHeight"] = doc.uint32_width
-
-        except:
-            # protobuf反序列化失败
-            msgOutData["e"] = self.ERRCODE.parse_err("IMG_DESERIALIZATION_ERROR", [data]), None
+        if self.configs["needImages"] == False:
+            msgOutData = {
+                "t": "uns",
+                "c": {"text": "[图片]"},
+                "e": {}
+            }
             return msgOutData
+        elif self.configs["needImages"] == True:
+            msgOutData = {
+                "t": "img",
+                "c": {"imgPath": "", "imgType": "", "name": ""},
+                "e": None
+            }
+            try:
+                doc = PicRec()
+                doc.ParseFromString(data)
 
-        try:
-            #转存图片并去重
 
-            # 判断文件是否存在
-            if not os.path.exists(relpath):
-                msgOutData["e"] = self.ERRCODE.parse_err("IMG_NOT_EXIST", [relpath]), None
+                url = 'chatimg:' + doc.md5
+                filename = hex(crc64(url))
+                filename = 'Cache_' + filename.replace('0x', '')
+                relpath = os.path.join(self.configs["imagesPath"], filename[-3:], filename)
+                imgPath = os.path.join(filename[-3:], filename)
+                # print(doc.uint32_width, doc.uint32_height, doc.uint32_image_type)
+                msgOutData["c"]["imgType"] = "pic"
+                # msgOutData["c"]["imgType"] = doc.uint32_image_type
+                # 数据中，这两项宽高不可靠，请注意！
+                # msgOutData["c"]["imgWidth"] = doc.uint32_height
+                # msgOutData["c"]["imgHeight"] = doc.uint32_width
+
+            except:
+                # protobuf反序列化失败
+                msgOutData["e"] = self.ERRCODE.parse_err("IMG_DESERIALIZATION_ERROR", [data]), None
                 return msgOutData
 
-            # 计算图片的MD5值
-            with open(relpath, 'rb') as f:
-                img_data = f.read()
-                md5 = hashlib.md5(img_data).hexdigest()
+            try:
+                #转存图片并去重
 
-            # 查找图片的MD5值是否已经存在
-            if md5 in self.imgMD5Map:
+                # 判断文件是否存在
+                if not os.path.exists(relpath):
+                    msgOutData["e"] = self.ERRCODE.parse_err("IMG_NOT_EXIST", [relpath]), None
+                    return msgOutData
+
+                # 计算图片的MD5值
+                with open(relpath, 'rb') as f:
+                    img_data = f.read()
+                    md5 = hashlib.md5(img_data).hexdigest()
+
+                # 查找图片的MD5值是否已经存在
+                if md5 in self.imgMD5Map:
+                    msgOutData["e"] = {}
+                    msgOutData["c"]["imgPath"] = self.imgMD5Map[md5][0]
+                    msgOutData["c"]["name"] = self.imgMD5Map[md5][1]
+                    return msgOutData
+
+                # 确定图片类型并添加后缀名
+                img_type = imghdr.what(relpath)
+                if img_type is None:
+                    msgOutData["e"] = self.ERRCODE.parse_err("IMG_UNKNOWN_TYPE_ERROR", [imgPath]), None
+                    return msgOutData
+
+                new_filename = f'{self.imgNum}.{img_type}'
+                self.imgNum = self.imgNum + 1
+                new_file_path = os.path.join('output', 'images', new_filename)
+
+
+                # 移动图片文件到output/images文件夹中，并重命名
+                shutil.copy(relpath, new_file_path)
+
+                # 将MD5和新文件路径添加到imgMD5Map中
+                self.imgMD5Map[md5] = [new_file_path, new_filename]
+
                 msgOutData["e"] = {}
-                msgOutData["c"]["imgPath"] = self.imgMD5Map[md5][0]
-                msgOutData["c"]["name"] = self.imgMD5Map[md5][1]
+                msgOutData["c"]["imgPath"] = new_file_path
+                msgOutData["c"]["name"] = new_filename
                 return msgOutData
-
-            # 确定图片类型并添加后缀名
-            img_type = imghdr.what(relpath)
-            if img_type is None:
-                msgOutData["e"] = self.ERRCODE.parse_err("IMG_UNKNOWN_TYPE_ERROR", [imgPath]), None
-                return msgOutData
-
-            new_filename = f'{self.imgNum}.{img_type}'
-            self.imgNum = self.imgNum + 1
-            new_file_path = os.path.join('output', 'images', new_filename)
-
-
-            # 移动图片文件到output/images文件夹中，并重命名
-            shutil.copy(relpath, new_file_path)
-
-            # 将MD5和新文件路径添加到imgMD5Map中
-            self.imgMD5Map[md5] = [new_file_path, new_filename]
-
-            msgOutData["e"] = {}
-            msgOutData["c"]["imgPath"] = new_file_path
-            msgOutData["c"]["name"] = new_filename
-            return msgOutData
-        except OSError:
-            msgOutData["e"] = self.ERRCODE.parse_err("OS_ERROR", [traceback.format_exc()])
-
+            except OSError:
+                msgOutData["e"] = self.ERRCODE.parse_err("OS_ERROR", [traceback.format_exc()])
 
     def decodeMixMsg(self, data):
         """解码混合消息
@@ -221,17 +228,23 @@ class protoDataParsing():
 
         # 大号表情
         elif msgType == -8018:
-
-            doc = Msg_pb2.marketFace()
-            doc.ParseFromString(msgData)
-            marketFaceName = doc.field7.decode("utf-8")[1:]
-            descErrcode, msgDeseData = self.decodeMarketFace(marketFaceName)
-            msgOutData = {
-                "t": "img",
-                "c": {"imgPath": msgDeseData, "name": marketFaceName, "type": "marketFace"},
-                "e": descErrcode
-            }
-            print(extStr)
+            if self.configs["needMarketFace"] == False:
+                msgOutData = {
+                    "t": "uns",
+                    "c": {"text": "[大表情]"},
+                    "e": {}
+                }
+            elif self.configs["needMarketFace"] == True:
+                doc = Msg_pb2.marketFace()
+                doc.ParseFromString(msgData)
+                marketFaceName = doc.field7.decode("utf-8")[1:]
+                descErrcode, msgDeseData = self.decodeMarketFace(marketFaceName)
+                msgOutData = {
+                    "t": "img",
+                    "c": {"imgPath": msgDeseData, "name": marketFaceName, "type": "marketFace"},
+                    "e": descErrcode
+                }
+                print(extStr)
             return msgOutData
 
 
