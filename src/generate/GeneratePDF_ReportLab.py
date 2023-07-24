@@ -22,10 +22,10 @@ class DrawingQuery:
     """PDF查询相关功能，包括字宽，图片大小等
 
     """
-    def __init__(self, ERRCODE: errcode.err_code, paths, style):
+    def __init__(self, ERRCODE: errcode.ErrCode, paths, style):
         """
 
-        :param ERRCODE: errcode.err_code
+        :param ERRCODE: errcode.ErrCode
         :param paths: 相关路径字典
         :param style: 样式设置字典
         """
@@ -160,10 +160,10 @@ class PdfDraw:
     直接操作PDF数据的层，除绘制书签外，一般不直接调用，通过PDF消息处理层调用
     基本上后三个参数为x，y，c，xy为左下角绘制坐标，c为column列数
     """
-    def __init__(self, ERRCODE: errcode.err_code, drawingQuery: DrawingQuery, paths, style):
+    def __init__(self, ERRCODE: errcode.ErrCode, drawingQuery: DrawingQuery, paths, style):
         """
 
-        :param ERRCODE: errcode.err_code
+        :param ERRCODE: errcode.ErrCode
         :param drawingQuery: DrawingQuery
         :param path: 相关路径字典
         :param style: 样式设置字典
@@ -396,11 +396,11 @@ class DataProcessor:
     DataProcessor的函数不直接绘制内容，而是返回drawData
     drawData说明：[函数,[函数参数],[x,y,c]]
     """
-    def __init__(self, ERRCODE: errcode.err_code, paths, style, senders, pdfDraw: PdfDraw, drawingQuery: DrawingQuery):
+    def __init__(self, ERRCODE: errcode.ErrCode, paths, style, senders, pdfDraw: PdfDraw, drawingQuery: DrawingQuery):
         """PDF消息处理层
         接收垂直空间，处理消息数据，返回绘制细节数据
 
-        :param ERRCODE: errcode.err_code
+        :param ERRCODE: errcode.ErrCode
         :param path: 相关路径字典
         :param style: 样式设置字典
         :param senders: 发送者信息字典
@@ -892,11 +892,11 @@ class Generate:
     """生成PDF总控制层
 
     """
-    def __init__(self, ERRCODE: errcode.err_code, path, style,
+    def __init__(self, ERRCODE: errcode.ErrCode, path, style,
                  pdfDraw: PdfDraw, dataprocessor: DataProcessor):
         """
 
-        :param ERRCODE: errcode.err_code
+        :param ERRCODE: errcode.ErrCode
         :param path: 相关路径字典
         :param style: 样式设置字典
         :param pdfDraw: PdfDraw
@@ -1257,7 +1257,7 @@ class GenerateInit:
             paths["emojiFontDBPath"] = paths["fontDirPath"] + f"{emojiFontName}/{emojiFontName}.db"
 
 
-        ERRCODE = errcode.err_code()
+        ERRCODE = errcode.ErrCode()
 
         drawingQuery = DrawingQuery(ERRCODE, paths, style)
 

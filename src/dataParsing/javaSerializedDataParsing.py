@@ -5,7 +5,7 @@ import traceback
 import subprocess
 import time
 
-from src.errcode.errcode import err_code
+from src.errcode.errcode import ErrCode
 from .textParsing import textParsing
 
 
@@ -13,7 +13,7 @@ class javaSerializedDataParsing():
     """java序列化相关类型的解析
 
     """
-    def __init__(self, errcodeobj: err_code, textparsingobj: textParsing, configs):
+    def __init__(self, errcodeobj: ErrCode, textparsingobj: textParsing, configs):
         self.ERRCODE = errcodeobj
         self.textParsing = textparsingobj
         self.configs = configs

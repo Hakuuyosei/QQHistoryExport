@@ -2,7 +2,7 @@ import os
 import json
 
 
-from src.errcode.errcode import err_code
+from src.errcode.errcode import ErrCode
 from .textParsing import textParsing
 
 
@@ -10,7 +10,7 @@ class unserializedDataParsing():
     """未序列化的消息类型解析
 
     """
-    def __init__(self, errcodeobj: err_code, textparsingobj: textParsing, configs):
+    def __init__(self, errcodeobj: ErrCode, textparsingobj: textParsing, configs):
         self.ERRCODE = errcodeobj
         self.textParsing = textparsingobj
         self.configs = configs

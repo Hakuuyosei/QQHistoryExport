@@ -17,7 +17,7 @@ codes = {
 
 
 
-class err_code():
+class ErrCode():
     def __init__(self, mode):
         self.mode = mode
         #日志等级
@@ -25,7 +25,7 @@ class err_code():
         self.LOG_LEVEL_WARN = 1
         self.LOG_LEVEL_ERR = 2
 
-        self.logLevel = self.LOG_LEVEL_WARNING
+        self.logLevel = self.LOG_LEVEL_INFO
 
         self.codes = codes
 
@@ -52,7 +52,7 @@ class err_code():
         """
         if logLevel >= self.logLevel:
             if self.mode == "print":
-                print(tag + " :" + "errinfo")
+                print(tag + " :" + info)
             elif self.mode == "log":
                 pass
 

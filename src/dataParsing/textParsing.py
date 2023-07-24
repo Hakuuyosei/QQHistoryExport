@@ -8,13 +8,13 @@ import shutil
 import binascii
 
 
-from src.errcode.errcode import err_code
+from src.errcode.errcode import ErrCode
 
 class textParsing():
     """解析文本信息
 
     """
-    def __init__(self, errcodeobj: err_code, configs):
+    def __init__(self, errcodeobj: ErrCode, configs):
         self.ERRCODE = errcodeobj
         self.configs = configs
 

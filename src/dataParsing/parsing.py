@@ -72,7 +72,7 @@ class QQParse:
 
     def fill_cursors(self, cmd):
         cursors = []
-        if self.configs["needSlowTable"]:
+        if self.configs["needSlowtable"]:
             cursors.append(self.DBcursor2.execute(cmd))
         cursors.append(self.DBcursor1.execute(cmd))
         return cursors
@@ -103,6 +103,7 @@ class QQParse:
         """处理数据库
 
         """
+
         targetQQ = self.configs["targetQQ"]
         targetQQmd5 = hashlib.md5(targetQQ.encode("utf-8")).hexdigest().upper()
         mode = self.configs["mode"]
@@ -112,7 +113,9 @@ class QQParse:
             if self.configs["needSlowtable"]:
                 self.DBcursor2 = sqlite3.connect(self.configs["dbslPath"]).cursor()
         except:
-            return False, "数据库连接错误！sqlite3.connect error"
+            info = "数据库连接错误！sqlite3.connect error"
+            self.ERRCODE.log("parse", self.ERRCODE.LOG_LEVEL_ERR, info)
+            return False
 
 
         friends = self.getFriends()
@@ -121,23 +124,25 @@ class QQParse:
 
         self.senderUins = []
 
-        if mode == "Friend":
+        if mode == "friend":
             if targetQQ not in friends.keys():
-                return False, "查无此人/无聊天内容"
+                info = f"{targetQQ} 查无此人/无聊天内容"
+                self.ERRCODE.log("parse", self.ERRCODE.LOG_LEVEL_ERR, info)
+                return False
             else:
                 cmd = "select msgtype,senderuin,msgData,time,extStr from mr_friend_{}_New order by time".format(
                     targetQQmd5)
 
-        elif mode == "Troop":
+        elif mode == "troop":
             if targetQQ not in troops.keys():
-                return False, "查无此群/无聊天内容"
+                info = f"{targetQQ} 查无此群/无聊天内容"
+                self.ERRCODE.log("parse", self.ERRCODE.LOG_LEVEL_ERR, info)
+                return False
             else:
                 cmd = "select msgtype,senderuin,msgData,time,extStr from mr_troop_{}_New order by time".format(
                     targetQQmd5)
 
         print(cmd)
-
-
 
         # if self.cmdpre != "":
         #     cmd = self.cmdpre
@@ -147,7 +152,9 @@ class QQParse:
         try:
             cursors = self.fill_cursors(cmd)
         except:
-            return False, "数据库查询出错！sqlite3.execute error"
+            info = f"数据库查询出错！sqlite3.execute error"
+            self.ERRCODE.log("parse", self.ERRCODE.LOG_LEVEL_ERR, info)
+            return False
 
         info = """数据库解析初始化成功，开始解析……
         提示：出现较多的图片未找到等错误是正常的，有可能没接收、被清理"""
@@ -182,8 +189,29 @@ class QQParse:
                 if uin == targetQQ:
                     continue
                     # 如果发送者等于群QQ号，可能是更改群名之类的
-                name = troopMembers[targetQQ][uin][0]
-                senders[uin] = [name, ""]
+                if targetQQ in troopMembers:
+                    if uin in troopMembers[targetQQ]:
+                        name = troopMembers[targetQQ][uin][0]
+                        senders[uin] = [name, ""]
+                    else:
+                        senders[uin] = ["", ""]
+                        info = f"{uin}不在你的数据库中，一会需要你自己去填写昵称"
+                        self.ERRCODE.log("parse", self.ERRCODE.LOG_LEVEL_WARN, info)
+                else:
+                    senders[uin] = ["", ""]
+                    info = f"{uin}不在你的数据库中，一会需要你自己去填写昵称"
+                    self.ERRCODE.log("parse", self.ERRCODE.LOG_LEVEL_WARN, info)
+
+        elif mode == "friend":
+            for uin in self.senderUins:
+                if uin in friends:
+                    name = friends[uin][1]
+                    senders[uin] = [name, ""]
+                else:
+                    senders[uin] = ["", ""]
+                    info = f"{uin}不在你的数据库中，一会需要你自己去填写昵称"
+                    self.ERRCODE.log("parse", self.ERRCODE.LOG_LEVEL_WARN, info)
+
 
         filename = "output/senders/senders.json"
         # 写入 JSON 数据到文件
