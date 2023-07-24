@@ -3,7 +3,8 @@ from src.dataParsing import parsing
 from src.generate import GeneratePDF_ReportLab
 from src.avatarDownload import download
 from src.validateSettings import validateSettings
-test = 4
+from src.errcode import errcode
+test = 5
 if __name__ == '__main__':
     if test == 1:
         qqParse = parsing.QQParse()
@@ -17,6 +18,16 @@ if __name__ == '__main__':
     if test == 4:
         validate_settings = validateSettings.ValidateSettings()
         validate_settings.validate(True, 'config/parse_config.json')
+    if test == 5:
+        err_code = errcode.ErrCode("print")
+
+        validate_settings = validateSettings.ValidateSettings()
+        state, info, configs = validate_settings.validate(True, 'config/parse_config.json')
+        if state:
+            qq_parse = parsing.QQParse(configs, err_code)
+            qq_parse.procDb()
+
+
 
 
 

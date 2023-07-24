@@ -34,7 +34,7 @@ class ValidateSettings:
 
 
         _, configs_validated["mode"] = self.validate_inlist_conf(
-            "mode", ["Friend", "Troop"], "群组或私聊模式")
+            "mode", ["friend", "troop"], "群组或私聊模式")
         _, configs_validated["selfQQ"] = self.validate_num_str_conf(
             "selfQQ", "自己的QQ")
         _, configs_validated["targetQQ"] = self.validate_num_str_conf(
@@ -61,7 +61,7 @@ class ValidateSettings:
                         _, configs_validated["dbPath"] = \
                             self.validate_one_of_files_exist(dbfile_paths, "QQ号.db")
 
-                        if configs_validated["dbstPath"] == True:
+                        if configs_validated["needSlowtable"] == True:
                             dbstfile_paths = [item + f"/slowtable_{self.configs['selfQQ']}.db" for item in databases_paths]
                             _, configs_validated["dbstPath"] = \
                                 self.validate_one_of_files_exist(dbstfile_paths, "slowtable_QQ号.db")
@@ -224,13 +224,16 @@ class ValidateSettings:
         """
         state = False
         true_path = ""
+        info_new = ""
         for path in paths:
             state_new, info = self.validate_file_exist(path, f"{name}")
+            info_new += info
             if state_new:
                 state = True
                 true_path = path
         if not state:
-            self.info += info
+            self.info += info_new
+            self.state = False
 
         return state, true_path
 
@@ -243,7 +246,7 @@ class ValidateSettings:
         :return: state
         """
         if os.path.exists(path):
-            if os.path.is_file(path):
+            if os.path.isfile(path):
                 return True, ""
             else:
                 state = False

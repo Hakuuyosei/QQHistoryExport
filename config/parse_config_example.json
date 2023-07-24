@@ -22,7 +22,7 @@
   "keyPath":"",       //kc文件路径，本位于/files/kc
   // 以上为选files后的必须选项------------------------------------
 
-  "mode":"Friend",  //Friend好友，Troop群组
+  "mode":"friend",  //friend好友，troop群组
   "targetQQ":"",    //目标QQ号，字符串，保留英文引号
   "selfQQ":"",      //自己的QQ号，字符串，保留英文引号，示例："selfQQ":"123456"
 
