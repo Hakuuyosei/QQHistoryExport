@@ -15,7 +15,8 @@ if __name__ == '__main__':
     if test == 3:
         download.avatarDownload()
     if test == 4:
-        validateSettings.validate_settings(True, 'config/parse_config.json')
+        validate_settings = validateSettings.ValidateSettings()
+        validate_settings.validate(True, 'config/parse_config.json')
 
 
 

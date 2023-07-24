@@ -3,13 +3,11 @@
   //文件夹路径需要包含文件夹本身
   //例子：（E:/xxx/com.tencent.mobileqq）
 
-  "mode":"Friend",  //Friend好友，Troop群组
-  "targetQQ":"",    //目标QQ号，字符串，保留英文引号
-  "selfQQ":"",      //自己的QQ号，字符串，保留英文引号，示例："selfQQ":"123456"
+
+  "needSlowtable": true, //是否需要两个月以前的聊天记录, 若是，且选了files，则填"dbstPath"，否则不填
 
   "findFilesMode": "dir", // dir(填写com.tencent.mobileqq文件夹的路径自动搜索数据库)或files(手动输入每个文件路径)
 
-  "needSlowtable": true, //是否需要两个月以前的聊天记录, 若是，且选了files，则填"dbstPath"，否则不填
   // 以下为选dir后的必须选项，选Files填了无效-----------------------
   "dataDirPath":"", //com.tencent.mobileqq文件夹的路径
   // 以上为选dir后的必须选项--------------------------------------
@@ -23,6 +21,10 @@
   "key":"",           //若不使用自动提取秘钥，手动输入手机IMEI码，字符串，保留英文引号
   "keyPath":"",       //kc文件路径，本位于/files/kc
   // 以上为选files后的必须选项------------------------------------
+
+  "mode":"Friend",  //Friend好友，Troop群组
+  "targetQQ":"",    //目标QQ号，字符串，保留英文引号
+  "selfQQ":"",      //自己的QQ号，字符串，保留英文引号，示例："selfQQ":"123456"
 
   "noSelectNeedDisplay": true,//没选择解析的类型是否用[xxx]代替，比如[图片]
 

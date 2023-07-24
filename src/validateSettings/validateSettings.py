@@ -1,373 +1,313 @@
 import os
 import commentjson
+class ValidateSettings:
+    def __init__(self):
+        self.configs = {}
+        self.info = ""
+        self.state = True
 
+    def validate(self, is_json_file, configs_data):
+        """初始化设置项
 
-def validate_settings(is_json_file, configs_data):
-    """初始化设置项
+        :param is_json_file: 是否是json文件
+        :param configs_data: 若是文件则输入文件路径，否则输入设置项
+        :return:(解析设置项是否成功bool，提示信息，验证后的设置项)
+        """
+        configs_validated = {}
+        self.configs = {}
+        self.info = ""
+        self.state = True
 
-    :param is_json_file: 是否是json文件
-    :param configs_data: 若是文件则输入文件路径，否则输入设置项
-    :return:(解析设置项是否成功bool，提示信息，验证后的设置项)
-    """
-    configs_validated = {}
-    state = True
-    info = ""
-    if not is_json_file:
-        configs = configs_data
-    else:
-        try:
-            with open(configs_data, 'r', encoding="utf-8") as file:
-                try:
-                    # 读取带注释的json
-                    configs = commentjson.load(file)
-                except:
-                    return False, "json文件路径不对或IO错误！", configs_validated
-        except:
-            return False, "json格式错误，解析失败！", configs_validated
-
-    # 模式
-    exist_state, info_new = validate_key_exist(configs, "mode")
-    state = exist_state and state
-    info += info_new
-    if exist_state:
-        if configs["mode"] in ["Friend", "Troop"]:
-            configs_validated["mode"] = configs["mode"]
+        if not is_json_file:
+            self.configs = configs_data
         else:
-            state = False
-            info += "模式并不在Friend和Troop中！\n"
-
-    # 自己QQ号
-    exist_state, info_new = validate_key_exist(configs, "selfQQ")
-    state = exist_state and state
-    info += info_new
-    if exist_state:
-        state_new, info_new, configs_validated["selfQQ"] = validate_num_string(configs["selfQQ"], "selfQQ")
-        state = state_new and state
-        info += info_new
-
-    # 目标QQ号
-    exist_state, info_new = validate_key_exist(configs, "targetQQ")
-    state = exist_state and state
-    info += info_new
-    if exist_state:
-        state_new, info_new, configs_validated["targetQQ"] = validate_num_string(configs["selfQQ"], "targetQQ")
-        state = state_new and state
-        info += info_new
-
-    exist_state_needsl, info_new = validate_key_exist(configs, "needSlowtable")
-    state = exist_state_needsl and state
-    info += info_new
-    if exist_state_needsl:
-        if "needSlowtable" not in [True, False]:
-            exist_state_needsl = False
-            info += "needSlowtable的值非布尔true, false！\n"
+            try:
+                with open(configs_data, 'r', encoding="utf-8") as file:
+                    try:
+                        # 读取带注释的json
+                        self.configs = commentjson.load(file)
+                    except:
+                        return False, "json文件路径不对或IO错误！", configs_validated
+            except:
+                return False, "json格式错误，解析失败！", configs_validated
 
 
-    # 数据库
-    exist_state, info_new = validate_key_exist(configs, "findFilesMode")
-    state = exist_state and state
-    info += info_new
-    if exist_state:
-        # 文件夹读入模式
-        if configs["findFilesMode"] == "dir":
-            exist_state, info_new = validate_key_exist(configs, "dataDirPath")
-            state = exist_state and state
-            info += info_new
-            if exist_state:
 
-                # 支持自动判断文件夹名db或databases
-                exist_state1, info_new1, path_new1 = validate_folder_exist(configs["dataDirPath"] + "/databases")
-                exist_state2, info_new2, path_new2 = validate_folder_exist(configs["dataDirPath"] + "/db")
-                if exist_state1:
-                    dbDirPath = path_new1
-                elif exist_state2:
-                    dbDirPath = path_new2
-                else:
-                    state = False
-                    info += info_new1 + info_new2
+        _, configs_validated["mode"] = self.validate_inlist_conf(
+            "mode", ["Friend", "Troop"], "群组或私聊模式")
+        _, configs_validated["selfQQ"] = self.validate_num_str_conf(
+            "selfQQ", "自己的QQ")
+        _, configs_validated["targetQQ"] = self.validate_num_str_conf(
+            "targetQQ", "目标QQ")
 
-                exist_state3, _ = validate_key_exist(configs, "selfQQ")
-                if exist_state1 and exist_state2 and exist_state3:
-                    # QQ号.db文件
-                    exist_state, info_new, configs_validated["dbPath"] = \
-                        validate_file_exist(f"{dbDirPath}/{configs['selfQQ']}.db")
-                    state = exist_state and state
-                    info += info_new
-
-                    if exist_state_needsl:
-                        # slowtable_QQ号.db文件
-                        exist_state, info_new, configs_validated["dbstPath"] = \
-                            validate_file_exist(f"{dbDirPath}/slowtable_{configs['selfQQ']}.db")
-                        state = exist_state and state
-                        info += info_new
-
-                exist_state1, info_new1, path_new1 = validate_folder_exist(configs["dataDirPath"] + "/files")
-                exist_state2, info_new2, path_new2 = validate_folder_exist(configs["dataDirPath"] + "/f")
-                if exist_state1:
-                    fDirPath = path_new1
-                elif exist_state2:
-                    fDirPath = path_new2
-                else:
-                    state = False
-                    info += info_new1 + info_new2
-
-                if exist_state1 and exist_state2:
-                    # kc文件
-                    exist_state, info_new, kcPath = \
-                        validate_file_exist(f"{fDirPath}/kc")
-                    state = exist_state and state
-                    info += info_new
-                    # 读取kc文件
-                    if exist_state:
-                        state_new, info_new, configs_validated["kc"] = read_kc(kcPath)
-                        state = exist_state and state
-                        info += info_new
-
-        # 单个文件读入模式
-        elif configs["findFilesMode"] == "files":
-            exist_state, info_new = validate_key_exist(configs, "dbPath")
-            state = exist_state and state
-            info += info_new
-            if exist_state:
-                exist_state, info_new, configs_validated["dbPath"] = \
-                    validate_file_exist(configs["dbPath"], "dbPath")
-                info += info_new
-                state = exist_state and state
-
-            if exist_state_needsl:
-                # 需要Slowtable
-                if configs["needSlowtable"] == True:
-                    exist_state, info_new = validate_key_exist(configs, "dbstPath")
-                    info += info_new
-                    if exist_state:
-                        exist_state, info_new, configs_validated["dbstPath"] = \
-                            validate_file_exist(configs["dbstPath"], "dbstPath")
-                        info += info_new
-                        state = exist_state and state
-                        if exist_state:
-                            state_new, info_new, configs_validated["kc"] = read_kc(configs["dbstPath"])
-                            state = exist_state and state
-                            info += info_new
-                else:
-                    pass
-                # 此处exist_state_needsl在前面已经判断了needSlowtable不合法的情况
+        _, configs_validated["needSlowtable"] = self.validate_bool_conf(
+            "needSlowtable", "是否需要两个月以前的聊天记录（slowtable）")
 
 
-            exist_state, info_new = validate_key_exist(configs, "needKey")
-            state = exist_state and state
-            info += info_new
-            if exist_state:
-                # 需要从文件中读取秘钥
-                if configs["needKey"] == True:
-                    exist_state, info_new = validate_key_exist(configs, "keyPath")
-                    info += info_new
-                    if exist_state:
-                        exist_state, info_new, configs_validated["kcPath"] = \
-                            validate_file_exist(configs["kcPath"], "dbPath")
-                        info += info_new
-                        state = exist_state and state
-                        if exist_state:
-                            state_new, info_new, configs_validated["kc"] = read_kc(configs["kcPath"])
-                            state = exist_state and state
-                            info += info_new
+        state, find_files_mode = self.validate_inlist_conf(
+            "findFilesMode", ["dir", "files"], "提取文件模式")
+        if state:
+            if find_files_mode == "dir":
+                state, data_dir_path = self.validate_folder_exist_conf(
+                    "dataDirPath", "com.tencent.mobileqq文件夹的路径")
+                if state:
+                    databases_paths = [f"{data_dir_path}/databases",
+                                       f"{data_dir_path}/db"]
+                    files_paths = [f"{data_dir_path}/files",
+                                       f"{data_dir_path}/f"]
 
-                # 手动输入秘钥
-                elif configs["needKey"] == False:
-                    exist_state, info_new = validate_key_exist(configs, "key")
-                    state = exist_state and state
-                    info += info_new
-                    if exist_state:
-                        state_new, info_new, configs_validated["kc"] = \
-                            validate_num_string(configs["key"], "key")
-                        state = state_new and state
-                        info += info_new
+                    if "selfQQ" in self.configs:
+                        dbfile_paths = [item + f"/{self.configs['selfQQ']}.db" for item in databases_paths]
+                        _, configs_validated["dbPath"] = \
+                            self.validate_one_of_files_exist(dbfile_paths, "QQ号.db")
 
-                else:
-                    state = False
-                    info += "key读入模式未知，needKey非True or False！\n"
+                        if configs_validated["dbstPath"] == True:
+                            dbstfile_paths = [item + f"/slowtable_{self.configs['selfQQ']}.db" for item in databases_paths]
+                            _, configs_validated["dbstPath"] = \
+                                self.validate_one_of_files_exist(dbstfile_paths, "slowtable_QQ号.db")
 
+                    _, if_need_read_kc = self.validate_bool_conf("needKey", "秘钥文件")
+                    if if_need_read_kc == True:
+                        kcfile_paths = [item + f"/kc" for item in files_paths]
+                        _, kcfile_path = \
+                            self.validate_one_of_files_exist(kcfile_paths, "kc秘钥文件")
+                        _, configs_validated["key"] = self.read_kc(kcfile_path)
+
+                    elif  if_need_read_kc == False:
+                        _, configs_validated["key"] = self.validate_num_str_conf(
+                            "key", "输入的秘钥")
+            elif find_files_mode == "files":
+                _, configs_validated["dbPath"] = \
+                    self.validate_file_exist_conf("dbPath", "QQ号.db")
+                _, configs_validated["dbstPath"] = \
+                    self.validate_file_exist_conf("dbstPath", "slowtable_QQ号.db")
+
+                _, if_need_read_kc = self.validate_bool_conf("needKey", "秘钥文件")
+                if if_need_read_kc == True:
+                    _, kcfile_path = \
+                        self.validate_file_exist_conf("keyPath", "kc秘钥文件")
+                    _, configs_validated["key"] = self.read_kc(kcfile_path)
+
+                elif if_need_read_kc == False:
+                    _, configs_validated["key"] = self.validate_num_str_conf(
+                        "key", "输入的秘钥")
+
+        _, configs_validated["noSelectNeedDisplay"] = self.validate_bool_conf(
+            "noSelectNeedDisplay", "未选择消息类型是否以类似[图片]文本替代")
+
+        _, configs_validated["needQQEmoji"] = self.validate_bool_conf(
+            "needQQEmoji", "是否需要QQ小表情")
+        if configs_validated["needQQEmoji"] == True:
+            _, configs_validated["QQEmojiVer"] = self.validate_inlist_conf(
+                "QQEmojiVer", ["new", "old"], "QQ表情版本")
+
+        _, configs_validated["needImages"] = self.validate_bool_conf(
+            "needImages", "是否需要图片")
+        if configs_validated["needImages"] == True:
+            _, configs_validated["imagesPath"] = self.validate_folder_exist_conf(
+                "imagesPath", "聊天图片路径")
+
+        _, configs_validated["needMarketFace"] = self.validate_bool_conf(
+            "needMarketFace", "是否需要QQ大表情")
+        _, configs_validated["needReplyMsg"] = self.validate_bool_conf(
+            "needReplyMsg", "是否需要引用消息的引用部分")
+
+        print(self.state, self.info, configs_validated)
+        return self.state, self.info, configs_validated
+
+    def validate_inlist_conf(self, key, list, name=""):
+        """
+        验证设置项值是否在列表中
+        :param key: 键名
+        :param name: 数据名称
+        :return: 状态，值
+        """
+        if key not in self.configs:
+            self.state = False
+            self.info += f"设置项中{key} {name}项丢失\n"
+            return False, ""
+
+        if self.configs[key] not in list:
+            self.state = False
+            self.info += f"设置项中{key} {name}的值不在列表{list}中！\n"
+            return False, ""
+
+        return True, self.configs[key]
+
+    def validate_bool_conf(self, key, name=""):
+        """
+        验证布尔值设置项
+        :param key: 键名
+        :param name: 数据名称
+        :return: 状态，值
+        """
+        if key not in self.configs:
+            self.state = False
+            self.info += f"设置项中{key} {name}项丢失\n"
+            return False, ""
+
+        state, info = self.validate_bool(self.configs[key], f"{key} {name}")
+        self.info += info
+        return state, self.configs[key]
+
+    def validate_bool(self, value, name=""):
+        """
+        校验布尔值
+        :param value: 要校验的值
+        :param name: 数据名称
+        :return: 状态，提示信息
+        """
+        if isinstance(value, bool):
+            return True, ""
         else:
-            state = False
-            info += "数据库文件寻找模式无效（不是dir也不是files）！\n"
+            self.state = False
+            return False, f"{name}不是有效的布尔值(true/false)\n"
 
-    exist_state, info_new = validate_key_exist(configs, "noSelectNeedDisplay")
-    state = exist_state and state
-    info += info_new
-    if exist_state:
-        if configs["noSelectNeedDisplay"] in [True, False]:
-            configs_validated["noSelectNeedDisplay"] = configs["noSelectNeedDisplay"]
+    def validate_num_str_conf(self, key, name=""):
+        """
+        验证数字字符串设置项
+        :param key: 键名
+        :param name: 数据名称
+        :return: 状态，值
+        """
+        if key not in self.configs:
+            self.state = False
+            self.info += f"设置项中{key} {name}项丢失\n"
+            return False, ""
+        state, info = self.validate_num_str(self.configs[key], f"{key} {name}")
+        self.info += info
+        return state, self.configs[key]
+
+    def validate_num_str(self, data, name):
+        """
+        验证数字字符串
+        :param data: 数据
+        :param name: 数据名称
+        :return: 状态，信息
+        """
+        if type(data) != str:
+            state = False
+            info = f"{name}不是字符串str！\n"
+            return state, info
+        elif data == "":
+            state = False
+            info = f"{name}为空！\n"
+            return state, info
+        elif not data.isdigit():
+            state = False
+            info = f"{name}格式不对，含有非数字信息！\n"
+            return state, info
         else:
-            state = False
-            info += "noSelectNeedDisplay非true or false！\n"
+            return True, ""
 
+    def validate_file_exist_conf(self, key, name=""):
+        """
+        验证文件是否存在，设置项
+        :param key: 键名
+        :param name: 数据名称
+        :return: 状态，值
+        """
+        if key not in self.configs:
+            self.state = False
+            self.info += f"设置项中{key} {name}项丢失\n"
+            return False, ""
+        state, info = self.validate_file_exist(self.configs[key], f"{key} {name}")
+        self.info += info
+        return state, self.configs[key]
 
+    def validate_one_of_files_exist(self, paths, name=""):
+        """
+        验证文件是否存在
+        :param paths: 路径列表
+        :param name: 数据名称
+        :return: 状态，路径值
+        """
+        state = False
+        true_path = ""
+        for path in paths:
+            state_new, info = self.validate_file_exist(path, f"{name}")
+            if state_new:
+                state = True
+                true_path = path
+        if not state:
+            self.info += info
 
-    exist_state, info_new = validate_key_exist(configs, "needQQEmoji")
-    state = exist_state and state
-    info += info_new
-    if exist_state:
-        if configs["needQQEmoji"] == True:
-            if configs["QQEmoji"] == "new" or configs["needQQEmoji"] == "old":
-                configs_validated["needQQEmoji"] = configs["needQQEmoji"]
+        return state, true_path
+
+    def validate_file_exist(self, path, name):
+        """
+        验证文件是否存在
+
+        :param path: 路径
+        :param name: 路径名
+        :return: state
+        """
+        if os.path.exists(path):
+            if os.path.is_file(path):
+                return True, ""
             else:
                 state = False
-                info += "needImages非True or False！\n"
-            configs_validated["needQQEmoji"] = True
-        elif configs["needQQEmoji"] == False:
-            configs_validated["needQQEmoji"] = False
+                info = f"{name}错误指向了文件夹路径！\n"
+                return state, info
         else:
             state = False
-            info += "needImages非True or False！\n"
+            info = f"{name}文件不存在！！\n"
+            return state, info
 
-    exist_state, info_new = validate_key_exist(configs, "needImages")
-    state = exist_state and state
-    info += info_new
-    if exist_state:
-        if configs["needImages"] == True:
-            exist_state, info_new, configs_validated["imagesPath"] = validate_folder_exist(configs["imagesPath"], "imagesPath")
-            state = exist_state and state
-            info += info_new
-            configs_validated["needImages"] = True
+    def validate_folder_exist_conf(self, key, name=""):
+        """
+        验证文件夹是否存在，设置项
+        :param key: 键名
+        :param name: 数据名称
+        :return: 状态，值
+        """
+        if key not in self.configs:
+            self.state = False
+            self.info += f"设置项中{key} {name}项丢失\n"
+            return False, ""
 
-        elif configs["needImages"] == False:
-            configs_validated["needImages"] = False
+        state, info = self.validate_folder_exist(self.configs[key], f"{key} {name}")
+        self.info += info
+        return state, self.configs[key]
+
+    def validate_folder_exist(self, path, name):
+        """
+        验证文件夹是否存在
+
+        :param path: 路径
+        :param name: 路径名
+        :return: state
+        """
+        if os.path.exists(path):
+            if os.path.isdir(path):
+                return True, ""
+            else:
+                state = False
+                info = f"{name}错误指向了文件路径！\n"
+                return state, info
         else:
             state = False
-            info += "needImages非true or false！\n"
+            info = f"{name}文件夹不存在！！\n"
+            return state, info
 
-    # if configs["needShortVideo"]:
-    #     shortvideoPath = configs["shortvideoPath"]
-    #
-    #     if os.path.exists(shortvideoPath):
-    #         self.configs["shortvideoPath"] = shortvideoPath
-    #     else:
-    #         return False
-    #
-    # if configs["needVoice"]:
-    #     voicePath = configs["voicePath"]
-    #
-    #     if os.path.exists(voicePath):
-    #         self.configs["voicePath"] = voicePath
-    #     else:
-    #         return False
+    def read_kc(self, path):
+        """
 
-    exist_state, info_new = validate_key_exist(configs, "needMarketFace")
-    state = exist_state and state
-    info += info_new
-    if exist_state:
-        if configs["needMarketFace"] in [True ,False]:
-            configs_validated["needMarketFace"] = configs["needMarketFace"]
-        else:
-            state = False
-            info += "needMarketFace非true or false！\n"
-
-    exist_state, info_new = validate_key_exist(configs, "needMarketFace")
-    state = exist_state and state
-    info += info_new
-    if exist_state:
-        if configs["needMarketFace"] in [True, False]:
-            configs_validated["needMarketFace"] = configs["needMarketFace"]
-        else:
-            state = False
-            info += "needMarketFace非true or false！\n"
-
-    exist_state, info_new = validate_key_exist(configs, "needReplyMsg")
-    state = exist_state and state
-    info += info_new
-    if exist_state:
-        if configs["needReplyMsg"] in [True, False]:
-            configs_validated["needReplyMsg"] = configs["needReplyMsg"]
-        else:
-            state = False
-            info += "needReplyMsg非true or false！\n"
-
-
-    print(info, state)
-    return state, info, configs_validated
-
-
-def validate_num_string(data, name):
-    """
-    验证字符串设置项
-    :param data: 待验证数据
-    :param name: 待验证数据名称
-    :return:state, info, data
-    """
-    if type(data) != str:
-        return False, f"{name}不是字符串str！\n", None
-    elif data == "":
-        return False, f"{name}为空！\n", None
-    elif not data.isdigit():
-        return False, f"{name}格式不对，含有非数字信息！\n", None
-    else:
-        return True, "", data
-
-
-def validate_key_exist(configs, key):
-    """
-
-    :param configs: 设置项
-    :param key: 键
-    :return: state, info
-    """
-    if key in configs:
-        return True, ""
-    else:
-        return False, f"{key}键不存在！！\n"
-
-
-def validate_file_exist(path, name=None):
-    """
-    验证文件是否存在
-
-    :param path: 路径
-    :param name: 路径名
-    :return: state, info
-    """
-    print(path, 123)
-    if name is None:
-        name = path
-    if os.path.exists(path):
-        if os.path.is_file(path):
-            return True, "", path
-        else:
-            return False, f"{name}错误指向了文件夹路径！\n", path
-    else:
-        return False, f"{name}文件不存在！！\n", path
-
-
-def validate_folder_exist(path, name=None):
-    """
-    验证文件夹是否存在
-
-    :param path: 文件夹路径
-    :param name: 文件夹名称（可选）
-    :return: state, info
-    """
-    if name is None:
-        name = path
-
-    if os.path.exists(path):
-        if os.path.isdir(path):
-            return True, "", path
-        else:
-            return False, f"{name}错误指向了文件路径！\n", path
-    else:
-        return False, f"{name}文件夹不存在！！\n", path
-
-
-def read_kc(path):
-    """
-
-    :param path:
-    :return:
-    """
-    try:
-        with open(path, 'r') as file:
-            kc = file.read()
-        state_new, info_new, = validate_num_string(kc, "从文件里读取出来的kc")
-        return True, "", kc
-    except IOError:
-        return False, f"读取文件 '{path}' 时出现IO错误\n", None
-    except Exception as e:
-        return False, f"读取 '{path}' 时出现未知错误{e}\n", None
+        :param path:
+        :return:
+        """
+        try:
+            with open(path, 'r') as file:
+                kc = file.read()
+            state, info, = self.validate_num_str(kc, "从文件里读取出来的秘钥")
+            if state == True:
+                return True, kc
+            else:
+                self.info += info
+                return False, ""
+        except IOError:
+            self.info += f"读取秘钥 '{path}' 时出现IO错误\n"
+            return False, ""
+        except Exception as e:
+            self.info += f"读取秘钥 '{path}' 时出现未知错误{e}\n"
+            return False, ""
