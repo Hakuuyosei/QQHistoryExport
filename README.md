@@ -39,7 +39,7 @@
 - 有很多自定义**可设置**项
 - 有**GUI界面**
 
-## How to use
+## 使用说明
 
 ### 0.有关测试
 
@@ -122,7 +122,7 @@ senders/senders.json现在是这个样子。每一个键是一个用户。
 
 
 
-## folders
+## 文件夹介绍
 
 ```
 config:设置，设置样本文件
@@ -168,8 +168,8 @@ src:主程序
 说明：因为此项目功能数量多，功能分散，测试样本具有局限性，开发时间跨度大，难以保证每行代码都没问题，各位遇到问题积极提出Issue，有能力的可以直接提pr
 
 - [ ] web导出
-- [ ] 音频消息导出（coding）
-- [ ] 视频消息导出（coding）
+- [x] 音频消息导出
+- [x] 视频消息导出
 - [ ] PDF生成程序的错误处理
 - [x] 程序UI
 - [ ] 使用说明
@@ -181,7 +181,7 @@ src:主程序
 
 
 
-## limitations
+## 局限性
 
 ### 消息解析
 
@@ -207,6 +207,38 @@ src:主程序
 - [ ] 没有错误处理
 - [ ] 排版引擎在计算字体宽度时大约有3%的误差，略不美观，望大佬指点
 
+## 作者
+
+白羽夜星制作组
+
+<table>
+    <tr>
+        <td align="center">
+            <a href="https://github.com/sunface">
+                <img src="https://avatars.githubusercontent.com/u/108645779?s=200&v=4" width="160px"   alt=""/>
+                <br />
+                <sub><b>白羽夜星制作组</b></sub>
+            </a>
+        </td>
+        <td align="center">
+            <a href="https://github.com/SendToSouthEast">
+                <img src="https://avatars.githubusercontent.com/u/93421418?v=4?s=100"  width="160px" alt=""/>
+                <br />
+                <sub><b>寄东南</b></sub>
+            </a>
+        </td>
+        <td align="center">
+            <a href="https://github.com/ahzvenol">
+                <img src="https://avatars.githubusercontent.com/u/68780890?v=4?s=100" width="160px" alt=""/>
+                <br />
+                <sub><b>灵弦</b></sub>
+            </a>
+        </td>
+    </tr>
+</table>
+
+
+
 ## license
 
 ***由于本项目的特殊性质，本项目禁止一切形式的商业用途。***
@@ -215,7 +247,7 @@ src:主程序
 
 ***由于本项目的特殊性质，本项目禁止一切形式的商业用途。***
 
-## thanks to
+## 感谢
 
 本项目的本消息解密，数据库读取，QQ表情（emoticon1），来自：
 
@@ -236,5 +268,9 @@ https://github.com/rohankumardubey/SerializationDumper（测试阶段使用，�
 音频转码用到了：
 
 https://github.com/kn007/silk-v3-decoder
+
+https://github.com/FFmpeg/FFmpeg （LGPL bulid）
+
+视频缩略图用到了：
 
 https://github.com/FFmpeg/FFmpeg （LGPL bulid）
