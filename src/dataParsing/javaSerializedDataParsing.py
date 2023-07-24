@@ -95,7 +95,7 @@ class javaSerializedDataParsing():
                                              "c": replyData,
                                              "e": err
                                              })
-                        print(msgOutData)
+                        # print(msgOutData)
 
                     # HACK
                     # (目前已弃用)
@@ -120,16 +120,16 @@ class javaSerializedDataParsing():
 
             file = {
                 "received": False,
-                "fileName": fileName,
-                "filePath": filePath,
-                "fileSize": fileSize
+                "name": fileName,
+                "path": filePath,
+                "size": fileSize
             }
             msgOutData = {
                 "t": "file",
                 "c": file,
                 "e": err
             }
-            print(msgOutData)
+            # print(msgOutData)
 
         # 转发的聊天记录，java序列化
         elif msgType == -2011:
@@ -140,8 +140,9 @@ class javaSerializedDataParsing():
 
         # 小程序/推荐名片，java 序列化套json
         elif msgType == -5008:
+            pass
             #print(-5008,jd.javaDeserialization(binascii.hexlify(msgData).decode(),"miniapp"))
-            print(binascii.hexlify(msgData).decode())
+            #print(binascii.hexlify(msgData).decode())
 
 
 

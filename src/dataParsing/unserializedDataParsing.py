@@ -97,9 +97,9 @@ class unserializedDataParsing():
             fileName = os.path.basename(filePath)
             file = {
                 "received": True,
-                "fileName": fileName,
-                "filePath": filePath,
-                "fileSize": fileSize
+                "name": fileName,
+                "path": filePath,
+                "size": fileSize
             }
             extStrJson = json.loads(extStr)
             if "file_pic_width" in extStrJson.keys():

@@ -7,6 +7,9 @@ codes = {
     'MARKETFACE_NOT_EXIST': ['大表情不存在', 100],
     'IMG_DESERIALIZATION_ERROR': ['图片反序列化错误', 100],
     'IMG_UNKNOWN_TYPE': ['图片类型未知', 100],
+    'VIDEO_DESERIALIZATION_ERROR': ['视频反序列化错误', 100],
+    'VIDEO_UNKNOWN_PATH_FORMAT': ['解析出的视频路径格式不对', 100],
+    'VIDEO_NOT_EXIST': ['视频不存在', 100],
     'MIXMSG_DESERIALIZATION_ERROR': ['混合消息反序列化错误', 100],
     'EXTSTR_NOT_EXIST_TARGET': ['EXTSTR不存在目标', 100],
     'EXTSTR_JSON_ERR_DECODE': ['EXTSTR JSON解码错误', 100],
@@ -29,7 +32,7 @@ class ErrCode():
 
         self.codes = codes
 
-        self.counts = None
+        self.counts = {}
 
 
     #设置日志等级

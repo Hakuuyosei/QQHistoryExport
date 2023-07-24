@@ -40,6 +40,9 @@
   "needVoice": false,//是否需要语音解析
   "voicePath":"",  //ptt文件夹路径
 
+  "needVideo": false,//是否需要视频解析
+  "videoPath":"",  //shortvideo文件夹路径
+
   "needMarketFace": true,//大表情 即单独发QQ表情出来的大表情
   "needReplyMsg": true //引用消息的源消息部分
 }

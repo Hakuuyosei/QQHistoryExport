@@ -1,15 +1,16 @@
 import hashlib
 import os
 import sys
+import re
 import traceback
 import json
 import imghdr
 import shutil
 import blackboxprotobuf
+import subprocess
 
 from src.errcode.errcode import ErrCode
 from .textParsing import textParsing
-
 
 sys.path.append("...")
 from src.proto import Msg_pb2
@@ -42,6 +43,7 @@ class protoDataParsing():
     """protobuf序列化相关类型解析
 
     """
+
     def __init__(self, errcodeobj: ErrCode, textparsingobj: textParsing, configs):
         self.ERRCODE = errcodeobj
         self.textParsing = textparsingobj
@@ -49,6 +51,7 @@ class protoDataParsing():
 
         self.imgMD5Map = {}
         self.imgNum = 1
+        self.videoNum = 1
 
     def decodeMarketFace(self, data):
         """解码大表情并移动
@@ -71,6 +74,29 @@ class protoDataParsing():
         except OSError:
             return self.ERRCODE.parse_err("IO_ERROR", [traceback.format_exc()]), None
 
+    def video_thumb(self, input_path, output_path):
+        try:
+            # 使用ffmpeg获取视频的第一帧并生成缩略图
+            if os.path.exists(output_path):
+                os.remove(output_path)
+
+            ffmpeg_cmd = [
+                'lib/ffmpeg-lgpl/ffmpeg.exe',
+                '-i', input_path,
+                '-ss', '00:00:00.000',  # 指定获取的时间点，这里取第一毫秒作为第一帧
+                '-vframes', '1',  # 限制只取一帧
+                output_path
+            ]
+            subprocess.run(ffmpeg_cmd, check=True, timeout=3)
+
+            if os.path.exists(output_path):
+                return output_path
+        except subprocess.TimeoutExpired:
+            return ""
+        except subprocess.CalledProcessError as e:
+            return ""
+
+
     def decodePic(self, data):
         """解码图片并移动
 
@@ -87,13 +113,12 @@ class protoDataParsing():
         elif self.configs["needImages"] == True:
             msgOutData = {
                 "t": "img",
-                "c": {"imgPath": "", "imgType": "", "name": ""},
+                "c": {"path": "", "type": "", "name": ""},
                 "e": None
             }
             try:
                 doc = PicRec()
                 doc.ParseFromString(data)
-
 
                 url = 'chatimg:' + doc.md5
                 filename = hex(crc64(url))
@@ -101,7 +126,7 @@ class protoDataParsing():
                 relpath = os.path.join(self.configs["imagesPath"], filename[-3:], filename)
                 imgPath = os.path.join(filename[-3:], filename)
                 # print(doc.uint32_width, doc.uint32_height, doc.uint32_image_type)
-                msgOutData["c"]["imgType"] = "pic"
+                msgOutData["c"]["type"] = "pic"
                 # msgOutData["c"]["imgType"] = doc.uint32_image_type
                 # 数据中，这两项宽高不可靠，请注意！
                 # msgOutData["c"]["imgWidth"] = doc.uint32_height
@@ -109,15 +134,15 @@ class protoDataParsing():
 
             except:
                 # protobuf反序列化失败
-                msgOutData["e"] = self.ERRCODE.parse_err("IMG_DESERIALIZATION_ERROR", [data]), None
+                msgOutData["e"] = self.ERRCODE.parse_err("IMG_DESERIALIZATION_ERROR", [data])
                 return msgOutData
 
             try:
-                #转存图片并去重
+                # 转存图片并去重
 
                 # 判断文件是否存在
                 if not os.path.exists(relpath):
-                    msgOutData["e"] = self.ERRCODE.parse_err("IMG_NOT_EXIST", [relpath]), None
+                    msgOutData["e"] = self.ERRCODE.parse_err("IMG_NOT_EXIST", [relpath])
                     return msgOutData
 
                 # 计算图片的MD5值
@@ -128,29 +153,32 @@ class protoDataParsing():
                 # 查找图片的MD5值是否已经存在
                 if md5 in self.imgMD5Map:
                     msgOutData["e"] = {}
-                    msgOutData["c"]["imgPath"] = self.imgMD5Map[md5][0]
+                    msgOutData["c"]["path"] = self.imgMD5Map[md5][0]
                     msgOutData["c"]["name"] = self.imgMD5Map[md5][1]
                     return msgOutData
 
                 # 确定图片类型并添加后缀名
                 img_type = imghdr.what(relpath)
                 if img_type is None:
-                    msgOutData["e"] = self.ERRCODE.parse_err("IMG_UNKNOWN_TYPE_ERROR", [imgPath]), None
+                    msgOutData["e"] = self.ERRCODE.parse_err("IMG_UNKNOWN_TYPE_ERROR", [imgPath])
                     return msgOutData
 
                 new_filename = f'{self.imgNum}.{img_type}'
                 self.imgNum = self.imgNum + 1
                 new_file_path = os.path.join('output', 'images', new_filename)
 
-
                 # 移动图片文件到output/images文件夹中，并重命名
-                shutil.copy(relpath, new_file_path)
+                try:
+                    shutil.copy(relpath, new_file_path)
+                except:
+                    msgOutData["e"] = self.ERRCODE.parse_err("IO_ERROR", [relpath, new_file_path])
+                    return msgOutData
 
                 # 将MD5和新文件路径添加到imgMD5Map中
                 self.imgMD5Map[md5] = [new_file_path, new_filename]
 
                 msgOutData["e"] = {}
-                msgOutData["c"]["imgPath"] = new_file_path
+                msgOutData["c"]["path"] = new_file_path
                 msgOutData["c"]["name"] = new_filename
                 return msgOutData
             except OSError:
@@ -178,6 +206,82 @@ class protoDataParsing():
         except:
             return self.ERRCODE.parse_err("MIXMSG_DESERIALIZATION_ERROR", [data, traceback.format_exc()]), None
 
+    def decodeVideoMsg(self, data):
+        """
+        解码移动视频消息
+        :param data: proto数据
+        :return:
+        """
+        if self.configs["needVideo"] == False:
+            msgOutData = {
+                "t": "uns",
+                "c": {"text": "[视频]"},
+                "e": {}
+            }
+        elif self.configs["needVideo"] == True:
+            msgOutData = {
+                "t": "video",
+                "c": {},
+                "e": {}
+            }
+            try:
+                doc = Msg_pb2.ShortVideo()
+                doc.ParseFromString(data)
+                filePath = doc.field3.decode("utf-8")
+                # deserialize_data, message_type = blackboxprotobuf.decode_message(data)
+                # print(f"原始数据: {deserialize_data}")
+                # print(f"消息类型: {message_type}")
+            except:
+                msgOutData["e"] = self.ERRCODE.parse_err("VIDEO_DESERIALIZATION_ERROR", [data])
+                return msgOutData
+
+            pattern = r'/([A-F0-9]{32})/'
+            match = re.search(pattern, filePath)
+            if not match:
+                msgOutData["e"] = self.ERRCODE.parse_err("VIDEO_UNKNOWN_PATH_FORMAT", [filePath])
+                return msgOutData
+
+            # 判断文件是否存在
+            relpath = self.configs["videoPath"] + "\\" + match.group(1)
+            print(relpath)
+            if not os.path.exists(relpath):
+                msgOutData["e"] = self.ERRCODE.parse_err("VIDEO_NOT_EXIST", [relpath])
+                return msgOutData
+
+            file_count = 0
+            found_file = None
+            for root, dirs, files in os.walk(relpath):
+                for file in files:
+                    if file != '.nomedia':
+                        file_count += 1
+                        found_file = os.path.join(root, file)
+
+            if file_count == 0:
+                msgOutData["e"] = self.ERRCODE.parse_err("VIDEO_NOT_EXIST", [relpath, file_count])
+                return msgOutData
+            elif file_count > 1:
+                msgOutData["e"] = self.ERRCODE.parse_err("VIDEO_NOT_EXIST", [relpath, file_count])
+                return msgOutData
+
+            _, file_extension = os.path.splitext(found_file)
+            new_filename = f'{self.videoNum}{file_extension}'
+            new_picname = f'{self.videoNum}.jpg'
+            self.videoNum += 1
+            new_file_path = os.path.join('output', 'videos', new_filename)
+            new_pic_path = os.path.join('output', 'videos', 'thumbs', new_picname)
+            # 移动图片文件到output/videos文件夹中，并重命名
+            try:
+                shutil.copy(found_file, new_file_path)
+            except:
+                msgOutData["e"] = self.ERRCODE.parse_err("IO_ERROR", [found_file, new_file_path])
+                return msgOutData
+
+            msgOutData["c"]["path"] = new_file_path
+            msgOutData["c"]["name"] = new_filename
+
+            msgOutData["c"]["thumb"] = self.video_thumb(new_file_path, new_pic_path)
+            return msgOutData
+
     def parse(self, msgType, msgData, extStr):
         """protobuf序列化相关类型解析
 
@@ -187,7 +291,6 @@ class protoDataParsing():
         :return: msgOutData
         """
         msgOutData = {}
-
 
         # 图片类型
         if msgType == -2000:
@@ -220,10 +323,8 @@ class protoDataParsing():
 
         # 短视频
         elif msgType == -2022:
-            doc = Msg_pb2.ShortVideo()
-            doc.ParseFromString(msgData)
-            filePath = doc.field3.decode("utf-8")
-            print(filePath)
+            msgOutData = self.decodeVideoMsg(msgData)
+            return msgOutData
 
 
         # 大号表情
@@ -241,14 +342,14 @@ class protoDataParsing():
                 descErrcode, msgDeseData = self.decodeMarketFace(marketFaceName)
                 msgOutData = {
                     "t": "img",
-                    "c": {"imgPath": msgDeseData, "name": marketFaceName, "type": "marketFace"},
+                    "c": {"path": msgDeseData, "name": marketFaceName, "type": "marketFace"},
                     "e": descErrcode
                 }
                 print(extStr)
             return msgOutData
 
 
-        elif msgType == -5040:# 灰条消息
+        elif msgType == -5040:  # 灰条消息
             extStrJson = json.loads(extStr)
 
             if "revoke_op_type" in extStrJson.keys():
@@ -375,8 +476,4 @@ class protoDataParsing():
             # print(f"消息类型: {message_type}")
             pass
 
-
         return msgOutData
-
-
-

@@ -107,6 +107,12 @@ class ValidateSettings:
             _, configs_validated["imagesPath"] = self.validate_folder_exist_conf(
                 "imagesPath", "聊天图片路径")
 
+        _, configs_validated["needVideo"] = self.validate_bool_conf(
+            "needImages", "是否需要视频解析")
+        if configs_validated["needVideo"] == True:
+            _, configs_validated["videoPath"] = self.validate_folder_exist_conf(
+                "videoPath", "shortvideo文件夹路径")
+
         _, configs_validated["needMarketFace"] = self.validate_bool_conf(
             "needMarketFace", "是否需要QQ大表情")
         _, configs_validated["needReplyMsg"] = self.validate_bool_conf(

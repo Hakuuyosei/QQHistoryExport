@@ -4,7 +4,7 @@ from src.generate import GeneratePDF_ReportLab
 from src.avatarDownload import download
 from src.validateSettings import validateSettings
 from src.errcode import errcode
-test = 3
+test = 5
 if __name__ == '__main__':
     if test == 1:
         qqParse = parsing.QQParse()

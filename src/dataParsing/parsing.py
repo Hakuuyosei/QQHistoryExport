@@ -62,6 +62,8 @@ class QQParse:
         os.mkdir(dir_path + "/emoticons/emoticon2")
         os.mkdir(dir_path + "/emoticons/nudgeaction")
         os.mkdir(dir_path + "/images")
+        os.mkdir(dir_path + "/videos")
+        os.mkdir(dir_path + "/videos/thumbs")
         os.mkdir(dir_path + "/temp")
         os.mkdir(dir_path + "/senders")
 
