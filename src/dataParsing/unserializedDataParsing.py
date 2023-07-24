@@ -61,7 +61,7 @@ class unserializedDataParsing():
             }
             msgOutData = {
                 "t": "tip",
-                "c": {"text": msgDecodedData, "type": "jointroop", "ext": items},
+                "c": {"text": msgDecodedData, "type": "join_group", "ext": items},
                 "e": {}
             }
             print(extStr)
@@ -79,7 +79,7 @@ class unserializedDataParsing():
             }
             msgOutData = {
                 "t": "tip",
-                "c": {"text": msgDecodedData, "type": "qbotjointroop", "ext": items},
+                "c": {"text": msgDecodedData, "type": "qbot_join_group", "ext": items},
                 "e": {}
             }
 
@@ -143,7 +143,7 @@ class unserializedDataParsing():
             print(extStr)
             msgOutData = {
                 "t": "call",
-                "c": {"text": msgDecodedData, "type": "troopcallstart"},
+                "c": {"text": msgDecodedData, "type": "group_call_start"},
                 "e": {}
             }
 
@@ -152,7 +152,7 @@ class unserializedDataParsing():
             print(extStr)
             msgOutData = {
                 "t": "call",
-                "c": {"text": msgDataAlreadyDecode, "type": "troopcallend"},
+                "c": {"text": msgDataAlreadyDecode, "type": "group_call_end"},
                 "e": {}
             }
 
@@ -160,7 +160,7 @@ class unserializedDataParsing():
             msgDataAlreadyDecode = msgData.decode("utf-8")
             msgOutData = {
                 "t": "tip",
-                "c": {"text": msgDataAlreadyDecode, "type": "newfriend", "ext": {}},
+                "c": {"text": msgDataAlreadyDecode, "type": "new_friend", "ext": {}},
                 "e": {}
             }
 
@@ -171,7 +171,7 @@ class unserializedDataParsing():
             msgDataAlreadyDecode = self.c2cCallParse(msgData)
             msgOutData = {
                 "t": "tip",
-                "c": {"text": msgDataAlreadyDecode, "type": "friendcall"},
+                "c": {"text": msgDataAlreadyDecode, "type": "friend_call"},
                 "e": {}
             }
 
@@ -180,7 +180,7 @@ class unserializedDataParsing():
             msgDataAlreadyDecode = self.c2cCallParse(msgData)
             msgOutData = {
                 "t": "call",
-                "c": {"text": msgDataAlreadyDecode, "type": "friendcall"},
+                "c": {"text": msgDataAlreadyDecode, "type": "friend_call_err"},
                 "e": {}
             }
 

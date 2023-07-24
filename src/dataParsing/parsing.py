@@ -122,8 +122,8 @@ class QQParse:
 
 
         friends = self.getFriends()
-        troops = self.getTroops()
-        troopMembers = self.getTroopMembers()
+        groups = self.getGroups()
+        groupMembers = self.getGroupMembers()
 
         self.senderUins = []
 
@@ -136,13 +136,13 @@ class QQParse:
                 cmd = "select msgtype,senderuin,msgData,time,extStr from mr_friend_{}_New order by time".format(
                     targetQQmd5)
 
-        elif mode == "troop":
-            if targetQQ not in troops.keys():
+        elif mode == "group":
+            if targetQQ not in groups.keys():
                 info = f"{targetQQ} 查无此群/无聊天内容"
                 self.ERRCODE.log("parse", self.ERRCODE.LOG_LEVEL_ERR, info)
                 return False
             else:
-                cmd = "select msgtype,senderuin,msgData,time,extStr from mr_troop_{}_New order by time".format(
+                cmd = "select msgtype,senderuin,msgData,time,extStr from mr_group_{}_New order by time".format(
                     targetQQmd5)
 
         print(cmd)
@@ -180,21 +180,21 @@ class QQParse:
                     self.outputFile.write(json_str + '\n')
         self.outputFile.close()
 
-        # print(self.troopMembers[targetQQ])
+        # print(self.groupMembers[targetQQ])
         info = """聊天记录解析完毕！恭喜！
                 """
         self.ERRCODE.log("parse", self.ERRCODE.LOG_LEVEL_INFO, info)
 
         # 读取发送者数据
         senders = {}
-        if mode == "troop":
+        if mode == "group":
             for uin in self.senderUins:
                 if uin == targetQQ:
                     continue
                     # 如果发送者等于群QQ号，可能是更改群名之类的
-                if targetQQ in troopMembers:
-                    if uin in troopMembers[targetQQ]:
-                        name = troopMembers[targetQQ][uin][0]
+                if targetQQ in groupMembers:
+                    if uin in groupMembers[targetQQ]:
+                        name = groupMembers[targetQQ][uin][0]
                         senders[uin] = [name, ""]
                     else:
                         senders[uin] = ["", ""]
@@ -294,44 +294,44 @@ class QQParse:
                 friends.pop(friendQQNumber)
         return friends
 
-    def getTroops(self):
+    def getGroups(self):
         """获取群列表
 
-        :return: {troopQQNumber:[troopName]}
+        :return: {groupQQNumber:[groupName]}
         """
 
-        troops = {}
+        groups = {}
         cmd = "SELECT troopuin, troopname FROM TroopInfoV2"#从Friends表中取uin, remark
 
         cursors = self.fill_cursors(cmd)
         for cs in cursors:
             for row in cs:
-                troopQQNumber = self.decrypt(row[0])
-                troopName = self.decrypt(row[1])
-                troops[troopQQNumber] = [troopName]
+                groupQQNumber = self.decrypt(row[0])
+                groupName = self.decrypt(row[1])
+                groups[groupQQNumber] = [groupName]
                 # 解码并添加进friends字典
-        return troops
+        return groups
 
-    def getTroopMembers(self):
+    def getGroupMembers(self):
         """获取群友列表（所有群友实际上都在同一个表里）
 
-        :return: {[troopQQNumber]: {memberQQ: [memberName, membernick]}}
+        :return: {[groupQQNumber]: {memberQQ: [memberName, membernick]}}
         """
-        troopMembers = {}
+        groupMembers = {}
         cmd = "SELECT troopuin, memberuin, friendnick, troopnick FROM TroopMemberInfo"
         cursors = self.fill_cursors(cmd)
         for cs in cursors:
             for row in cs:
-                troopQQNumber = self.decrypt(row[0])
+                groupQQNumber = self.decrypt(row[0])
                 memberQQ = self.decrypt(row[1])
                 memberName = self.decrypt(row[2])
                 memberNick = self.decrypt(row[3])
                 self.decrypt(row[2])
-                if troopQQNumber in troopMembers.keys():
-                    troopMembers[troopQQNumber][memberQQ] = [memberName, memberNick]
+                if groupQQNumber in groupMembers.keys():
+                    groupMembers[groupQQNumber][memberQQ] = [memberName, memberNick]
                 else:
-                    troopMembers[troopQQNumber] = {memberQQ: [memberName, memberNick]}
-        return troopMembers
-        # print(self.troopMembers)
+                    groupMembers[groupQQNumber] = {memberQQ: [memberName, memberNick]}
+        return groupMembers
+        # print(self.groupMembers)
 
 

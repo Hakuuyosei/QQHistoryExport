@@ -34,7 +34,7 @@ class ValidateSettings:
 
 
         _, configs_validated["mode"] = self.validate_inlist_conf(
-            "mode", ["friend", "troop"], "群组或私聊模式")
+            "mode", ["friend", "group"], "群组或私聊模式")
         _, configs_validated["selfQQ"] = self.validate_num_str_conf(
             "selfQQ", "自己的QQ")
         _, configs_validated["targetQQ"] = self.validate_num_str_conf(
