@@ -10,6 +10,11 @@ codes = {
     'VIDEO_DESERIALIZATION_ERROR': ['视频反序列化错误', 100],
     'VIDEO_UNKNOWN_PATH_FORMAT': ['解析出的视频路径格式不对', 100],
     'VIDEO_NOT_EXIST': ['视频不存在', 100],
+    'VOICE_UNKNOWN_PATH_FORMAT': ['解析出的语音路径格式不对', 100],
+    'VOICE_DESERIALIZATION_ERROR': ['语音反序列化错误', 100],
+    'VOICE_NOT_EXIST': ['语音不存在', 100],
+    'VOICE_UNKNOWN_FILEHEADER': ['未知的语音文件文件头', 100],
+    'VOICE_CONVERT_ERROR': ['语音格式转换失败', 100],
     'MIXMSG_DESERIALIZATION_ERROR': ['混合消息反序列化错误', 100],
     'EXTSTR_NOT_EXIST_TARGET': ['EXTSTR不存在目标', 100],
     'EXTSTR_JSON_ERR_DECODE': ['EXTSTR JSON解码错误', 100],
@@ -79,9 +84,10 @@ class ErrCode():
 
         err = {
             "s": False,
-            "errinfo": codes[code][0] + f"相关信息：{errdata}"
+            "errinfo": codes[code][0] + f"，相关信息：{errdata}"
 
         }
+        print(err["errinfo"])
         return err
 
     def count_check(self, code):

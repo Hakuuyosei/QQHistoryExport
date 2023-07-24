@@ -6,6 +6,7 @@ import traceback
 import json
 import imghdr
 import shutil
+import binascii
 import blackboxprotobuf
 import subprocess
 
@@ -52,6 +53,7 @@ class protoDataParsing():
         self.imgMD5Map = {}
         self.imgNum = 1
         self.videoNum = 1
+        self.voiceNum = 1
 
     def decodeMarketFace(self, data):
         """解码大表情并移动
@@ -206,6 +208,112 @@ class protoDataParsing():
         except:
             return self.ERRCODE.parse_err("MIXMSG_DESERIALIZATION_ERROR", [data, traceback.format_exc()]), None
 
+    def decodeVoiceMsg(self, data):
+        """
+        解码移动视频消息
+        :param data: proto数据
+        :return:
+        """
+        if self.configs["needVoice"] == False:
+            msgOutData = {
+                "t": "uns",
+                "c": {"text": "[语音]"},
+                "e": {}
+            }
+        elif self.configs["needVoice"] == True:
+            msgOutData = {
+                "t": "video",
+                "c": {},
+                "e": {}
+            }
+            try:
+                doc = Msg_pb2.Voice()
+                doc.ParseFromString(data)
+                file_path = doc.field1.decode("utf-8")
+                voice_length = doc.field19
+                print(file_path, voice_length)
+            except:
+                msgOutData["e"] = self.ERRCODE.parse_err("VOICE_DESERIALIZATION_ERROR", [data])
+                return msgOutData
+
+
+
+            pattern = r'/([^/]+)\.\w+$'
+            match = re.search(pattern, file_path)
+            if not match:
+                msgOutData["e"] = self.ERRCODE.parse_err("VOICE_UNKNOWN_PATH_FORMAT", [file_path])
+                return msgOutData
+
+            relpath = self.configs["voicePath"] + "\\" + match.group(1)
+            print(relpath)
+
+            if os.path.exists(relpath + ".amr"):
+                relpath = relpath + ".amr"
+            elif os.path.exists(relpath + ".slk"):
+                relpath = relpath + ".slk"
+            else:
+                msgOutData["e"] = self.ERRCODE.parse_err("VOICE_NOT_EXIST", [relpath, file_path])
+                return msgOutData
+
+            try:
+                with open(relpath, "rb") as file:
+                    header_length = 16
+                    file_header = file.read(header_length)
+
+            except:
+                msgOutData["e"] = self.ERRCODE.parse_err("IO_ERROR", [relpath])
+                return msgOutData
+
+            cmd_list = []
+            new_filename = f'{self.voiceNum}.mp3'
+            new_file_path = os.path.join('output', 'voices', new_filename)
+            self.voiceNum += 1
+            temp_path = "output\\temp\\voice.pcm"
+
+            def starts_with_bytes(bytesA, bytesB):
+                if len(bytesA) < len(bytesB):
+                    return False
+                return bytesA[:len(bytesB)] == bytesB
+
+            if starts_with_bytes(file_header, bytes.fromhex("02232153494c4b5f")):
+                # SILK_V3
+
+
+                cmd_list.append(f"lib\\silk-decoder\\silk_v3_decoder.exe {relpath} {temp_path} -Fs_API 44100")
+                cmd_list.append(f"lib\\ffmpeg-lgpl\\ffmpeg.exe -y -f s16le -ar 44100 -ac 1 -i {temp_path} {new_file_path}")
+
+            elif starts_with_bytes(file_header, bytes.fromhex("2321414d52")):
+                # AMR
+                cmd_list.append(f"lib\\ffmpeg-lgpl\\ffmpeg.exe -i {relpath} {new_file_path}")
+            else:
+                msgOutData["e"] = self.ERRCODE.parse_err("VOICE_UNKNOWN_FILEHEADER", [file_path, binascii.hexlify(file_header).decode('utf-8')])
+                return msgOutData
+
+            try:
+                for cmd in cmd_list:
+                    # print(cmd)
+                    subprocess.run(cmd, check=True, timeout=3, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            except:
+                if os.path.exists(temp_path):
+                    os.remove(temp_path)
+                msgOutData["e"] = self.ERRCODE.parse_err("VOICE_CONVERT_ERROR", [relpath,1])
+                return msgOutData
+
+            if not os.path.exists(new_file_path):
+                if os.path.exists(temp_path):
+                    os.remove(temp_path)
+                msgOutData["e"] = self.ERRCODE.parse_err("VOICE_CONVERT_ERROR", [relpath])
+                return msgOutData
+
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+
+            msgOutData["c"]["path"] = new_file_path
+            msgOutData["c"]["length"] = voice_length
+            return msgOutData
+
+
+
     def decodeVideoMsg(self, data):
         """
         解码移动视频消息
@@ -308,17 +416,8 @@ class protoDataParsing():
 
         # 语音
         elif msgType == -2002:
-            doc = Msg_pb2.Voice()
-            doc.ParseFromString(msgData)
-            filePath = doc.field1
-            voiceLength = doc.field19
-
-            # deserialize_data, message_type = blackboxprotobuf.decode_message(msgData)
-            # print(f"原始数据: {deserialize_data}")
-            # print(f"消息类型: {message_type}")
-
-            # print(filePath,voiceLength)
-            # slkamrTomp3.slkamrTomp3(filePath)
+            msgOutData = self.decodeVoiceMsg(msgData)
+            return msgOutData
 
         # 短视频
         elif msgType == -2022:

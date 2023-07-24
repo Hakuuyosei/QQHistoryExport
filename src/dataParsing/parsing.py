@@ -64,6 +64,7 @@ class QQParse:
         os.mkdir(dir_path + "/images")
         os.mkdir(dir_path + "/videos")
         os.mkdir(dir_path + "/videos/thumbs")
+        os.mkdir(dir_path + "/voices")
         os.mkdir(dir_path + "/temp")
         os.mkdir(dir_path + "/senders")
 
