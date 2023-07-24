@@ -55,6 +55,8 @@
 
 建议系统：win10 win11
 
+放在一个没有中文路径的目录防止出错，exe和lib都要解压出来。
+
 ### 2.提取文件
 
 #### 根目录
@@ -90,13 +92,13 @@ data/data/com.tencent.mobileqq/files/kc
 
 本程序目前提供了基于PyQt5的UI。可以直接通过UI设置解析。
 
-
+建议使用纯ANSCII路径（纯英文数字或anscii符号），防止出现问题。
 
 也可以复制`config/parse_config_example.json`到`config/parse_config.json`，有设置项检验程序。
 
-解析完毕后，会生成一个output文件夹，里面的chatData.txt即为符合`output格式.md`的解析完的聊天数据。
+**注意：解析回复的原消息部分，解析群文件信息，需要用户安装java环境。**
 
-emoticons是依赖的表情，只会将用到的复制到output中；images是聊天图片。
+命令行输入`java -version`检查java环境是否安装成功。
 
 ### 3.生成PDF
 
@@ -104,7 +106,9 @@ emoticons是依赖的表情，只会将用到的复制到output中；images是�
 
 你也可以不运行这个，自己导入头像图片或者不用头像。
 
-senders/senders.json现在是这个样子。每一个键是一个用户。
+解析完毕后，会生成一个output文件夹，里面的chatData.txt即为符合`output格式.md`的解析完的聊天数据。
+
+里面有一个文件夹senders。senders/senders.json现在是这个样子。每一个键是一个用户。
 
 格式为：{用户QQ号:[用户昵称, 用户头像路径]}
 
@@ -120,9 +124,9 @@ senders/senders.json现在是这个样子。每一个键是一个用户。
 
 
 
+## 项目原理
 
-
-## 文件夹介绍
+### 项目结构
 
 ```
 config:设置，设置样本文件
@@ -161,7 +165,37 @@ src:主程序
 		
 ```
 
+### 解析
 
+解析QQ聊天记录本地数据库，目前只支持安卓。
+
+因为历史原因，QQ聊天记录结构复杂多样~~（屎山）~~，分析难度很高，各种序列化模式混用，有protobuf，json，java序列化或是字符串分隔。所以解析代码写的很长。
+
+~~吐槽：为什么QQ的数据库里，群组是group啊~~
+
+具体的分析，请看这几篇博客：
+
+[QQ安卓端聊天记录数据分析 一 | 寄东南のBlog (sendtosoutheast.github.io)](https://sendtosoutheast.github.io/2022/07/29/逆向分析/QQ聊天记录/qqhistory1/)
+
+[QQ安卓端聊天记录数据分析 二 | 寄东南のBlog (sendtosoutheast.github.io)](https://sendtosoutheast.github.io/2022/11/09/逆向分析/QQ聊天记录/qqhistory2/)
+
+[QQ安卓端聊天记录数据分析 三 | 寄东南のBlog (sendtosoutheast.github.io)](https://sendtosoutheast.github.io/2022/11/24/逆向分析/QQ聊天记录/qqhistory3/)
+
+解析完毕后，会生成一个output文件夹，里面的chatData.txt即为符合`output格式.md`的解析完的聊天数据。里面的路径指向以下资源的相对路径。
+
+```
+emoticons文件夹是依赖的表情，只会将用到的复制到output中
+images文件夹是聊天图片
+senders文件夹是发送者相关信息，若使用自动获取头像，将会修改这里的信息
+videos文件夹是聊天视频资源，里面有一个文件夹thumbs，是使用ffmpeg生成的缩略图
+voices文件夹是语音，使用slik_v3_decoder和ffmpeg转码为了mp3
+```
+
+你可以参考`output格式.md`，写其它生成脚本，欢迎贡献代码。
+
+目前写完了PDF导出，基于reportLab：
+
+[QQ安卓端聊天记录数据分析 四 | 寄东南のBlog (sendtosoutheast.github.io)](https://sendtosoutheast.github.io/2023/06/12/逆向分析/QQ聊天记录/qqhistory4/)
 
 ## TODO
 
@@ -178,6 +212,7 @@ src:主程序
 - [ ] 添加多几种emoji表情供选择
 - [ ] 增加PDF绘制图片自定义尺寸，非统一管理缩放
 - [x] 明确设置群组好友格式，防止QQ群号和用户号重复
+- [ ] 红包解析
 
 
 
@@ -197,6 +232,8 @@ src:主程序
 
 - [ ] 视频解析因为会清理，若视频被清理了就找不到视频了，然而QQ的shortvideo/thumb下的缩略图因分析不出命名规则，无法使用这缩略图
 
+- [ ] 转发的聊天记录的序列化方式是java序列化+其它，无法分析，解析
+
 - [ ] 解析时抛弃了一些属性，若有需要可修改，提交pr
 
   
@@ -209,7 +246,7 @@ src:主程序
 
 ## 作者
 
-白羽夜星制作组
+白羽夜星制作组 制作
 
 <table>
     <tr>

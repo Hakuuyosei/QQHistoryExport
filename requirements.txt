@@ -1,0 +1,7 @@
+blackboxprotobuf
+commentjson
+emoji
+google
+protobuf==3.19.4
+reportlab
+requests
