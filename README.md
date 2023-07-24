@@ -94,6 +94,34 @@ data/data/com.tencent.mobileqq/files/kc
 
 也可以复制`config/parse_config_example.json`到`config/parse_config.json`，有设置项检验程序。
 
+解析完毕后，会生成一个output文件夹，里面的chatData.txt即为符合`output格式.md`的解析完的聊天数据。
+
+emoticons是依赖的表情，只会将用到的复制到output中；images是聊天图片。
+
+### 3.生成PDF
+
+接下来可以运行自动下载头像，将会访问QQ接口下载头像。
+
+你也可以不运行这个，自己导入头像图片或者不用头像。
+
+senders/senders.json现在是这个样子。每一个键是一个用户。
+
+格式为：{用户QQ号:[用户昵称, 用户头像路径]}
+
+![image-20230724145118110](README/image-20230724145118110.png)
+
+你也可以自己编辑这个senders/senders.json，而不使用接口下载头像，或者如果你不想用从数据库里提取出来的昵称，也要修改这个文件。
+
+**注意！头像的路径是相对于项目根目录的相对路径！**
+
+**注意！目前friend模式无法获取用户自身的昵称，需要你修改这个文件，将你的昵称填进去！**
+
+修改完后记得保存，再运行生成PDF。
+
+
+
+
+
 ## folders
 
 ```
@@ -166,6 +194,8 @@ src:主程序
 - [ ] json格式的卡片消息类型较多（参考：[QQ发送卡片消息 - 言成言成啊 - 博客园 (cnblogs.com)](https://www.cnblogs.com/meethigher/p/13581506.html)），难以提取出关键信息
 
 - [ ] 无法解析合并转发消息的第二层序列化，入群消息（xx座男一枚，xxxx这种）
+
+- [ ] 视频解析因为会清理，若视频被清理了就找不到视频了，然而QQ的shortvideo/thumb下的缩略图因分析不出命名规则，无法使用这缩略图
 
 - [ ] 解析时抛弃了一些属性，若有需要可修改，提交pr
 
