@@ -87,7 +87,7 @@ class protoDataParsing():
                 '-vframes', '1',  # 限制只取一帧
                 output_path
             ]
-            subprocess.run(ffmpeg_cmd, check=True, timeout=3)
+            subprocess.run(ffmpeg_cmd, check=True, timeout=3, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
             if os.path.exists(output_path):
                 return output_path
@@ -182,7 +182,7 @@ class protoDataParsing():
                 msgOutData["c"]["name"] = new_filename
                 return msgOutData
             except OSError:
-                msgOutData["e"] = self.ERRCODE.parse_err("OS_ERROR", [traceback.format_exc()])
+                msgOutData["e"] = self.ERRCODE.parse_err("IO_ERROR", [traceback.format_exc()])
 
     def decodeMixMsg(self, data):
         """解码混合消息
@@ -243,7 +243,6 @@ class protoDataParsing():
 
             # 判断文件是否存在
             relpath = self.configs["videoPath"] + "\\" + match.group(1)
-            print(relpath)
             if not os.path.exists(relpath):
                 msgOutData["e"] = self.ERRCODE.parse_err("VIDEO_NOT_EXIST", [relpath])
                 return msgOutData
@@ -345,7 +344,7 @@ class protoDataParsing():
                     "c": {"path": msgDeseData, "name": marketFaceName, "type": "marketFace"},
                     "e": descErrcode
                 }
-                print(extStr)
+                print(msgType, extStr)
             return msgOutData
 
 
@@ -374,8 +373,7 @@ class protoDataParsing():
                     }
                     # print(extStr)
                 else:
-                    print(msgData)
-                    print(extStr)
+                    print(msgType, msgData, extStr)
 
             # 被邀请进入群聊
             elif ("inviteeUin" in extStrJson.keys()) or ("invitorUin" in extStrJson.keys()):
@@ -413,7 +411,7 @@ class protoDataParsing():
                     doc.ParseFromString(msgData)
 
                     msgDecodedData = doc.field5.decode("utf-8")
-                    print(14, doc.field5.decode("utf-8"))
+                    print(msgType, 14, doc.field5.decode("utf-8"))
                     msgOutData = {
                         "t": "tip",
                         "c": {"text": msgDecodedData, "type": "dailyattendance"},
@@ -425,8 +423,8 @@ class protoDataParsing():
                     doc = Msg_pb2.grayTipBar()
                     doc.ParseFromString(msgData)
                     msgDecodedData = doc.field5.decode("utf-8")
-                    print(12, extStrJson["bytes_content"])
-                    print(12, doc.field5.decode("utf-8"))
+                    print(msgType, 12,  extStrJson["bytes_content"])
+                    print(msgType, 12, doc.field5.decode("utf-8"))
                     msgOutData = {
                         "t": "tip",
                         "c": {"text": msgDecodedData, "type": "paiyipai"},
@@ -443,19 +441,19 @@ class protoDataParsing():
                         "c": {"text": msgDecodedData, "type": "unknown"},
                         "e": {}
                     }
-                    print(extStr)
+                    print(msgType, extStr)
 
             else:
                 doc = Msg_pb2.grayTipBar()
                 doc.ParseFromString(msgData)
                 msgDecodedData = doc.field5.decode("utf-8")
-                print(doc.field5.decode("utf-8"))
+                print(msgType, doc.field5.decode("utf-8"))
                 msgOutData = {
                     "t": "tip",
                     "c": {"text": msgDecodedData, "type": "unknown"},
                     "e": {}
                 }
-                print(extStr)
+                print(msgType, extStr)
 
 
 

@@ -122,7 +122,7 @@ class unserializedDataParsing():
                     "c": file,
                     "e": {}
                 }
-            print(fileData, extStr)
+            # print(fileData, extStr)
 
         elif msgType == -3008:  # 未被接收的文件，内容为文件名
             fileName = msgData.decode("utf-8")
