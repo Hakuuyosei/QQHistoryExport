@@ -1,6 +1,6 @@
 # QQHistoryExport
 
-安卓设备聊天记录导出，支持图片视频/音频/引用/文件 大部分消息，支持几乎所有的重要消息类型，支持PDF导出，未来将支持html导出
+安卓设备聊天记录导出，支持图片/视频/音频/引用/文件 大部分消息，支持几乎所有的重要消息类型，支持PDF导出，未来将支持html导出
 
 ## 前言
 
@@ -41,13 +41,21 @@
 
 ## How to use
 
-### 有关测试
+### 0.有关测试
 
 目前该仓库处于私有仓库测试阶段
 
 先修改main函数的测试部分到你需要的测试部分，再测试
 
-### 需要提取的文件
+### 1.下载软件
+
+[Releases · WhiteWingNightStar/QQHistoryExport (github.com)](https://github.com/WhiteWingNightStar/QQHistoryExport/releases)
+
+在这里下载编译好的软件，目前只编译Windows版本，python编译版本3.8，理论上支持win7
+
+建议系统：win10 win11
+
+### 2.提取文件
 
 #### 根目录
 
@@ -78,7 +86,13 @@ data/data/com.tencent.mobileqq/files/kc
 语音文件：上述目录/{你的QQ号}/ptt(文件夹）
 ```
 
+### 2.运行程序
 
+本程序目前提供了基于PyQt5的UI。可以直接通过UI设置解析。
+
+
+
+也可以复制`config/parse_config_example.json`到`config/parse_config.json`，有设置项检验程序。
 
 ## folders
 
