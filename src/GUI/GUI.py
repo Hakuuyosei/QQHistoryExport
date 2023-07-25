@@ -225,7 +225,7 @@ class mainWindow():
 
         # Control values from parseConfigContainer
         configs = {}
-        configs['findFilesMode'] = 'dir' if self.ui.findFilesModeRadioButton1.isChecked() else 'file'
+        configs['findFilesMode'] = 'dir' if self.ui.findFilesModeRadioButton1.isChecked() else 'files'
         if configs['findFilesMode'] == 'dir':
             configs['needSlowtable'] = self.ui.useSlowtableCheckBox2.isChecked()
             configs['dataDirPath'] = self.ui.dataDirPathInputBox.text()
