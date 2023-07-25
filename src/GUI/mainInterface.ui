@@ -7,18 +7,18 @@
     <x>0</x>
     <y>0</y>
     <width>909</width>
-    <height>781</height>
+    <height>748</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>QQHistoryExport-QQ聊天记录导出</string>
+   <string>QQHistoryExport-QQ聊天记录导出  白羽夜星制作组 v0.1.0</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QGroupBox" name="parseConfigContainer">
     <property name="geometry">
      <rect>
       <x>0</x>
-      <y>0</y>
+      <y>10</y>
       <width>391</width>
       <height>661</height>
      </rect>
@@ -1114,7 +1114,7 @@
       <x>620</x>
       <y>10</y>
       <width>281</width>
-      <height>591</height>
+      <height>651</height>
      </rect>
     </property>
     <property name="font">
@@ -1153,7 +1153,7 @@
      <rect>
       <x>280</x>
       <y>700</y>
-      <width>181</width>
+      <width>271</width>
       <height>21</height>
      </rect>
     </property>
@@ -1164,7 +1164,7 @@
      </font>
     </property>
     <property name="text">
-     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt;by xxxx  v1.0.0&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt;by 白羽夜星制作组 v0.1.0&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
    </widget>
    <widget class="QPushButton" name="startParseButton">
@@ -1253,9 +1253,9 @@ senders.json</string>
       </rect>
      </property>
      <property name="text">
-      <string>2.将configs/GeneratePDF_
+      <string>2.将config/GeneratePDF_
 ReportLab_config_example.ini
-复制为configs/GeneratePDF_
+复制为config/GeneratePDF_
 ReportLab_confige.ini
 并修改生成的样式设置并保存</string>
      </property>
@@ -1318,28 +1318,70 @@ ReportLab_confige.ini
      </property>
     </widget>
    </widget>
-  </widget>
-  <widget class="QMenuBar" name="menubar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>909</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <widget class="QMenu" name="menu">
-    <property name="title">
-     <string>解析</string>
+   <widget class="QGroupBox" name="generateHTMLConfainer">
+    <property name="geometry">
+     <rect>
+      <x>400</x>
+      <y>260</y>
+      <width>211</width>
+      <height>51</height>
+     </rect>
     </property>
-   </widget>
-   <widget class="QMenu" name="menu_2">
-    <property name="title">
-     <string>生成</string>
+    <property name="font">
+     <font>
+      <family>宋体</family>
+      <pointsize>10</pointsize>
+     </font>
     </property>
+    <property name="title">
+     <string>生成HTML</string>
+    </property>
+    <widget class="QLabel" name="label_23">
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>20</y>
+       <width>71</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>敬请期待</string>
+     </property>
+    </widget>
    </widget>
-   <addaction name="menu"/>
-   <addaction name="menu_2"/>
+   <widget class="QGroupBox" name="Confainer_2">
+    <property name="geometry">
+     <rect>
+      <x>400</x>
+      <y>320</y>
+      <width>211</width>
+      <height>331</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>宋体</family>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
+    <property name="title">
+     <string>说明</string>
+    </property>
+    <widget class="QLabel" name="label_24">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>20</y>
+       <width>191</width>
+       <height>261</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;本项目&lt;span style=&quot; font-size:11pt; font-weight:600;&quot;&gt;完全免费开源&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt; font-weight:600;&quot;&gt;请勿用于商业用途！&lt;/span&gt;&lt;/p&gt;&lt;p&gt;关于如何使用软件，请参考教程:&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/WhiteWingNightStar/QQHistoryExport&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;github.com/&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/WhiteWingNightStar/QQHistoryExport&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;WhiteWingNightStar/&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/WhiteWingNightStar/QQHistoryExport&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;QQHistoryExport&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;（点击左下角按钮直达）&lt;/p&gt;&lt;p&gt;&lt;br/&gt;白羽夜星制作组 制作&lt;/p&gt;&lt;p&gt;感谢您的使用！&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+    </widget>
+   </widget>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
