@@ -303,7 +303,7 @@ class PdfDraw:
 
         if self.style["ifUseColorEmoji"] == "False":
             self.pdf_canvas.setFont(self.paths["emojiFontName"], self.style["textHeight"])
-            self.pdf_canvas.drawString(x, y, char+"标记🌎")
+            self.pdf_canvas.drawString(x, y, char)
         elif self.style["ifUseColorEmoji"] == "True":
             path = self.drawingQuery.get_unicode_file(char)
             self.pdf_canvas.drawImage(path, x, y,
@@ -418,13 +418,17 @@ class DataProcessor:
         MsgWidth = self.style["avatarSize"] + 2 * self.style["avatarMargin"]
         if MsgHeight > heightSpace:
             return False, MsgHeight, None
+        if senderUin in  self.senders:
+            senderAvatarPath = self.senders[senderUin][1]
+            detaY = - self.style["avatarSize"]
+            drawData = [[self.pdfDraw.drawAvatar, [senderAvatarPath, self.style["avatarSize"]],
+                         [-MsgWidth, detaY, 0]]]
 
-        senderAvatarPath = self.senders[senderUin][1]
-        detaY = - self.style["avatarSize"]
-        drawData = [[self.pdfDraw.drawAvatar, [senderAvatarPath, self.style["avatarSize"]],
-                     [-MsgWidth, detaY, 0]]]
+            return True, MsgHeight, drawData
+        else:
 
-        return True, MsgHeight, drawData
+            return True, MsgHeight, []
+
 
     def procName(self, senderUin, heightSpace):
         """处理姓名绘制相关的细节，并返回绘制细节数据
@@ -437,7 +441,9 @@ class DataProcessor:
         if MsgHeight > heightSpace:
             return False, MsgHeight, None
 
-        senderName = self.senders[senderUin][0]
+        if senderUin in  self.senders:
+            senderName = self.senders[senderUin][0]
+        else: senderName = "未知"
         detaY = - self.style["nameTextHeight"]
         drawData = [[self.pdfDraw.drawName, [senderName], [0, detaY, 0]]]
 
@@ -855,20 +861,31 @@ class DataProcessor:
             elif item["t"] == "img":
                 lastItem = "img"
                 data = item["c"]
-                path = data["imgPath"]
+                path = data["path"]
                 name = data["name"]
-                imgType = data["imgType"]
+                imgType = data["type"]
 
+                with Image.open(self.paths["outputDirPath"] + path) as img:
+                    imgWidth, imgHeight = img.size
                 # 如果是图片表情
-                if imgType == "marketFace":
+                if imgType == "marketface":
                     maxWidth = self.style["imgEmoMaxSize"]
                     maxHeight = self.style["imgEmoMaxSize"]
+                    name = ""
+                elif imgType == "pic":
+                    if data["size"] < self.style["intEmoPicSepSize"] * 1000:
+                        maxWidth = self.style["imgEmoMaxSize"]
+                        maxHeight = self.style["imgEmoMaxSize"]
+                        name = ""
+                    else:
+                        maxWidth = self.style["imgMaxWidth"]
+                        maxHeight = self.style["imgMaxHeight"]
                 else:
-                    maxWidth = self.style["imgMaxWidth"] - 2 * self.style["chatBoxPadding"]
-                    maxHeight = self.style["imgMaxHeight"] - 2 * self.style["chatBoxPadding"]
+                    maxWidth = self.style["imgMaxWidth"]
+                    maxHeight = self.style["imgMaxHeight"]
 
-                width, height = self.drawingQuery.resize_image(data["imgWidth"], data["imgHeight"], maxWidth,
-                                                               maxHeight)
+                width, height = self.drawingQuery.resize_image(imgWidth, imgHeight, maxWidth, maxHeight)
+
 
                 if curY - height - self.style["textHeight"] < 0:
                     remaindData = []
@@ -1104,6 +1121,7 @@ class Generate:
                     print(obj)
                     continue
 
+                print(obj)
                 self.procTime(obj["i"])
                 # 消息类型
                 if obj["t"] == "msg" or obj["t"] == "mixmsg":
@@ -1111,6 +1129,12 @@ class Generate:
 
                 if obj["t"] in ["uns", "err", "nudge", "file", "voice"]:
                     self.drawMsg(self.dataprocessor.procDetailMessage, obj, False, True)
+
+                if obj["t"] in ["uns", "err"]:
+                    if obj["c"]["type"] in ["text", "media", "unknown"]:
+                        self.drawMsg(self.dataprocessor.procDetailMessage, obj, False, True)
+                    elif obj["c"]["type"] in ["tip"]:
+                        self.drawMsg(self.dataprocessor.procTipMessage, obj, False, False)
 
                 elif obj["t"] == "revoke" or obj["t"] == "tip":
                     self.drawMsg(self.dataprocessor.procTipMessage, obj, False, False)
