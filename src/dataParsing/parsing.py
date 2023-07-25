@@ -151,8 +151,8 @@ class QQParse:
                 self.ERRCODE.log("parse", self.ERRCODE.LOG_LEVEL_ERR, info)
                 return False
             else:
-                cmd = "select msgtype,senderuin,msgData,time,extStr from mr_friend_{}_New order by time".format(
-                    targetQQmd5)
+                cmd = f"select msgtype,senderuin,msgData,time,extStr from mr_friend_{targetQQmd5}_New order by time"
+                cmd_2 = f"SELECT COUNT(*) FROM mr_friend_{targetQQmd5}_New"
 
         elif mode == "group":
             if targetQQ not in groups.keys():
@@ -160,30 +160,50 @@ class QQParse:
                 self.ERRCODE.log("parse", self.ERRCODE.LOG_LEVEL_ERR, info)
                 return False
             else:
-                cmd = "select msgtype,senderuin,msgData,time,extStr from mr_troop_{}_New order by time".format(
-                    targetQQmd5)
+                cmd = f"select msgtype,senderuin,msgData,time,extStr from mr_troop_{targetQQmd5}_New order by time"
+                cmd_2 = f"SELECT COUNT(*) FROM mr_troop_{targetQQmd5}_New"
 
         # print(cmd)
 
         # if self.cmdpre != "":
         #     cmd = self.cmdpre
+        total_num = 0
+        current_num = 0
+        last_persent = 0
+        # 行数统计
+        try:
+            cursors = self.fill_cursors(cmd_2)
+        except Exception as e:
+            info = f"数据库查询出错！sqlite3.execute error {e}"
+            self.ERRCODE.log("parse", self.ERRCODE.LOG_LEVEL_ERR, info)
+            return False
+        for cs in cursors:
+            total_num += cs.fetchone()[0]
 
-        # TODO:行数统计
+
 
         try:
             cursors = self.fill_cursors(cmd)
-        except:
-            info = f"数据库查询出错！sqlite3.execute error"
+        except Exception as e:
+            info = f"数据库查询出错！sqlite3.execute error {e}"
             self.ERRCODE.log("parse", self.ERRCODE.LOG_LEVEL_ERR, info)
             return False
 
-        info = """数据库解析初始化成功，开始解析……"""
+        info = f"""数据库解析初始化成功，共计{total_num}条消息，开始解析……"""
         self.ERRCODE.log("parse", self.ERRCODE.LOG_LEVEL_INFO, info)
 
         for cs in cursors:
             for row in cs:
+                persent = int((current_num+1) / total_num * 100)
+                if persent % 5 == 0 and persent != last_persent:
+                    last_persent = persent
+                    info = f"解析进度：{persent}%, {current_num+1}/{total_num}"
+                    self.ERRCODE.log("parse", self.ERRCODE.LOG_LEVEL_INFO, info)
+                current_num += 1
+
                 if not self.ERRCODE.parse_quote_state():
                     return False
+
                 msgType = row[0]
                 senderQQ = self.decrypt(row[1])
                 if senderQQ not in self.senderUins:
@@ -283,8 +303,7 @@ https://github.com/WhiteWingNightStar/QQHistoryExport上提issue，请附上outp
         else:
             msgOutData = {
                 "t": "uns",
-                "c": {"text": "[未知类型]"},
-                "e": {}
+                "c": {"text": "[未知类型]"}
             }
             self.ERRCODE.parse_err("UNKNOWN_MSG_TYPE", [msgType, msgData, extStr])
             # with open("./11.bin", 'wb') as f:  # 二进制流写到.bin文件
