@@ -118,26 +118,30 @@ class javaSerializedDataParsing():
                 if extStrJson:
                     # start_time = time.time()
                     sourceMsgInfo = extStrJson["sens_msg_source_msg_info"]
-                    err, jsonData = self.javaDeserializationToJson(sourceMsgInfo)
+                    state, jsonData = self.javaDeserializationToJson(sourceMsgInfo)
 
                     # 记录程序结束时间
                     # end_time = time.time()
                     # run_time = end_time - start_time
                     # print(f"程序运行时间为{run_time:.6f}秒")
-                    if not err:
-                        if jsonData:
-                            mSourceMsgText = jsonData["mSourceMsgText"]
-                            mSourceMsgSenderUin = jsonData["mSourceMsgSenderUin"]
-                            mSourceMsgTime = jsonData["mSourceMsgTime"]
-                            replyData = {
-                                "sourceMsgText": mSourceMsgText,
-                                "sourceMsgSenderUin": mSourceMsgSenderUin,
-                                "sourceMsgTime": mSourceMsgTime
-                            }
-                            msgOutData["c"].insert(0, {"t": "reply",
-                                                 "c": replyData
-                                                 })
-                            # print(msgOutData)
+                    if state:
+                        mSourceMsgText = jsonData["mSourceMsgText"]
+                        mSourceMsgSenderUin = jsonData["mSourceMsgSenderUin"]
+                        mSourceMsgTime = jsonData["mSourceMsgTime"]
+                        replyData = {
+                            "text": mSourceMsgText,
+                            "uin": mSourceMsgSenderUin,
+                            "time": mSourceMsgTime
+                        }
+                        msgOutData["c"].insert(0, {"t": "reply",
+                                             "c": replyData
+                                             })
+                        # print(msgOutData)
+                    else:
+                        msgOutData["c"].insert(0, {"t": "uns",
+                                                   "c": {"text": "[回复消息]"}
+                                                   })
+                    print(msgOutData)
 
                     # HACK
                     # (目前已弃用)
