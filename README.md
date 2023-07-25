@@ -20,24 +20,33 @@
 
 以下为本项目独立实现的功能
 
-- 详细的文档
-- 支持java序列化类型消息解析
-- 支持读取**好友表，群聊表，群友表**数据库
-- 支持extStr解析，获取了**消息的更多属性**
+消息解析：
+
 - 支持**引用消息**
+- 支持**视频消息**，自动生成缩略图
+- 支持**音频消息**，自动转码为mp3
 - 支持**文件类型消息**
-- 支持**QQ大表情**（marketFace）
-- 支持**图片导出**，将图片从巨大的chatimg中复制出来，**猜测类型**并md5**防重复**
-- PDF文档相同的图片只储存一份
-- 支持大部分**灰条消息**（包括但不限于 撤回 修改群名称 获得群标签 戳一戳）
-- 自动通过网络接口**获取头像**
+- 支持大部分**灰条消息**（包括但不限于 撤回 修改群名称 获得群标签 戳一戳 语音通话）
+- 支持**QQ大表情**（marketFace）gif图片导出
+- 支持读取**好友表，群聊表，群友表**数据库
+- 文件资源自动提取复制到output
+- 图片自动猜测类型并md5防重复
+- 支持java序列化类型消息解析
+- 支持extStr解析，获取了**消息的更多属性**
+- 有**GUI界面**
+
+PDF生成：
+
+- 自动通过网络接口获取头像
 - 支持导出带**书签**带**头像**带**时间**带**页脚**的PDF文件
+- PDF中的媒体文件会有注释文件路径
 - 自己写的**排版引擎**，在（混合消息）PDF的文字中方便的放入QQemoji，图片等
 - PDF**可设置**间距大小栏数，字体大小，是否显示头像等等
 - PDF生成支持**彩色emoji**
-- 支持**视频消息**
-- 有很多自定义**可设置**项
-- 有**GUI界面**
+
+效果图：
+
+![image-20230725211104660](README/image-20230725211104660.png)
 
 ## 使用说明
 
@@ -120,23 +129,45 @@ data/data/com.tencent.mobileqq/files/kc
 
 **注意！目前friend模式无法获取用户自身的昵称，需要你修改这个文件，将你的昵称填进去！**
 
-修改完后记得保存，再运行生成PDF。
+请勿破坏JSON格式。修改完后记得保存
 
 
+
+生成PDF目前支持A4和A5两种大小，可以设置一栏，两栏，三栏，间距什么的都可以设置。请将config/GeneratePDF_ReportLab_config_example.ini复制为config/GeneratePDF_ReportLab_confige.ini并修改生成的样式设置并保存（GUI可以一键复制打开）
+
+因为没找到判断收藏里发出来的表情的方法，目前是将50K以下的图片按照表情的大小生成。这个阈值也可以在设置里调整。
+
+<img src="README/image-20230725210928456.png" alt="image-20230725210928456" style="zoom: 67%;" />
+
+
+
+### 4.上报问题
+
+欢迎上报问题，因为此项目功能数量多，功能分散，测试样本具有局限性，开发时间跨度大，难以保证每行代码都没问题，各位遇到问题积极提出Issue，有能力的可以直接提pr。
+
+生成的同时会生成一个output/parse_log.json，里面有所有的解析出错数据，上报时请找到bug有关的日志行。
 
 ## 项目原理
+
+## 说明
+
+因为此项目功能数量多，功能分散，测试样本具有局限性，开发时间跨度大，我自己水平和时间也很有限，代码写的比较烂。各位多多指教。
 
 ### 项目结构
 
 ```
 config:设置，设置样本文件
-lib:依赖库，依赖文件等
+
+lib:依赖库
+	javaDeserialization:java反序列化程序jar
+	ffmpeg-lgpl:ffmpeg的lgpl bulid
+	
+resources:资源文件
 	emoticons:QQ表情资源文件
-		emoticon1:QQ小表情
-		emoticon2:QQ大表情
-		nudgeaction:戳一戳等表情（还未投入使用）
+        emoticon1:QQ小表情
+        emoticon2:QQ大表情
+        nudgeaction:戳一戳等表情（还未投入使用）
 	fonts:字体
-	javaDeserialization:java反序列化程序
 	
 scripts:独立脚本
 	colorEmojiImage:将文件夹中unicode emoji表情图片合并成一个文件并创建信息数据库
@@ -151,10 +182,10 @@ src:主程序
 		unserializedDataParsing.py:未序列化类型数据解析
 		javaSerializedDataParsing.py:java序列化类型数据解析
 		protoDataParsing.py:protobuf序列化类型解析
-	avatarDownload:通过接口下载头像模块
+	proto:proto反序列化相关文件
+	javaDeserialization:java反序列化程序源码
 	generate:生成可视文件图片
 		GeneratePDF_ReportLab.py:使用ReportLab生成PDF
-	proto:proto反序列化相关文件
 	GUI:GUI模块
 		res:资源文件夹
 		GUI.py:GUI操作文件
@@ -162,6 +193,7 @@ src:主程序
 		mainInterface.ui:由QtDesigner绘制的界面
 		res_rc.py:由pyrcc5生成的资源文件代码
 	validateSettings:设置项验证模块
+	avatarDownload:通过接口下载头像模块
 		
 ```
 
@@ -214,7 +246,7 @@ voices文件夹是语音，使用slik_v3_decoder和ffmpeg转码为了mp3
 - [x] 明确设置群组好友格式，防止QQ群号和用户号重复
 - [ ] 红包解析
 - [ ] java序列化进程管理
-- [ ] 解析进度条
+- [x] 解析进度条（暂且做成文字百分比提示）
 
 
 
@@ -253,7 +285,7 @@ voices文件夹是语音，使用slik_v3_decoder和ffmpeg转码为了mp3
 <table>
     <tr>
         <td align="center">
-            <a href="https://github.com/sunface">
+            <a href="https://github.com/WhiteWingNightStar">
                 <img src="https://avatars.githubusercontent.com/u/108645779?s=200&v=4" width="160px"   alt=""/>
                 <br />
                 <sub><b>白羽夜星制作组</b></sub>
@@ -275,6 +307,7 @@ voices文件夹是语音，使用slik_v3_decoder和ffmpeg转码为了mp3
         </td>
     </tr>
 </table>
+
 
 
 
