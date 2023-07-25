@@ -322,22 +322,8 @@ class PdfDraw:
         """
         x = self.style["pageWidth"] * c + x
         self.pdf_canvas.setFillColor(self.style["chatBoxFillColor"])
-        self.pdf_canvas.roundRect(x, y, width, hight, self.style["chatBoxradius"],
+        self.pdf_canvas.roundRect(x, y, width, hight, self.style["chatBoxRadius"],
                                   fill=1, stroke=0)
-
-    def drawErrBox(self, width, hight, x, y, c):
-        """绘制错误框
-
-        :param width: 错误框的宽度
-        :param hight: 错误框的高度
-        :param x: 绘制起始点的 x 坐标
-        :param y: 绘制起始点的 y 坐标
-        :param c: 绘制起始点的 c 坐标（列）
-        """
-        x = self.style["pageWidth"] * c + x
-        self.pdf_canvas.setStrokeColor(self.style["chatBoxFillColor"])
-        self.pdf_canvas.roundRect(x, y, width, hight, self.style["chatBoxradius"],
-                                  fill=0, stroke=1)
 
     def drawReplyBox(self, width, hight, x, y, c):
         """绘制回复框
@@ -350,7 +336,7 @@ class PdfDraw:
         """
         x = self.style["pageWidth"] * c + x
         self.pdf_canvas.setFillColor(self.style["replyBoxFillColor"])
-        self.pdf_canvas.roundRect(x, y, width, hight, self.style["chatBoxradius"],
+        self.pdf_canvas.roundRect(x, y, width, hight, self.style["chatBoxRadius"],
                                   fill=1, stroke=0)
 
     def drawGeneralBox(self, width, hight, x, y, c):
@@ -364,7 +350,7 @@ class PdfDraw:
         """
         x = self.style["pageWidth"] * c + x
         self.pdf_canvas.setStrokeColor(self.style["generalBoxFillColor"])
-        self.pdf_canvas.roundRect(x, y, width, hight, self.style["chatBoxradius"],
+        self.pdf_canvas.roundRect(x, y, width, hight, self.style["chatBoxRadius"],
                                   fill=0, stroke=1)
 
     def drawAvatar(self, path, size, x, y, c):
@@ -472,7 +458,7 @@ class DataProcessor:
     #         for item in drawData:
     #             # 将内容偏移
     #             item[2][0] += self.style["chatBoxPadding"]
-    #         drawData.insert(0, [self.pdfDraw.drawErrBox, [errBoxWidth, errBoxHeight], [0, errBoxY, 0]])
+    #         drawData.insert(0, [self.pdfDraw.drawMsgBox, [errBoxWidth, errBoxHeight], [0, errBoxY, 0]])
     #         return isFinish, errBoxHeight, drawData
     #     return isFinish, errBoxHeight, None
 
@@ -505,7 +491,7 @@ class DataProcessor:
         }]
         isFinish = False
         isFinish, textHeight, textWidth, drawData, remaindData \
-            = self.processMessageList(drawData, heightSpace)
+            = self.processMessageList(drawData, heightSpace - self.style["chatBoxPadding"])
 
         generalBoxHeight = textHeight + 2 * self.style["chatBoxPadding"]
         generalBoxWidth = textWidth + 2 * self.style["chatBoxPadding"]
@@ -593,7 +579,7 @@ class DataProcessor:
             detaY = - height - self.style["textHeight"]
 
         else:
-            MsgHight = height
+            msgHeight = height
             detaY = - height
         drawData = [[self.pdfDraw.drawImg, [path, name, width, height], [0, detaY, 0]]]
 
@@ -795,14 +781,14 @@ class DataProcessor:
 
             elif item["t"] == "reply":
                 lastItem = "reply"
-                sourceMsgSenderUin = str(item["c"]["sourceMsgSenderUin"])
+                sourceMsgSenderUin = str(item["c"]["uin"])
                 if sourceMsgSenderUin in self.senders:
                     senderInfo = self.senders[sourceMsgSenderUin][0]
                 else:
                     senderInfo = sourceMsgSenderUin
-                sourceMsgTime = item["c"]["sourceMsgTime"]
+                sourceMsgTime = item["c"]["time"]
                 sourceMsgTimeStr = time.strftime("%m月%d日 %H:%M", time.localtime(sourceMsgTime))
-                sourceMsgText = item["c"]["sourceMsgText"]
+                sourceMsgText = item["c"]["text"]
                 sourceMsgInfo = f"\n{senderInfo} {sourceMsgTimeStr}\n{sourceMsgText}"
 
                 replyMsgHeight = 0
@@ -991,7 +977,7 @@ class Generate:
             item[2][0] = item[2][0] + StartX
             item[2][1] = item[2][1] + StartY
             item[2][2] = item[2][2] + StartC
-            # py语法糖，将item[1]的所有项作为参数给函数item[0]
+            # 将item[1]的所有项作为参数给函数item[0]
             item[0](*item[1], *item[2])
 
     def drawMsg(self, drawFunc, msgData, isDivisible, isWithAvatar):
