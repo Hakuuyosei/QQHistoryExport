@@ -14,7 +14,7 @@ def avatarDownload():
     for key in keys:
         qq_num = key
         img_url = 'https://q1.qlogo.cn/g?b=qq&nk={}&s=640'.format(qq_num)
-        response = requests.get(img_url, headers=headers)
+        response = requests.get(img_url, headers=headers, timeout=5)
         file_path = 'output/senders/{}.jpg'.format(qq_num)
         with open(file_path, 'wb') as f:
             f.write(response.content)

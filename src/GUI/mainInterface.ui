@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>693</width>
-    <height>739</height>
+    <width>909</width>
+    <height>781</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,8 +20,14 @@
       <x>0</x>
       <y>0</y>
       <width>391</width>
-      <height>621</height>
+      <height>661</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>宋体</family>
+      <pointsize>10</pointsize>
+     </font>
     </property>
     <property name="title">
      <string>解析设置</string>
@@ -37,6 +43,12 @@
        <width>369</width>
        <height>16</height>
       </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>宋体</family>
+       <pointsize>10</pointsize>
+      </font>
      </property>
      <property name="text">
       <string>选择整个Data文件夹</string>
@@ -54,6 +66,12 @@
        <height>16</height>
       </rect>
      </property>
+     <property name="font">
+      <font>
+       <family>宋体</family>
+       <pointsize>10</pointsize>
+      </font>
+     </property>
      <property name="text">
       <string>分别选取每个文件</string>
      </property>
@@ -65,10 +83,16 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>310</y>
+       <y>320</y>
        <width>161</width>
        <height>16</height>
       </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>宋体</family>
+       <pointsize>10</pointsize>
+      </font>
      </property>
      <property name="text">
       <string>解析选项</string>
@@ -78,17 +102,24 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>330</y>
+       <y>340</y>
        <width>371</width>
-       <height>283</height>
+       <height>311</height>
       </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>宋体</family>
+       <pointsize>10</pointsize>
+      </font>
      </property>
      <layout class="QGridLayout" name="gridLayout_3">
       <item row="4" column="1">
        <widget class="QLabel" name="label_18">
         <property name="font">
          <font>
-          <pointsize>9</pointsize>
+          <family>宋体</family>
+          <pointsize>10</pointsize>
          </font>
         </property>
         <property name="text">
@@ -100,6 +131,12 @@
        <widget class="QCheckBox" name="QQemojiVerCheckBox">
         <property name="enabled">
          <bool>true</bool>
+        </property>
+        <property name="font">
+         <font>
+          <family>宋体</family>
+          <pointsize>10</pointsize>
+         </font>
         </property>
         <property name="text">
          <string/>
@@ -113,13 +150,21 @@
        </widget>
       </item>
       <item row="1" column="2" colspan="2">
-       <widget class="QLineEdit" name="targetQQInputBox"/>
+       <widget class="QLineEdit" name="targetQQInputBox">
+        <property name="font">
+         <font>
+          <family>宋体</family>
+          <pointsize>10</pointsize>
+         </font>
+        </property>
+       </widget>
       </item>
       <item row="9" column="1">
        <widget class="QLabel" name="label_19">
         <property name="font">
          <font>
-          <pointsize>9</pointsize>
+          <family>宋体</family>
+          <pointsize>10</pointsize>
          </font>
         </property>
         <property name="text">
@@ -131,6 +176,12 @@
        <widget class="QCheckBox" name="useImageCheckBox">
         <property name="enabled">
          <bool>true</bool>
+        </property>
+        <property name="font">
+         <font>
+          <family>宋体</family>
+          <pointsize>10</pointsize>
+         </font>
         </property>
         <property name="text">
          <string/>
@@ -145,6 +196,12 @@
       </item>
       <item row="4" column="2" colspan="2">
        <widget class="QWidget" name="modeSelectContainer_2" native="true">
+        <property name="font">
+         <font>
+          <family>宋体</family>
+          <pointsize>10</pointsize>
+         </font>
+        </property>
         <widget class="QRadioButton" name="qqEmojiVerRadioButton1">
          <property name="geometry">
           <rect>
@@ -153,6 +210,12 @@
            <width>51</width>
            <height>16</height>
           </rect>
+         </property>
+         <property name="font">
+          <font>
+           <family>宋体</family>
+           <pointsize>10</pointsize>
+          </font>
          </property>
          <property name="text">
           <string>旧版</string>
@@ -167,6 +230,12 @@
            <height>16</height>
           </rect>
          </property>
+         <property name="font">
+          <font>
+           <family>宋体</family>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
          <property name="text">
           <string>新版</string>
          </property>
@@ -180,6 +249,12 @@
        <widget class="QCheckBox" name="needMarketFaceCheckBox">
         <property name="enabled">
          <bool>true</bool>
+        </property>
+        <property name="font">
+         <font>
+          <family>宋体</family>
+          <pointsize>10</pointsize>
+         </font>
         </property>
         <property name="text">
          <string/>
@@ -199,7 +274,8 @@
         </property>
         <property name="font">
          <font>
-          <pointsize>9</pointsize>
+          <family>宋体</family>
+          <pointsize>10</pointsize>
          </font>
         </property>
         <property name="text">
@@ -209,6 +285,12 @@
       </item>
       <item row="6" column="1" colspan="3">
        <widget class="QLabel" name="label_10">
+        <property name="font">
+         <font>
+          <family>宋体</family>
+          <pointsize>10</pointsize>
+         </font>
+        </property>
         <property name="text">
          <string>聊天图片</string>
         </property>
@@ -218,7 +300,8 @@
        <widget class="QLabel" name="label_15">
         <property name="font">
          <font>
-          <pointsize>9</pointsize>
+          <family>宋体</family>
+          <pointsize>10</pointsize>
          </font>
         </property>
         <property name="text">
@@ -230,7 +313,8 @@
        <widget class="QLabel" name="label_12">
         <property name="font">
          <font>
-          <pointsize>9</pointsize>
+          <family>宋体</family>
+          <pointsize>10</pointsize>
          </font>
         </property>
         <property name="text">
@@ -242,7 +326,8 @@
        <widget class="QLabel" name="label_17">
         <property name="font">
          <font>
-          <pointsize>9</pointsize>
+          <family>宋体</family>
+          <pointsize>10</pointsize>
          </font>
         </property>
         <property name="text">
@@ -254,6 +339,12 @@
        <widget class="QCheckBox" name="needjavaDeserCheckBox">
         <property name="enabled">
          <bool>true</bool>
+        </property>
+        <property name="font">
+         <font>
+          <family>宋体</family>
+          <pointsize>10</pointsize>
+         </font>
         </property>
         <property name="text">
          <string/>
@@ -268,6 +359,12 @@
       </item>
       <item row="13" column="1" colspan="3">
        <widget class="QLabel" name="label_20">
+        <property name="font">
+         <font>
+          <family>宋体</family>
+          <pointsize>10</pointsize>
+         </font>
+        </property>
         <property name="text">
          <string>包括：引用消息的引用部分，群文件信息</string>
         </property>
@@ -277,7 +374,8 @@
        <widget class="QLabel" name="label_13">
         <property name="font">
          <font>
-          <pointsize>9</pointsize>
+          <family>宋体</family>
+          <pointsize>10</pointsize>
          </font>
         </property>
         <property name="text">
@@ -290,13 +388,20 @@
         <property name="enabled">
          <bool>false</bool>
         </property>
+        <property name="font">
+         <font>
+          <family>宋体</family>
+          <pointsize>10</pointsize>
+         </font>
+        </property>
        </widget>
       </item>
       <item row="1" column="1">
        <widget class="QLabel" name="label_16">
         <property name="font">
          <font>
-          <pointsize>9</pointsize>
+          <family>宋体</family>
+          <pointsize>10</pointsize>
          </font>
         </property>
         <property name="text">
@@ -305,12 +410,25 @@
        </widget>
       </item>
       <item row="0" column="2" colspan="2">
-       <widget class="QLineEdit" name="selfQQInputBox"/>
+       <widget class="QLineEdit" name="selfQQInputBox">
+        <property name="font">
+         <font>
+          <family>宋体</family>
+          <pointsize>10</pointsize>
+         </font>
+        </property>
+       </widget>
       </item>
       <item row="5" column="2">
        <widget class="QLineEdit" name="chatimgPathInputBox">
         <property name="enabled">
          <bool>false</bool>
+        </property>
+        <property name="font">
+         <font>
+          <family>宋体</family>
+          <pointsize>10</pointsize>
+         </font>
         </property>
        </widget>
       </item>
@@ -318,6 +436,12 @@
        <widget class="QCheckBox" name="useVideoCheckBox">
         <property name="enabled">
          <bool>true</bool>
+        </property>
+        <property name="font">
+         <font>
+          <family>宋体</family>
+          <pointsize>10</pointsize>
+         </font>
         </property>
         <property name="text">
          <string/>
@@ -337,7 +461,8 @@
         </property>
         <property name="font">
          <font>
-          <pointsize>9</pointsize>
+          <family>宋体</family>
+          <pointsize>10</pointsize>
          </font>
         </property>
         <property name="text">
@@ -347,6 +472,12 @@
       </item>
       <item row="12" column="1" colspan="3">
        <widget class="QLabel" name="label_14">
+        <property name="font">
+         <font>
+          <family>宋体</family>
+          <pointsize>10</pointsize>
+         </font>
+        </property>
         <property name="text">
          <string>java序列化解析，需要安装java环境</string>
         </property>
@@ -357,10 +488,22 @@
         <property name="enabled">
          <bool>false</bool>
         </property>
+        <property name="font">
+         <font>
+          <family>宋体</family>
+          <pointsize>10</pointsize>
+         </font>
+        </property>
        </widget>
       </item>
       <item row="2" column="2" colspan="2">
        <widget class="QWidget" name="modeSelectContainer" native="true">
+        <property name="font">
+         <font>
+          <family>宋体</family>
+          <pointsize>10</pointsize>
+         </font>
+        </property>
         <widget class="QRadioButton" name="groupModeRadioButton">
          <property name="geometry">
           <rect>
@@ -369,6 +512,12 @@
            <width>51</width>
            <height>16</height>
           </rect>
+         </property>
+         <property name="font">
+          <font>
+           <family>宋体</family>
+           <pointsize>10</pointsize>
+          </font>
          </property>
          <property name="text">
           <string>群聊</string>
@@ -383,6 +532,12 @@
            <height>16</height>
           </rect>
          </property>
+         <property name="font">
+          <font>
+           <family>宋体</family>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
          <property name="text">
           <string>私聊</string>
          </property>
@@ -396,6 +551,12 @@
        <widget class="QCheckBox" name="usePttCheckBox">
         <property name="enabled">
          <bool>true</bool>
+        </property>
+        <property name="font">
+         <font>
+          <family>宋体</family>
+          <pointsize>10</pointsize>
+         </font>
         </property>
         <property name="text">
          <string/>
@@ -413,6 +574,12 @@
         <property name="enabled">
          <bool>false</bool>
         </property>
+        <property name="font">
+         <font>
+          <family>宋体</family>
+          <pointsize>10</pointsize>
+         </font>
+        </property>
         <property name="text">
          <string/>
         </property>
@@ -429,6 +596,12 @@
         <property name="enabled">
          <bool>false</bool>
         </property>
+        <property name="font">
+         <font>
+          <family>宋体</family>
+          <pointsize>10</pointsize>
+         </font>
+        </property>
         <property name="text">
          <string/>
         </property>
@@ -442,6 +615,12 @@
       </item>
       <item row="8" column="1" colspan="3">
        <widget class="QLabel" name="label_9">
+        <property name="font">
+         <font>
+          <family>宋体</family>
+          <pointsize>10</pointsize>
+         </font>
+        </property>
         <property name="text">
          <string>语音文件</string>
         </property>
@@ -449,6 +628,12 @@
       </item>
       <item row="11" column="1" colspan="3">
        <widget class="QLabel" name="label_11">
+        <property name="font">
+         <font>
+          <family>宋体</family>
+          <pointsize>10</pointsize>
+         </font>
+        </property>
         <property name="text">
          <string>大表情 即单独发QQ表情出来的大表情</string>
         </property>
@@ -458,6 +643,12 @@
        <widget class="QCheckBox" name="checkBox_10">
         <property name="enabled">
          <bool>false</bool>
+        </property>
+        <property name="font">
+         <font>
+          <family>宋体</family>
+          <pointsize>10</pointsize>
+         </font>
         </property>
         <property name="text">
          <string/>
@@ -477,7 +668,8 @@
         </property>
         <property name="font">
          <font>
-          <pointsize>9</pointsize>
+          <family>宋体</family>
+          <pointsize>10</pointsize>
          </font>
         </property>
         <property name="text">
@@ -487,6 +679,12 @@
       </item>
       <item row="10" column="1" colspan="3">
        <widget class="QLabel" name="label_21">
+        <property name="font">
+         <font>
+          <family>宋体</family>
+          <pointsize>10</pointsize>
+         </font>
+        </property>
         <property name="text">
          <string>视频文件</string>
         </property>
@@ -502,9 +700,15 @@
       <rect>
        <x>10</x>
        <y>40</y>
-       <width>371</width>
+       <width>381</width>
        <height>61</height>
       </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>宋体</family>
+       <pointsize>10</pointsize>
+      </font>
      </property>
      <widget class="QWidget" name="gridLayoutWidget">
       <property name="geometry">
@@ -512,8 +716,14 @@
         <x>0</x>
         <y>0</y>
         <width>371</width>
-        <height>51</height>
+        <height>54</height>
        </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>宋体</family>
+        <pointsize>10</pointsize>
+       </font>
       </property>
       <layout class="QGridLayout" name="gridLayout">
        <item row="0" column="2">
@@ -523,7 +733,8 @@
          </property>
          <property name="font">
           <font>
-           <pointsize>9</pointsize>
+           <family>宋体</family>
+           <pointsize>10</pointsize>
           </font>
          </property>
          <property name="text">
@@ -535,11 +746,13 @@
         <widget class="QLabel" name="label_1">
          <property name="font">
           <font>
-           <pointsize>9</pointsize>
+           <family>宋体</family>
+           <pointsize>10</pointsize>
           </font>
          </property>
          <property name="text">
-          <string>com.tencent.mobileqq文件夹</string>
+          <string>com.tencent.mobileqq
+文件夹</string>
          </property>
         </widget>
        </item>
@@ -548,10 +761,22 @@
          <property name="enabled">
           <bool>true</bool>
          </property>
+         <property name="font">
+          <font>
+           <family>宋体</family>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
         </widget>
        </item>
        <item row="1" column="0" colspan="2">
         <widget class="QCheckBox" name="useSlowtableCheckBox2">
+         <property name="font">
+          <font>
+           <family>宋体</family>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
          <property name="text">
           <string>解析两个月以前的聊天记录</string>
          </property>
@@ -578,21 +803,34 @@
        <height>191</height>
       </rect>
      </property>
+     <property name="font">
+      <font>
+       <family>宋体</family>
+       <pointsize>10</pointsize>
+      </font>
+     </property>
      <widget class="QWidget" name="gridLayoutWidget_2">
       <property name="geometry">
        <rect>
         <x>0</x>
         <y>0</y>
         <width>371</width>
-        <height>182</height>
+        <height>187</height>
        </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>宋体</family>
+        <pointsize>10</pointsize>
+       </font>
       </property>
       <layout class="QGridLayout" name="gridLayout_2">
        <item row="2" column="1">
         <widget class="QLabel" name="label_3">
          <property name="font">
           <font>
-           <pointsize>9</pointsize>
+           <family>宋体</family>
+           <pointsize>10</pointsize>
           </font>
          </property>
          <property name="text">
@@ -607,7 +845,8 @@
          </property>
          <property name="font">
           <font>
-           <pointsize>9</pointsize>
+           <family>宋体</family>
+           <pointsize>10</pointsize>
           </font>
          </property>
          <property name="text">
@@ -617,6 +856,12 @@
        </item>
        <item row="4" column="1" colspan="3">
         <widget class="QLabel" name="label_7">
+         <property name="font">
+          <font>
+           <family>宋体</family>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
          <property name="text">
           <string>解密秘钥（必填，就是你手机的IMEI）</string>
          </property>
@@ -626,6 +871,12 @@
         <widget class="QCheckBox" name="useSlowtableCheckBox">
          <property name="enabled">
           <bool>false</bool>
+         </property>
+         <property name="font">
+          <font>
+           <family>宋体</family>
+           <pointsize>10</pointsize>
+          </font>
          </property>
          <property name="text">
           <string/>
@@ -645,7 +896,8 @@
          </property>
          <property name="font">
           <font>
-           <pointsize>9</pointsize>
+           <family>宋体</family>
+           <pointsize>10</pointsize>
           </font>
          </property>
          <property name="text">
@@ -657,7 +909,8 @@
         <widget class="QPushButton" name="qqDbPathSelectButton">
          <property name="font">
           <font>
-           <pointsize>9</pointsize>
+           <family>宋体</family>
+           <pointsize>10</pointsize>
           </font>
          </property>
          <property name="text">
@@ -669,6 +922,12 @@
         <widget class="QCheckBox" name="checkBox">
          <property name="enabled">
           <bool>false</bool>
+         </property>
+         <property name="font">
+          <font>
+           <family>宋体</family>
+           <pointsize>10</pointsize>
+          </font>
          </property>
          <property name="text">
           <string/>
@@ -686,16 +945,30 @@
          <property name="enabled">
           <bool>false</bool>
          </property>
+         <property name="font">
+          <font>
+           <family>宋体</family>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
         </widget>
        </item>
        <item row="0" column="2">
-        <widget class="QLineEdit" name="qqDbPathInputBox"/>
+        <widget class="QLineEdit" name="qqDbPathInputBox">
+         <property name="font">
+          <font>
+           <family>宋体</family>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
+        </widget>
        </item>
        <item row="0" column="1">
         <widget class="QLabel" name="label_2">
          <property name="font">
           <font>
-           <pointsize>9</pointsize>
+           <family>宋体</family>
+           <pointsize>10</pointsize>
           </font>
          </property>
          <property name="text">
@@ -705,6 +978,12 @@
        </item>
        <item row="5" column="1" rowspan="2">
         <widget class="QWidget" name="kcModeSelectContainer" native="true">
+         <property name="font">
+          <font>
+           <family>宋体</family>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
          <widget class="QRadioButton" name="kcInputModeRadioButton1">
           <property name="geometry">
            <rect>
@@ -713,6 +992,12 @@
             <width>107</width>
             <height>16</height>
            </rect>
+          </property>
+          <property name="font">
+           <font>
+            <family>宋体</family>
+            <pointsize>10</pointsize>
+           </font>
           </property>
           <property name="mouseTracking">
            <bool>true</bool>
@@ -733,6 +1018,12 @@
             <height>16</height>
            </rect>
           </property>
+          <property name="font">
+           <font>
+            <family>宋体</family>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
           <property name="mouseTracking">
            <bool>true</bool>
           </property>
@@ -747,12 +1038,24 @@
          <property name="enabled">
           <bool>false</bool>
          </property>
+         <property name="font">
+          <font>
+           <family>宋体</family>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
         </widget>
        </item>
        <item row="4" column="0">
         <widget class="QCheckBox" name="checkBox_4">
          <property name="enabled">
           <bool>false</bool>
+         </property>
+         <property name="font">
+          <font>
+           <family>宋体</family>
+           <pointsize>10</pointsize>
+          </font>
          </property>
          <property name="text">
           <string/>
@@ -766,10 +1069,23 @@
         </widget>
        </item>
        <item row="5" column="2" colspan="2">
-        <widget class="QLineEdit" name="kcInputBox"/>
+        <widget class="QLineEdit" name="kcInputBox">
+         <property name="font">
+          <font>
+           <family>宋体</family>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
+        </widget>
        </item>
        <item row="1" column="1" colspan="3">
         <widget class="QLabel" name="label_5">
+         <property name="font">
+          <font>
+           <family>宋体</family>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
          <property name="text">
           <string>两个月以内的聊天记录</string>
          </property>
@@ -777,6 +1093,12 @@
        </item>
        <item row="3" column="1" colspan="3">
         <widget class="QLabel" name="label_4">
+         <property name="font">
+          <font>
+           <family>宋体</family>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
          <property name="text">
           <string>两个月以前的聊天记录</string>
          </property>
@@ -789,21 +1111,33 @@
    <widget class="QTextBrowser" name="logBox">
     <property name="geometry">
      <rect>
-      <x>400</x>
+      <x>620</x>
       <y>10</y>
       <width>281</width>
       <height>591</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <family>宋体</family>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
    </widget>
    <widget class="QPushButton" name="starButton">
     <property name="geometry">
      <rect>
-      <x>570</x>
-      <y>650</y>
-      <width>121</width>
-      <height>41</height>
+      <x>730</x>
+      <y>670</y>
+      <width>171</width>
+      <height>61</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>宋体</family>
+      <pointsize>10</pointsize>
+     </font>
     </property>
     <property name="styleSheet">
      <string notr="true">QPushButton {
@@ -817,11 +1151,17 @@
    <widget class="QLabel" name="label_6">
     <property name="geometry">
      <rect>
-      <x>260</x>
-      <y>670</y>
+      <x>280</x>
+      <y>700</y>
       <width>181</width>
       <height>21</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>宋体</family>
+      <pointsize>10</pointsize>
+     </font>
     </property>
     <property name="text">
      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt;by xxxx  v1.0.0&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -831,14 +1171,152 @@
     <property name="geometry">
      <rect>
       <x>0</x>
-      <y>630</y>
+      <y>670</y>
       <width>241</width>
       <height>61</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <family>宋体</family>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
     <property name="text">
      <string>开始解析</string>
     </property>
+   </widget>
+   <widget class="QGroupBox" name="generatePDFConfainer">
+    <property name="geometry">
+     <rect>
+      <x>400</x>
+      <y>10</y>
+      <width>211</width>
+      <height>241</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>宋体</family>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
+    <property name="title">
+     <string>生成PDF</string>
+    </property>
+    <widget class="QLabel" name="label">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>20</y>
+       <width>191</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>宋体</family>
+       <pointsize>10</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>1.填写output/senders/
+senders.json</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="downLoadAvatarButton">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>60</y>
+       <width>75</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>宋体</family>
+       <pointsize>10</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>下载头像</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_22">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>80</y>
+       <width>201</width>
+       <height>91</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>2.将configs/GeneratePDF_
+ReportLab_config_example.ini
+复制为configs/GeneratePDF_
+ReportLab_confige.ini
+并修改生成的样式设置并保存</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="copyPDFconfigButton">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>170</y>
+       <width>75</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>宋体</family>
+       <pointsize>10</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>复制并打开</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="startGeneratePDF">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>200</y>
+       <width>181</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>宋体</family>
+       <pointsize>10</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>开始生成</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="openSendersJsonButton">
+     <property name="geometry">
+      <rect>
+       <x>100</x>
+       <y>60</y>
+       <width>75</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>宋体</family>
+       <pointsize>10</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>打开文件</string>
+     </property>
+    </widget>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -846,7 +1324,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>693</width>
+     <width>909</width>
      <height>23</height>
     </rect>
    </property>

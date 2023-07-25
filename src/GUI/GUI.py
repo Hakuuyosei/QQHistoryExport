@@ -8,8 +8,11 @@ from src.avatarDownload import download
 from src.validateSettings import validateSettings
 
 import webbrowser
+import os
+import shutil
 
 # pyuic5 src/GUI/maininterface.ui -o src/GUI/maininterface.py
+# import src.GUI.res_rc
 class mainWindow():
     def __init__(self, window):
         super().__init__()
@@ -96,6 +99,13 @@ class mainWindow():
 
         self.ui.startParseButton.clicked.connect(self.start_parse)
 
+        self.ui.openSendersJsonButton.clicked.connect(
+            lambda: self.open_file("output/senders/senders.json"))
+        self.ui.copyPDFconfigButton.clicked.connect(self.copy_generatepdf_config)
+        self.ui.downLoadAvatarButton.clicked.connect(self.download_avatar)
+        self.ui.startGeneratePDF.clicked.connect(self.generate_pdf)
+
+
 
     def checkbox_changed(self, state, selected_enabled_group, selected_enabled_obj):
         """
@@ -154,6 +164,53 @@ class mainWindow():
         if path:
             textbox_obj.setText(path)
 
+    def open_file(self, path):
+        """
+        用系统软件打开文件
+        :param path:
+        :return:
+        """
+        if os.path.exists(path):
+            try:
+                if os.name == 'nt':  # Windows
+                    abs_path = os.path.abspath(path)
+                    os.startfile(abs_path)
+                else:
+                    self.log(f"你用的什么系统啊，自己去打开{path}吧\n")
+            except Exception as e:
+                self.log(f"打开{path}失败！{e} \n")
+
+        else:
+            self.log(f"{path}不存在！\n")
+
+    def copy_generatepdf_config(self):
+        source_file = "config/GeneratePDF_ReportLab_config_example.ini"
+        destination_file = "config/GeneratePDF_ReportLab_config.ini"
+        try:
+            shutil.copy(source_file, destination_file)
+            self.log(f"设置项复制成功\n")
+            self.open_file(destination_file)
+        except FileNotFoundError:
+            self.log(f"文件'{source_file}'未找到！\n")
+        except Exception as e:
+            self.log(f"文件复制失败{e}，请手动复制和打开\n")
+
+
+    def download_avatar(self):
+        self.log(f"头像开始下载……\n")
+        try:
+            download.avatarDownload()
+        except Exception as e:
+            self.log(f"头像下载失败{e}，请手动下载\n")
+        self.log(f"头像下载完成\n")
+
+    def generate_pdf(self):
+        try:
+            generateInit = GeneratePDF_ReportLab.GenerateInit()
+            generateInit.run()
+        except Exception as e:
+            self.log(f"生成PDF发生错误{e}\n")
+
 
     def open_git_url(self):
         """
@@ -202,14 +259,13 @@ class mainWindow():
 
     def start_parse(self):
         if self.ui.startParseButton.text() == "停止解析":
-            print(1234)
             if self.ERRCODE:
                 self.ERRCODE.parse_stop("用户停止解析")
 
         elif self.ui.startParseButton.text() == "开始解析":
-            print(1234333)
             self.ui.startParseButton.setText("停止解析")
             self.ui.parseConfigContainer.setEnabled(False)
+            self.ui.statusbar.showMessage("正在解析...")
             configs = self.read_control_values()
             print(configs)
 
@@ -227,8 +283,7 @@ class mainWindow():
 
             self.ui.startParseButton.setText("开始解析")
             self.ui.parseConfigContainer.setEnabled(True)
-
-
+            self.ui.statusbar.showMessage("解析停止")
 
 
 def gui_init():
