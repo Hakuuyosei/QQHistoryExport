@@ -104,7 +104,7 @@ class javaSerializedDataParsing():
             }
             if self.configs["needJavaDeser"] == False:
                 msgOutData["c"].insert(0, {"t": "uns",
-                                           "c": {"text": "[回复消息]"}
+                                           "c": {"text": "[回复消息]", "type": "text"}
                                            })
             elif self.configs["needJavaDeser"] == True:
 
@@ -139,7 +139,7 @@ class javaSerializedDataParsing():
                         # print(msgOutData)
                     else:
                         msgOutData["c"].insert(0, {"t": "uns",
-                                                   "c": {"text": "[回复消息]"}
+                                                   "c": {"text": "[回复消息]", "type": "text"}
                                                    })
                     print(msgOutData)
 
@@ -158,7 +158,7 @@ class javaSerializedDataParsing():
             if not self.configs["needJavaDeser"]:
                 msgOutData = {
                     "t": "uns",
-                    "c": {"text": "[文件]"}
+                    "c": {"text": "[文件]", "type": "media"}
                 }
             else:
                 err, jsonData = self.javaDeserializationToJson(msgData)
@@ -182,7 +182,7 @@ class javaSerializedDataParsing():
                         "c": file
                     }
                 else:
-                    msgOutData = {"t": "err", "c": {"text": "[文件]"}}
+                    msgOutData = {"t": "err", "c": {"text": "[文件]", "type": "media"}}
                 # print(msgOutData)
 
         # 转发的聊天记录，java序列化
@@ -215,7 +215,7 @@ class javaSerializedDataParsing():
             self.ERRCODE.parse_err("DIDNOT_PARSE_MSG", [msgType, msgData, extStr])
             msgOutData = {
                 "t": "uns",
-                "c": {"text": "[名片]"}
+                "c": {"text": "[名片]", "type": "media"}
             }
             return msgOutData
 
@@ -227,7 +227,7 @@ class javaSerializedDataParsing():
             self.ERRCODE.parse_err("DIDNOT_PARSE_MSG", [msgType, msgData, extStr])
             msgOutData = {
                 "t": "uns",
-                "c": {"text": "[红包]"}
+                "c": {"text": "[红包]", "type": "media"}
             }
             return msgOutData
 
@@ -238,7 +238,7 @@ class javaSerializedDataParsing():
             self.ERRCODE.parse_err("DIDNOT_PARSE_MSG", [msgType, msgData, extStr])
             msgOutData = {
                 "t": "uns",
-                "c": {"text": "[新人入群]"}
+                "c": {"text": "[新人入群]", "type": "media"}
             }
             return msgOutData
 

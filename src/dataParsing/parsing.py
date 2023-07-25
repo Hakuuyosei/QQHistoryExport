@@ -7,8 +7,6 @@ import shutil
 import commentjson
 
 
-
-
 from src.errcode import errcode
 from src.dataParsing.unserializedDataParsing import unserializedDataParsing
 from src.dataParsing.textParsing import textParsing
@@ -227,28 +225,40 @@ class QQParse:
         senders = {}
         if mode == "group":
             for uin in self.senderUins:
+                uin_get_flag = False
                 if uin == targetQQ:
                     continue
                     # 如果发送者等于群QQ号，可能是更改群名之类的
                 if targetQQ in groupMembers:
                     if uin in groupMembers[targetQQ]:
-                        name = groupMembers[targetQQ][uin][0]
-                        senders[uin] = [name, ""]
-                    else:
-                        senders[uin] = ["", ""]
-                        info = f"{uin}不在你的数据库中，一会需要你自己去填写昵称"
-                        self.ERRCODE.log("parse", self.ERRCODE.LOG_LEVEL_WARN, info)
-                else:
+                        if groupMembers[targetQQ][uin][0]:
+                            name = groupMembers[targetQQ][uin][0]
+                            senders[uin] = [name, ""]
+                            uin_get_flag = True
+                        elif groupMembers[targetQQ][uin][1]:
+                            name = groupMembers[targetQQ][uin][1]
+                            senders[uin] = [name, ""]
+                            uin_get_flag = True
+
+                if not uin_get_flag:
                     senders[uin] = ["", ""]
                     info = f"{uin}不在你的数据库中，一会需要你自己去填写昵称"
                     self.ERRCODE.log("parse", self.ERRCODE.LOG_LEVEL_WARN, info)
 
         elif mode == "friend":
             for uin in self.senderUins:
+                uin_get_flag = False
+
                 if uin in friends:
-                    name = friends[uin][1]
-                    senders[uin] = [name, ""]
-                else:
+                    if friends[uin][1]:
+                        name = friends[uin][1]
+                        senders[uin] = [name, ""]
+                        uin_get_flag = True
+                    elif friends[uin][0]:
+                        name = friends[uin][0]
+                        senders[uin] = [name, ""]
+                        uin_get_flag = True
+                if not uin_get_flag:
                     senders[uin] = ["", ""]
                     info = f"{uin}不在你的数据库中，一会需要你自己去填写昵称"
                     self.ERRCODE.log("parse", self.ERRCODE.LOG_LEVEL_WARN, info)
@@ -302,8 +312,8 @@ https://github.com/WhiteWingNightStar/QQHistoryExport上提issue，请附上outp
 
         else:
             msgOutData = {
-                "t": "uns",
-                "c": {"text": "[未知类型]"}
+                "t": "err",
+                "c": {"text": "[未知类型]", "type": "unknown"}
             }
             self.ERRCODE.parse_err("UNKNOWN_MSG_TYPE", [msgType, msgData, extStr])
             # with open("./11.bin", 'wb') as f:  # 二进制流写到.bin文件

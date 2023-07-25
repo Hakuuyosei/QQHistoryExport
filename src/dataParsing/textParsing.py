@@ -102,18 +102,18 @@ class textParsing():
                         msgOutData["c"]["index"] = index
                         msgList.append(msgOutData)
                     else:
-                        msgOutData = {"t": "err", "c": {"text": "[QQ表情]"}}
+                        msgOutData = {"t": "err", "c": {"text": "[QQ表情]", "type": "text"}}
                         self.ERRCODE.parse_err("EMOJI_NOT_EXIST", [self.configs["QQEmojiVer"], str(num)])
                         msgList.append(msgOutData)
 
                 else:
-                    msgOutData = {"t": "err", "c": {"text": "[QQ表情]"}}
+                    msgOutData = {"t": "err", "c": {"text": "[QQ表情]", "type": "text"}}
                     self.ERRCODE.parse_err("EMOJI_NOT_EXIST", [self.configs["QQEmojiVer"], str(num)])
                     msgList.append(msgOutData)
             else:
                 msgOutData = {
                     "t": "uns",
-                    "c": {"text": "[表情]"}
+                    "c": {"text": "[表情]", "type": "text"}
                 }
                 msgList.append(msgOutData)
 

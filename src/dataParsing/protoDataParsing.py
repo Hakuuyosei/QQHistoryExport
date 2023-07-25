@@ -110,7 +110,7 @@ class protoDataParsing():
         if self.configs["needImages"] == False:
             msgOutData = {
                 "t": "uns",
-                "c": {"text": "[图片]"}
+                "c": {"text": "[图片]", "type": "media"}
             }
             return msgOutData
         elif self.configs["needImages"] == True:
@@ -141,7 +141,7 @@ class protoDataParsing():
             except:
                 # protobuf反序列化失败
                 self.ERRCODE.parse_err("IMG_DESERIALIZATION_ERROR", [data])
-                msgOutData = {"t": "err", "c": {"text": "[图片]"}}
+                msgOutData = {"t": "err", "c": {"text": "[图片]", "type": "media"}}
                 return msgOutData
 
             try:
@@ -149,7 +149,7 @@ class protoDataParsing():
 
                 # 判断文件是否存在
                 if not os.path.exists(relpath):
-                    msgOutData = {"t": "err", "c": {"text": "[图片]"}}
+                    msgOutData = {"t": "err", "c": {"text": "[图片]", "type": "media"}}
                     self.ERRCODE.parse_err("IMG_NOT_EXIST", [relpath])
                     return msgOutData
 
@@ -167,7 +167,7 @@ class protoDataParsing():
                 # 确定图片类型并添加后缀名
                 img_type = imghdr.what(relpath)
                 if img_type is None:
-                    msgOutData = {"t": "err", "c": {"text": "[图片]"}}
+                    msgOutData = {"t": "err", "c": {"text": "[图片]", "type": "media"}}
                     self.ERRCODE.parse_err("IMG_UNKNOWN_TYPE_ERROR", [imgPath])
                     return msgOutData
 
@@ -179,7 +179,7 @@ class protoDataParsing():
                 try:
                     shutil.copy(relpath, new_file_path)
                 except:
-                    msgOutData = {"t": "err", "c": {"text": "[图片]"}}
+                    msgOutData = {"t": "err", "c": {"text": "[图片]", "type": "media"}}
                     self.ERRCODE.parse_err("IO_ERROR", [relpath, new_file_path])
                     return msgOutData
 
@@ -190,7 +190,7 @@ class protoDataParsing():
                 msgOutData["c"]["name"] = new_filename
                 return msgOutData
             except OSError:
-                msgOutData = {"t": "err", "c": {"text": "[图片]"}}
+                msgOutData = {"t": "err", "c": {"text": "[图片]", "type": "media"}}
                 self.ERRCODE.parse_err("IO_ERROR", [traceback.format_exc()])
                 return msgOutData
 
@@ -226,7 +226,7 @@ class protoDataParsing():
         if self.configs["needVoice"] == False:
             msgOutData = {
                 "t": "uns",
-                "c": {"text": "[语音]"}
+                "c": {"text": "[语音]", "type": "media"}
             }
         elif self.configs["needVoice"] == True:
             msgOutData = {
@@ -241,7 +241,7 @@ class protoDataParsing():
                 # print(file_path, voice_length)
             except:
                 self.ERRCODE.parse_err("VOICE_DESERIALIZATION_ERROR", [data])
-                msgOutData = {"t": "err", "c": {"text": "[语音]"}}
+                msgOutData = {"t": "err", "c": {"text": "[语音]", "type": "media"}}
                 return msgOutData
 
 
@@ -250,7 +250,7 @@ class protoDataParsing():
             match = re.search(pattern, file_path)
             if not match:
                 self.ERRCODE.parse_err("VOICE_UNKNOWN_PATH_FORMAT", [file_path])
-                msgOutData = {"t": "err", "c": {"text": "[语音]"}}
+                msgOutData = {"t": "err", "c": {"text": "[语音]", "type": "media"}}
                 return msgOutData
 
             relpath = self.configs["voicePath"] + "\\" + match.group(1)
@@ -261,7 +261,7 @@ class protoDataParsing():
                 relpath = relpath + ".slk"
             else:
                 self.ERRCODE.parse_err("VOICE_NOT_EXIST", [relpath, file_path])
-                msgOutData = {"t": "err", "c": {"text": "[语音]"}}
+                msgOutData = {"t": "err", "c": {"text": "[语音]", "type": "media"}}
                 return msgOutData
 
             try:
@@ -271,7 +271,7 @@ class protoDataParsing():
 
             except:
                 self.ERRCODE.parse_err("IO_ERROR", [relpath])
-                msgOutData = {"t": "err", "c": {"text": "[语音]"}}
+                msgOutData = {"t": "err", "c": {"text": "[语音]", "type": "media"}}
                 return msgOutData
 
             cmd_list = []
@@ -297,7 +297,7 @@ class protoDataParsing():
                 cmd_list.append(f"lib\\ffmpeg-lgpl\\ffmpeg.exe -i {relpath} {new_file_path}")
             else:
                 self.ERRCODE.parse_err("VOICE_UNKNOWN_FILEHEADER", [file_path, binascii.hexlify(file_header).decode('utf-8')])
-                msgOutData = {"t": "err", "c": {"text": "[语音]"}}
+                msgOutData = {"t": "err", "c": {"text": "[语音]", "type": "media"}}
                 return msgOutData
 
             try:
@@ -308,14 +308,14 @@ class protoDataParsing():
                 if os.path.exists(temp_path):
                     os.remove(temp_path)
                 self.ERRCODE.parse_err("VOICE_CONVERT_ERROR", [relpath, 1])
-                msgOutData = {"t": "err", "c": {"text": "[语音]"}}
+                msgOutData = {"t": "err", "c": {"text": "[语音]", "type": "media"}}
                 return msgOutData
 
             if not os.path.exists(new_file_path):
                 if os.path.exists(temp_path):
                     os.remove(temp_path)
                 self.ERRCODE.parse_err("VOICE_CONVERT_ERROR", [relpath])
-                msgOutData = {"t": "err", "c": {"text": "[语音]"}}
+                msgOutData = {"t": "err", "c": {"text": "[语音]", "type": "media"}}
                 return msgOutData
 
             if os.path.exists(temp_path):
@@ -336,7 +336,7 @@ class protoDataParsing():
         if self.configs["needVideo"] == False:
             msgOutData = {
                 "t": "uns",
-                "c": {"text": "[视频]"}
+                "c": {"text": "[视频]", "type": "media"}
             }
         elif self.configs["needVideo"] == True:
             msgOutData = {
@@ -352,21 +352,21 @@ class protoDataParsing():
                 # print(f"消息类型: {message_type}")
             except:
                 self.ERRCODE.parse_err("VIDEO_DESERIALIZATION_ERROR", [data])
-                msgOutData = {"t": "err", "c": {"text": "[视频]"}}
+                msgOutData = {"t": "err", "c": {"text": "[视频]", "type": "media"}}
                 return msgOutData
 
             pattern = r'/([A-F0-9]{32})/'
             match = re.search(pattern, filePath)
             if not match:
                 self.ERRCODE.parse_err("VIDEO_UNKNOWN_PATH_FORMAT", [filePath])
-                msgOutData = {"t": "err", "c": {"text": "[视频]"}}
+                msgOutData = {"t": "err", "c": {"text": "[视频]", "type": "media"}}
                 return msgOutData
 
             # 判断文件是否存在
             relpath = self.configs["videoPath"] + "\\" + match.group(1)
             if not os.path.exists(relpath):
                 self.ERRCODE.parse_err("VIDEO_NOT_EXIST", [relpath])
-                msgOutData = {"t": "err", "c": {"text": "[视频]"}}
+                msgOutData = {"t": "err", "c": {"text": "[视频]", "type": "media"}}
                 return msgOutData
 
             file_count = 0
@@ -379,11 +379,11 @@ class protoDataParsing():
 
             if file_count == 0:
                 self.ERRCODE.parse_err("VIDEO_NOT_EXIST", [relpath, file_count])
-                msgOutData = {"t": "err", "c": {"text": "[视频]"}}
+                msgOutData = {"t": "err", "c": {"text": "[视频]", "type": "media"}}
                 return msgOutData
             elif file_count > 1:
                 self.ERRCODE.parse_err("VIDEO_NOT_EXIST", [relpath, file_count])
-                msgOutData = {"t": "err", "c": {"text": "[视频]"}}
+                msgOutData = {"t": "err", "c": {"text": "[视频]", "type": "media"}}
                 return msgOutData
 
             _, file_extension = os.path.splitext(found_file)
@@ -397,7 +397,7 @@ class protoDataParsing():
                 shutil.copy(found_file, new_file_path)
             except:
                 self.ERRCODE.parse_err("IO_ERROR", [found_file, new_file_path])
-                msgOutData = {"t": "err", "c": {"text": "[视频]"}}
+                msgOutData = {"t": "err", "c": {"text": "[视频]", "type": "media"}}
                 return msgOutData
 
             msgOutData["c"]["path"] = new_file_path
@@ -419,7 +419,7 @@ class protoDataParsing():
         # 图片类型
         if msgType == -2000:
             msgOutData = self.decodePic(msgData)
-            print(extStr)
+            # print(extStr)
 
 
         # 图文混排
@@ -431,7 +431,7 @@ class protoDataParsing():
                     "c": msgDeseData
                 }
             else:
-                msgOutData = {"t": "err", "c": {"text": "[混合消息]"}}
+                msgOutData = {"t": "err", "c": {"text": "[混合消息]", "type": "text"}}
 
 
         # 语音
@@ -450,7 +450,7 @@ class protoDataParsing():
             if self.configs["needMarketFace"] == False:
                 msgOutData = {
                     "t": "uns",
-                    "c": {"text": "[大表情]"}
+                    "c": {"text": "[大表情]", "type": "media"}
                 }
             elif self.configs["needMarketFace"] == True:
                 try:
@@ -463,7 +463,7 @@ class protoDataParsing():
                         "c": {"path": msgDeseData, "name": marketFaceName, "type": "marketface"}
                     }
                 except:
-                    msgOutData = {"t": "err", "c": {"text": "[大表情]"}}
+                    msgOutData = {"t": "err", "c": {"text": "[大表情]", "type": "media"}}
                     self.ERRCODE.parse_err("MARKETFACE_DESERIALIZATION_ERROR", [msgType, msgData])
 
 
@@ -497,7 +497,7 @@ class protoDataParsing():
                     self.ERRCODE.parse_err("DIDNOT_PARSE_MSG", [msgType, msgData, extStr])
                     msgOutData = {
                         "t": "uns",
-                        "c": {"text": "[提示消息]"}
+                        "c": {"text": "[提示消息]", "type": "tip"}
                     }
 
             # 被邀请进入群聊
