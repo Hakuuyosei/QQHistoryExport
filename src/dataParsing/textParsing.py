@@ -51,8 +51,7 @@ class textParsing():
         if pos == -1:
             msgOutData = {
                 "t": "m",
-                "c": {"m": msg},
-                "e": {}
+                "c": {"m": msg}
             }
             msgList.append(msgOutData)
             return msgList
@@ -63,16 +62,14 @@ class textParsing():
                 if msg[lastpos + 2:] != "":
                     msgOutData = {
                         "t": "m",
-                        "c": {"m": msg[lastpos + 2:]},
-                        "e": {}
+                        "c": {"m": msg[lastpos + 2:]}
                     }
                     msgList.append(msgOutData)
                 break
 
             msgOutData = {
                 "t": "m",
-                "c": {"m": msg[lastpos + 2:pos]},
-                "e": {}
+                "c": {"m": msg[lastpos + 2:pos]}
             }
             msgList.append(msgOutData)
             num = ord(msg[pos + 1])
@@ -80,8 +77,7 @@ class textParsing():
             if self.configs["needQQEmoji"]:
                 msgOutData = {
                     "t": "qqemoji",
-                    "c": {"path": "", "index": ""},
-                    "e": {}
+                    "c": {"path": "", "index": ""}
                 }
 
                 if str(num) in self.emoji_map:
@@ -106,17 +102,18 @@ class textParsing():
                         msgOutData["c"]["index"] = index
                         msgList.append(msgOutData)
                     else:
-                        msgOutData["e"] = self.ERRCODE.parse_err("EMOJI_NOT_EXIST", [self.configs["QQEmojiVer"], str(num)])
+                        msgOutData = {"t": "err", "c": {"text": "[QQ表情]"}}
+                        self.ERRCODE.parse_err("EMOJI_NOT_EXIST", [self.configs["QQEmojiVer"], str(num)])
                         msgList.append(msgOutData)
 
                 else:
-                    msgOutData["e"] = self.ERRCODE.parse_err("EMOJI_NOT_EXIST", [self.configs["QQEmojiVer"], str(num)])
+                    msgOutData = {"t": "err", "c": {"text": "[QQ表情]"}}
+                    self.ERRCODE.parse_err("EMOJI_NOT_EXIST", [self.configs["QQEmojiVer"], str(num)])
                     msgList.append(msgOutData)
             else:
                 msgOutData = {
                     "t": "uns",
-                    "c": {"text": "[表情]"},
-                    "e": {}
+                    "c": {"text": "[表情]"}
                 }
                 msgList.append(msgOutData)
 

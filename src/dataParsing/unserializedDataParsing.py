@@ -45,8 +45,7 @@ class unserializedDataParsing():
         if msgType == -1000 or msgType == -1051:
             msgOutData = {
                 "t": "msg",
-                "c": self.textParsing.parse(msgData.decode("utf-8")),
-                "e": {}
+                "c": self.textParsing.parse(msgData.decode("utf-8"))
             }
             # print(msgOutData)
             # print(extStr)
@@ -61,10 +60,9 @@ class unserializedDataParsing():
             }
             msgOutData = {
                 "t": "tip",
-                "c": {"text": msgDecodedData, "type": "join_group", "ext": items},
-                "e": {}
+                "c": {"text": msgDecodedData, "type": "join_group", "ext": items}
             }
-            print(extStr)
+            # print(extStr)
 
         # 邀请Q群管家
         elif msgType == -2042:
@@ -79,8 +77,7 @@ class unserializedDataParsing():
             }
             msgOutData = {
                 "t": "tip",
-                "c": {"text": msgDecodedData, "type": "qbot_join_group", "ext": items},
-                "e": {}
+                "c": {"text": msgDecodedData, "type": "qbot_join_group", "ext": items}
             }
 
 
@@ -102,26 +99,24 @@ class unserializedDataParsing():
                 "size": fileSize
             }
             extStrJson = json.loads(extStr)
-            if "file_pic_width" in extStrJson.keys():
-                if int(extStrJson["file_pic_width"]) > 0:
-                    # 文件形式的图片
-                    msgOutData = {
-                        "t": "fileimg",
-                        "c": filePath,
-                        "e": {}
-                    }
-                else:
-                    msgOutData = {
-                        "t": "file",
-                        "c": file,
-                        "e": {}
-                    }
-            else:
-                msgOutData = {
-                    "t": "file",
-                    "c": file,
-                    "e": {}
-                }
+            # if "file_pic_width" in extStrJson.keys():
+            #     if int(extStrJson["file_pic_width"]) > 0:
+            #         # 文件形式的图片
+            #
+            #         msgOutData = {
+            #             "t": "file",
+            #             "c": file
+            #         }
+            #     else:
+            #         msgOutData = {
+            #             "t": "file",
+            #             "c": file
+            #         }
+            # else:
+            msgOutData = {
+                "t": "file",
+                "c": file
+            }
             # print(fileData, extStr)
 
         elif msgType == -3008:  # 未被接收的文件，内容为文件名
@@ -132,36 +127,32 @@ class unserializedDataParsing():
             }
             msgOutData = {
                 "t": "file",
-                "c": file,
-                "e": {}
+                "c": file
             }
-            print(extStr)
+            # print(extStr)
 
         elif msgType == -2016:  # 群语音通话发起
             msgDecodedData = msgData.decode("utf-8")
             msgDataText = msgDecodedData.split("|")
-            print(extStr)
+            # print(extStr)
             msgOutData = {
                 "t": "call",
-                "c": {"text": msgDecodedData, "type": "group_call_start"},
-                "e": {}
+                "c": {"text": msgDecodedData, "type": "group_call_start"}
             }
 
         elif msgType == -4008:  # 群语音通话结束
             msgDataAlreadyDecode = msgData.decode("utf-8")
-            print(extStr)
+            # print(extStr)
             msgOutData = {
                 "t": "call",
-                "c": {"text": msgDataAlreadyDecode, "type": "group_call_end"},
-                "e": {}
+                "c": {"text": msgDataAlreadyDecode, "type": "group_call_end"}
             }
 
         elif msgType == -1013:  # 你已经和xxx成为好友，现在可以开始聊天了。
             msgDataAlreadyDecode = msgData.decode("utf-8")
             msgOutData = {
                 "t": "tip",
-                "c": {"text": msgDataAlreadyDecode, "type": "new_friend", "ext": {}},
-                "e": {}
+                "c": {"text": msgDataAlreadyDecode, "type": "new_friend", "ext": {}}
             }
 
             print(msgDataAlreadyDecode)
@@ -171,8 +162,7 @@ class unserializedDataParsing():
             msgDataAlreadyDecode = self.c2cCallParse(msgData)
             msgOutData = {
                 "t": "tip",
-                "c": {"text": msgDataAlreadyDecode, "type": "friend_call"},
-                "e": {}
+                "c": {"text": msgDataAlreadyDecode, "type": "friend_call"}
             }
 
         # 私聊语音通话异常
@@ -180,8 +170,7 @@ class unserializedDataParsing():
             msgDataAlreadyDecode = self.c2cCallParse(msgData)
             msgOutData = {
                 "t": "call",
-                "c": {"text": msgDataAlreadyDecode, "type": "friend_call_err"},
-                "e": {}
+                "c": {"text": msgDataAlreadyDecode, "type": "friend_call_err"}
             }
 
         # 戳一戳
@@ -191,8 +180,7 @@ class unserializedDataParsing():
             msgText = msgDataAlreadyDecode["msg"]
             msgOutData = {
                 "t": "nudge",
-                "c": {"text": msgText},
-                "e": {}
+                "c": {"text": msgText}
             }
 
         # 戳一戳
@@ -202,8 +190,7 @@ class unserializedDataParsing():
             msgSummary = msgDataAlreadyDecode["summary"]
             msgOutData = {
                 "t": "nudge",
-                "c": {"text": msgText},
-                "e": {}
+                "c": {"text": msgText}
             }
 
 

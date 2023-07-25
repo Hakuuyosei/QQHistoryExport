@@ -49,17 +49,19 @@ class javaSerializedDataParsing():
             # TODO: 超时处理
             response = self.java_deser_proc.stdout.readline()
             if not response:
-                return self.ERRCODE.parse_err("JAVA_DESER_PROC_ERR", ["No Response", input_data]), None
+                self.ERRCODE.parse_err("JAVA_DESER_PROC_ERR", ["No Response", input_data])
+                return False, None
         except Exception as e:
-            return self.ERRCODE.parse_err("JAVA_DESER_PROC_ERR", [e, input_data]), None
-        return {}, response
+            self.ERRCODE.parse_err("JAVA_DESER_PROC_ERR", [e, input_data])
+            return False, None
+        return True, response
 
 
     def javaDeserializationToJson(self, data):
         """java序列化转json
 
         :param data: java序列化数据，bytes或者str（形如ACED00...）
-        :return: 错误码，json
+        :return: state，json
         """
         dataStr = ""
         if type(data) == bytes:
@@ -67,17 +69,19 @@ class javaSerializedDataParsing():
         elif type(data) == str:
             dataStr = data
         else:
-            return self.ERRCODE.parse_err("JAVA_DESER_ERR_INPUT_TYPE", [str(data), str(type(data))]), None
+            self.ERRCODE.parse_err("JAVA_DESER_ERR_INPUT_TYPE", [str(data), str(type(data))])
+            return True, None
 
-        deser_err_code, deser_out_data = self.proc_java_deser(dataStr)
-        if deser_out_data:
+        state, deser_out_data = self.proc_java_deser(dataStr)
+        if state:
             try:
                 jsonData = json.loads(deser_out_data)
-                return {}, jsonData
+                return True, jsonData
             except Exception as e:
-                return self.ERRCODE.parse_err("JAVA_DESER_JSON_ERR_DECODE", [dataStr, e]), None
+                self.ERRCODE.parse_err("JAVA_DESER_JSON_ERR_DECODE", [dataStr, e])
+                return False, None
         else:
-            return deser_err_code, None
+            return False, None
 
 
 
@@ -96,13 +100,11 @@ class javaSerializedDataParsing():
         if msgType == -1049:
             msgOutData = {
                 "t": "msg",
-                "c": self.textParsing.parse(msgData.decode("utf-8")),
-                "e": {}
+                "c": self.textParsing.parse(msgData.decode("utf-8"))
             }
             if self.configs["needJavaDeser"] == False:
                 msgOutData["c"].insert(0, {"t": "uns",
-                                           "c": {"text": "[回复消息]"},
-                                           "e": {}
+                                           "c": {"text": "[回复消息]"}
                                            })
             elif self.configs["needJavaDeser"] == True:
 
@@ -110,7 +112,8 @@ class javaSerializedDataParsing():
                     # print(extStr)
                     extStrJson = json.loads(extStr)
                 except json.JSONDecodeError as e:
-                    return self.ERRCODE.parse_err("EXTSTR_JSON_ERR_DECODE", []), None
+                    self.ERRCODE.parse_err("EXTSTR_JSON_ERR_DECODE", [e, extStr])
+                    return msgOutData
 
                 if extStrJson:
                     # start_time = time.time()
@@ -121,20 +124,20 @@ class javaSerializedDataParsing():
                     # end_time = time.time()
                     # run_time = end_time - start_time
                     # print(f"程序运行时间为{run_time:.6f}秒")
-                    if jsonData:
-                        mSourceMsgText = jsonData["mSourceMsgText"]
-                        mSourceMsgSenderUin = jsonData["mSourceMsgSenderUin"]
-                        mSourceMsgTime = jsonData["mSourceMsgTime"]
-                        replyData = {
-                            "sourceMsgText": mSourceMsgText,
-                            "sourceMsgSenderUin": mSourceMsgSenderUin,
-                            "sourceMsgTime": mSourceMsgTime
-                        }
-                        msgOutData["c"].insert(0, {"t": "reply",
-                                             "c": replyData,
-                                             "e": err
-                                             })
-                        # print(msgOutData)
+                    if not err:
+                        if jsonData:
+                            mSourceMsgText = jsonData["mSourceMsgText"]
+                            mSourceMsgSenderUin = jsonData["mSourceMsgSenderUin"]
+                            mSourceMsgTime = jsonData["mSourceMsgTime"]
+                            replyData = {
+                                "sourceMsgText": mSourceMsgText,
+                                "sourceMsgSenderUin": mSourceMsgSenderUin,
+                                "sourceMsgTime": mSourceMsgTime
+                            }
+                            msgOutData["c"].insert(0, {"t": "reply",
+                                                 "c": replyData
+                                                 })
+                            # print(msgOutData)
 
                     # HACK
                     # (目前已弃用)
@@ -151,30 +154,31 @@ class javaSerializedDataParsing():
             if not self.configs["needJavaDeser"]:
                 msgOutData = {
                     "t": "uns",
-                    "c": {"text":"[文件]"},
-                    "e": {}
+                    "c": {"text": "[文件]"}
                 }
             else:
                 err, jsonData = self.javaDeserializationToJson(msgData)
+                if not err:
 
-                fileName = ""
-                filePath = ""
-                fileSize = ""
-                if jsonData:
-                    fileName = jsonData["fileName"]
-                    fileSize = jsonData["lfileSize"]
+                    fileName = ""
+                    filePath = ""
+                    fileSize = ""
+                    if jsonData:
+                        fileName = jsonData["fileName"]
+                        fileSize = jsonData["lfileSize"]
 
-                file = {
-                    "received": False,
-                    "name": fileName,
-                    "path": filePath,
-                    "size": fileSize
-                }
-                msgOutData = {
-                    "t": "file",
-                    "c": file,
-                    "e": err
-                }
+                    file = {
+                        "received": False,
+                        "name": fileName,
+                        "path": filePath,
+                        "size": fileSize
+                    }
+                    msgOutData = {
+                        "t": "file",
+                        "c": file
+                    }
+                else:
+                    msgOutData = {"t": "err", "c": {"text": "[文件]"}}
                 # print(msgOutData)
 
         # 转发的聊天记录，java序列化
@@ -203,18 +207,35 @@ class javaSerializedDataParsing():
 
         # 推荐名片
         elif msgType == -2007:
-            print(-2007, binascii.hexlify(msgData).decode())
-            return
+            # print(-2007, binascii.hexlify(msgData).decode())
+            self.ERRCODE.parse_err("DIDNOT_PARSE_MSG", [msgType, msgData, extStr])
+            msgOutData = {
+                "t": "uns",
+                "c": {"text": "[名片]"}
+            }
+            return msgOutData
+
+
 
         # 红包
         elif msgType == -2025:
-            print(-2025, binascii.hexlify(msgData).decode())
-            return
+            # print(-2025, binascii.hexlify(msgData).decode())
+            self.ERRCODE.parse_err("DIDNOT_PARSE_MSG", [msgType, msgData, extStr])
+            msgOutData = {
+                "t": "uns",
+                "c": {"text": "[红包]"}
+            }
+            return msgOutData
 
         # 新人入群 java + unknown
         elif msgType == -2059:
             # print(binascii.hexlify(msgData).decode())
             # jd.javaDeserialization(binascii.hexlify(msgData).decode(), "111")
-            return
+            self.ERRCODE.parse_err("DIDNOT_PARSE_MSG", [msgType, msgData, extStr])
+            msgOutData = {
+                "t": "uns",
+                "c": {"text": "[新人入群]"}
+            }
+            return msgOutData
 
         return msgOutData

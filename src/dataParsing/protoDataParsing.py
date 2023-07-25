@@ -72,9 +72,11 @@ class protoDataParsing():
                 shutil.copy(res_path, output_path)
                 return {}, output_path
             else:
-                return self.ERRCODE.parse_err("MARKETFACE_NOT_EXIST", [data]), None
+                self.ERRCODE.parse_err("MARKETFACE_NOT_EXIST", [data])
+                return False, None
         except OSError:
-            return self.ERRCODE.parse_err("IO_ERROR", [traceback.format_exc()]), None
+            self.ERRCODE.parse_err("IO_ERROR", [traceback.format_exc()])
+            return False, None
 
     def video_thumb(self, input_path, output_path):
         try:
@@ -108,15 +110,13 @@ class protoDataParsing():
         if self.configs["needImages"] == False:
             msgOutData = {
                 "t": "uns",
-                "c": {"text": "[图片]"},
-                "e": {}
+                "c": {"text": "[图片]"}
             }
             return msgOutData
         elif self.configs["needImages"] == True:
             msgOutData = {
                 "t": "img",
-                "c": {"path": "", "type": "", "name": ""},
-                "e": None
+                "c": {"path": "", "type": "", "name": ""}
             }
             try:
                 doc = PicRec()
@@ -136,7 +136,8 @@ class protoDataParsing():
 
             except:
                 # protobuf反序列化失败
-                msgOutData["e"] = self.ERRCODE.parse_err("IMG_DESERIALIZATION_ERROR", [data])
+                self.ERRCODE.parse_err("IMG_DESERIALIZATION_ERROR", [data])
+                msgOutData = {"t": "err", "c": {"text": "[图片]"}}
                 return msgOutData
 
             try:
@@ -144,7 +145,8 @@ class protoDataParsing():
 
                 # 判断文件是否存在
                 if not os.path.exists(relpath):
-                    msgOutData["e"] = self.ERRCODE.parse_err("IMG_NOT_EXIST", [relpath])
+                    msgOutData = {"t": "err", "c": {"text": "[图片]"}}
+                    self.ERRCODE.parse_err("IMG_NOT_EXIST", [relpath])
                     return msgOutData
 
                 # 计算图片的MD5值
@@ -154,7 +156,6 @@ class protoDataParsing():
 
                 # 查找图片的MD5值是否已经存在
                 if md5 in self.img_md5_map:
-                    msgOutData["e"] = {}
                     msgOutData["c"]["path"] = self.img_md5_map[md5][0]
                     msgOutData["c"]["name"] = self.img_md5_map[md5][1]
                     return msgOutData
@@ -162,7 +163,8 @@ class protoDataParsing():
                 # 确定图片类型并添加后缀名
                 img_type = imghdr.what(relpath)
                 if img_type is None:
-                    msgOutData["e"] = self.ERRCODE.parse_err("IMG_UNKNOWN_TYPE_ERROR", [imgPath])
+                    msgOutData = {"t": "err", "c": {"text": "[图片]"}}
+                    self.ERRCODE.parse_err("IMG_UNKNOWN_TYPE_ERROR", [imgPath])
                     return msgOutData
 
                 new_filename = f'{self.img_num}.{img_type}'
@@ -173,18 +175,20 @@ class protoDataParsing():
                 try:
                     shutil.copy(relpath, new_file_path)
                 except:
-                    msgOutData["e"] = self.ERRCODE.parse_err("IO_ERROR", [relpath, new_file_path])
+                    msgOutData = {"t": "err", "c": {"text": "[图片]"}}
+                    self.ERRCODE.parse_err("IO_ERROR", [relpath, new_file_path])
                     return msgOutData
 
                 # 将MD5和新文件路径添加到imgMD5Map中
                 self.img_md5_map[md5] = [new_file_path, new_filename]
 
-                msgOutData["e"] = {}
                 msgOutData["c"]["path"] = new_file_path
                 msgOutData["c"]["name"] = new_filename
                 return msgOutData
             except OSError:
-                msgOutData["e"] = self.ERRCODE.parse_err("IO_ERROR", [traceback.format_exc()])
+                msgOutData = {"t": "err", "c": {"text": "[图片]"}}
+                self.ERRCODE.parse_err("IO_ERROR", [traceback.format_exc()])
+                return msgOutData
 
     def decodeMixMsg(self, data):
         """解码混合消息
@@ -204,9 +208,10 @@ class protoDataParsing():
                     if msgText != " ":
                         for msgElem2 in self.textParsing.parse(msgText):
                             msgList.append(msgElem2)
-            return {}, msgList
+            return True, msgList
         except:
-            return self.ERRCODE.parse_err("MIXMSG_DESERIALIZATION_ERROR", [data, traceback.format_exc()]), None
+            self.ERRCODE.parse_err("MIXMSG_DESERIALIZATION_ERROR", [data, traceback.format_exc()])
+            return False, None
 
     def decodeVoiceMsg(self, data):
         """
@@ -217,14 +222,12 @@ class protoDataParsing():
         if self.configs["needVoice"] == False:
             msgOutData = {
                 "t": "uns",
-                "c": {"text": "[语音]"},
-                "e": {}
+                "c": {"text": "[语音]"}
             }
         elif self.configs["needVoice"] == True:
             msgOutData = {
                 "t": "video",
-                "c": {},
-                "e": {}
+                "c": {}
             }
             try:
                 doc = Msg_pb2.Voice()
@@ -233,7 +236,8 @@ class protoDataParsing():
                 voice_length = doc.field19
                 # print(file_path, voice_length)
             except:
-                msgOutData["e"] = self.ERRCODE.parse_err("VOICE_DESERIALIZATION_ERROR", [data])
+                self.ERRCODE.parse_err("VOICE_DESERIALIZATION_ERROR", [data])
+                msgOutData = {"t": "err", "c": {"text": "[语音]"}}
                 return msgOutData
 
 
@@ -241,7 +245,8 @@ class protoDataParsing():
             pattern = r'/([^/]+)\.\w+$'
             match = re.search(pattern, file_path)
             if not match:
-                msgOutData["e"] = self.ERRCODE.parse_err("VOICE_UNKNOWN_PATH_FORMAT", [file_path])
+                self.ERRCODE.parse_err("VOICE_UNKNOWN_PATH_FORMAT", [file_path])
+                msgOutData = {"t": "err", "c": {"text": "[语音]"}}
                 return msgOutData
 
             relpath = self.configs["voicePath"] + "\\" + match.group(1)
@@ -251,7 +256,8 @@ class protoDataParsing():
             elif os.path.exists(relpath + ".slk"):
                 relpath = relpath + ".slk"
             else:
-                msgOutData["e"] = self.ERRCODE.parse_err("VOICE_NOT_EXIST", [relpath, file_path])
+                self.ERRCODE.parse_err("VOICE_NOT_EXIST", [relpath, file_path])
+                msgOutData = {"t": "err", "c": {"text": "[语音]"}}
                 return msgOutData
 
             try:
@@ -260,7 +266,8 @@ class protoDataParsing():
                     file_header = file.read(header_length)
 
             except:
-                msgOutData["e"] = self.ERRCODE.parse_err("IO_ERROR", [relpath])
+                self.ERRCODE.parse_err("IO_ERROR", [relpath])
+                msgOutData = {"t": "err", "c": {"text": "[语音]"}}
                 return msgOutData
 
             cmd_list = []
@@ -285,7 +292,8 @@ class protoDataParsing():
                 # AMR
                 cmd_list.append(f"lib\\ffmpeg-lgpl\\ffmpeg.exe -i {relpath} {new_file_path}")
             else:
-                msgOutData["e"] = self.ERRCODE.parse_err("VOICE_UNKNOWN_FILEHEADER", [file_path, binascii.hexlify(file_header).decode('utf-8')])
+                self.ERRCODE.parse_err("VOICE_UNKNOWN_FILEHEADER", [file_path, binascii.hexlify(file_header).decode('utf-8')])
+                msgOutData = {"t": "err", "c": {"text": "[语音]"}}
                 return msgOutData
 
             try:
@@ -295,13 +303,15 @@ class protoDataParsing():
             except:
                 if os.path.exists(temp_path):
                     os.remove(temp_path)
-                msgOutData["e"] = self.ERRCODE.parse_err("VOICE_CONVERT_ERROR", [relpath,1])
+                self.ERRCODE.parse_err("VOICE_CONVERT_ERROR", [relpath, 1])
+                msgOutData = {"t": "err", "c": {"text": "[语音]"}}
                 return msgOutData
 
             if not os.path.exists(new_file_path):
                 if os.path.exists(temp_path):
                     os.remove(temp_path)
-                msgOutData["e"] = self.ERRCODE.parse_err("VOICE_CONVERT_ERROR", [relpath])
+                self.ERRCODE.parse_err("VOICE_CONVERT_ERROR", [relpath])
+                msgOutData = {"t": "err", "c": {"text": "[语音]"}}
                 return msgOutData
 
             if os.path.exists(temp_path):
@@ -322,14 +332,12 @@ class protoDataParsing():
         if self.configs["needVideo"] == False:
             msgOutData = {
                 "t": "uns",
-                "c": {"text": "[视频]"},
-                "e": {}
+                "c": {"text": "[视频]"}
             }
         elif self.configs["needVideo"] == True:
             msgOutData = {
                 "t": "video",
-                "c": {},
-                "e": {}
+                "c": {}
             }
             try:
                 doc = Msg_pb2.ShortVideo()
@@ -339,19 +347,22 @@ class protoDataParsing():
                 # print(f"原始数据: {deserialize_data}")
                 # print(f"消息类型: {message_type}")
             except:
-                msgOutData["e"] = self.ERRCODE.parse_err("VIDEO_DESERIALIZATION_ERROR", [data])
+                self.ERRCODE.parse_err("VIDEO_DESERIALIZATION_ERROR", [data])
+                msgOutData = {"t": "err", "c": {"text": "[视频]"}}
                 return msgOutData
 
             pattern = r'/([A-F0-9]{32})/'
             match = re.search(pattern, filePath)
             if not match:
-                msgOutData["e"] = self.ERRCODE.parse_err("VIDEO_UNKNOWN_PATH_FORMAT", [filePath])
+                self.ERRCODE.parse_err("VIDEO_UNKNOWN_PATH_FORMAT", [filePath])
+                msgOutData = {"t": "err", "c": {"text": "[视频]"}}
                 return msgOutData
 
             # 判断文件是否存在
             relpath = self.configs["videoPath"] + "\\" + match.group(1)
             if not os.path.exists(relpath):
-                msgOutData["e"] = self.ERRCODE.parse_err("VIDEO_NOT_EXIST", [relpath])
+                self.ERRCODE.parse_err("VIDEO_NOT_EXIST", [relpath])
+                msgOutData = {"t": "err", "c": {"text": "[视频]"}}
                 return msgOutData
 
             file_count = 0
@@ -363,10 +374,12 @@ class protoDataParsing():
                         found_file = os.path.join(root, file)
 
             if file_count == 0:
-                msgOutData["e"] = self.ERRCODE.parse_err("VIDEO_NOT_EXIST", [relpath, file_count])
+                self.ERRCODE.parse_err("VIDEO_NOT_EXIST", [relpath, file_count])
+                msgOutData = {"t": "err", "c": {"text": "[视频]"}}
                 return msgOutData
             elif file_count > 1:
-                msgOutData["e"] = self.ERRCODE.parse_err("VIDEO_NOT_EXIST", [relpath, file_count])
+                self.ERRCODE.parse_err("VIDEO_NOT_EXIST", [relpath, file_count])
+                msgOutData = {"t": "err", "c": {"text": "[视频]"}}
                 return msgOutData
 
             _, file_extension = os.path.splitext(found_file)
@@ -379,7 +392,8 @@ class protoDataParsing():
             try:
                 shutil.copy(found_file, new_file_path)
             except:
-                msgOutData["e"] = self.ERRCODE.parse_err("IO_ERROR", [found_file, new_file_path])
+                self.ERRCODE.parse_err("IO_ERROR", [found_file, new_file_path])
+                msgOutData = {"t": "err", "c": {"text": "[视频]"}}
                 return msgOutData
 
             msgOutData["c"]["path"] = new_file_path
@@ -405,13 +419,15 @@ class protoDataParsing():
 
         # 图文混排
         elif msgType == -1035:
-            DeseErrcode, msgDeseData = self.decodeMixMsg(msgData)
-            msgOutData = {
-                "t": "mixmsg",
-                "c": msgDeseData,
-                "e": DeseErrcode
-            }
-            # print(msgOutData)
+            state, msgDeseData = self.decodeMixMsg(msgData)
+            if state:
+                msgOutData = {
+                    "t": "mixmsg",
+                    "c": msgDeseData
+                }
+            else:
+                msgOutData = {"t": "err", "c": {"text": "[混合消息]"}}
+
 
         # 语音
         elif msgType == -2002:
@@ -429,20 +445,25 @@ class protoDataParsing():
             if self.configs["needMarketFace"] == False:
                 msgOutData = {
                     "t": "uns",
-                    "c": {"text": "[大表情]"},
-                    "e": {}
+                    "c": {"text": "[大表情]"}
                 }
             elif self.configs["needMarketFace"] == True:
-                doc = Msg_pb2.marketFace()
-                doc.ParseFromString(msgData)
-                marketFaceName = doc.field7.decode("utf-8")[1:]
-                descErrcode, msgDeseData = self.decodeMarketFace(marketFaceName)
-                msgOutData = {
-                    "t": "img",
-                    "c": {"path": msgDeseData, "name": marketFaceName, "type": "marketFace"},
-                    "e": descErrcode
-                }
-                print(msgType, extStr)
+                try:
+                    doc = Msg_pb2.marketFace()
+                    doc.ParseFromString(msgData)
+                    marketFaceName = doc.field7.decode("utf-8")[1:]
+                    descErrcode, msgDeseData = self.decodeMarketFace(marketFaceName)
+                    msgOutData = {
+                        "t": "img",
+                        "c": {"path": msgDeseData, "name": marketFaceName, "type": "marketFace"}
+                    }
+                except:
+                    msgOutData = {"t": "err", "c": {"text": "[大表情]"}}
+                    self.ERRCODE.parse_err("MARKETFACE_DESERIALIZATION_ERROR", [msgType, msgData])
+
+
+
+
             return msgOutData
 
 
@@ -458,20 +479,21 @@ class protoDataParsing():
                     # 撤回消息
                     msgOutData = {
                         "t": "revoke",
-                        "c": {"text": msgText, "type": "bySelf"},
-                        "e": {}
-                    }
+                        "c": {"text": msgText, "type": "by_self"}}
                     # print(extStr)
                 # 群主（或管理员，待验证）撤回
                 elif extStrJson["revoke_op_type"] == "2":
                     msgOutData = {
                         "t": "revoke",
-                        "c": {"text": msgData, "type": "byAdmin"},
-                        "e": {}
+                        "c": {"text": msgData, "type": "by_admin"}
                     }
                     # print(extStr)
                 else:
-                    print(msgType, msgData, extStr)
+                    self.ERRCODE.parse_err("DIDNOT_PARSE_MSG", [msgType, msgData, extStr])
+                    msgOutData = {
+                        "t": "uns",
+                        "c": {"text": "[提示消息]"}
+                    }
 
             # 被邀请进入群聊
             elif ("inviteeUin" in extStrJson.keys()) or ("invitorUin" in extStrJson.keys()):
@@ -488,15 +510,14 @@ class protoDataParsing():
                     }
                     msgOutData = {
                         "t": "tip",
-                        "c": {"text": msgDecodedData, "type": "invite", "ext": items},
-                        "e": {}
+                        "c": {"text": msgDecodedData, "type": "invite", "ext": items}
                     }
                 else:
                     msgOutData = {
                         "t": "tip",
-                        "c": {"type": "invite"},
-                        "e": self.ERRCODE.parse_err("EXTSTR_NOT_EXIST_TARGET", [extStr, "invitee or invitor "])
+                        "c": {"type": "invite"}
                     }
+                    self.ERRCODE.parse_err("EXTSTR_NOT_EXIST_TARGET", [extStr, "invitee or invitor "])
 
 
             # busi_type
@@ -509,11 +530,10 @@ class protoDataParsing():
                     doc.ParseFromString(msgData)
 
                     msgDecodedData = doc.field5.decode("utf-8")
-                    print(msgType, 14, doc.field5.decode("utf-8"))
+                    # print(msgType, 14, doc.field5.decode("utf-8"))
                     msgOutData = {
                         "t": "tip",
-                        "c": {"text": msgDecodedData, "type": "dailyattendance"},
-                        "e": {}
+                        "c": {"text": msgDecodedData, "type": "dailyattendance"}
                     }
 
                 # 灰条戳一戳
@@ -521,37 +541,32 @@ class protoDataParsing():
                     doc = Msg_pb2.grayTipBar()
                     doc.ParseFromString(msgData)
                     msgDecodedData = doc.field5.decode("utf-8")
-                    print(msgType, 12,  extStrJson["bytes_content"])
-                    print(msgType, 12, doc.field5.decode("utf-8"))
+                    # print(msgType, 12,  extStrJson["bytes_content"])
+                    # print(msgType, 12, doc.field5.decode("utf-8"))
                     msgOutData = {
                         "t": "tip",
-                        "c": {"text": msgDecodedData, "type": "paiyipai"},
-                        "e": {}
+                        "c": {"text": msgDecodedData, "type": "pai_yi_pai"}
                     }
 
                 else:
                     doc = Msg_pb2.grayTipBar()
                     doc.ParseFromString(msgData)
                     msgDecodedData = doc.field5.decode("utf-8")
-                    print(busi_type, doc.field5.decode("utf-8"))
+                    self.ERRCODE.parse_err("DIDNOT_PARSE_MSG", [msgType, msgData,msgDecodedData, extStr])
                     msgOutData = {
                         "t": "tip",
-                        "c": {"text": msgDecodedData, "type": "unknown"},
-                        "e": {}
+                        "c": {"text": msgDecodedData, "type": "unknown"}
                     }
-                    print(msgType, extStr)
 
             else:
                 doc = Msg_pb2.grayTipBar()
                 doc.ParseFromString(msgData)
                 msgDecodedData = doc.field5.decode("utf-8")
-                print(msgType, doc.field5.decode("utf-8"))
+                self.ERRCODE.parse_err("DIDNOT_PARSE_MSG", [msgType, msgData,msgDecodedData, extStr])
                 msgOutData = {
                     "t": "tip",
-                    "c": {"text": msgDecodedData, "type": "unknown"},
-                    "e": {}
+                    "c": {"text": msgDecodedData, "type": "unknown"}
                 }
-                print(msgType, extStr)
 
 
 
@@ -560,10 +575,10 @@ class protoDataParsing():
             doc = Msg_pb2.grayTipBar()
             doc.ParseFromString(msgData)
             msgDecodedData = doc.field5.decode("utf-8")
+            self.ERRCODE.parse_err("DIDNOT_PARSE_MSG", [msgType, msgData, msgDecodedData, extStr])
             msgOutData = {
                 "t": "tip",
-                "c": {"text": msgDecodedData, "type": "unknown"},
-                "e": {}
+                "c": {"text": msgDecodedData, "type": "unknown"}
             }
 
         elif msgType == -5023:  # 该用户通过***向你发起临时会话，前往设置。

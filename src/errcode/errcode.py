@@ -2,9 +2,12 @@
 # 错误码:[提示信息,触发警告需要的次数(每n次警告一次)]
 codes = {
     'Normal': ['一切正常', 0],
+    'UNKNOWN_MSG_TYPE': ['未知消息类型', 100],
+    'DIDNOT_PARSE_MSG': ['未解析消息(解析代码还没写)', 100],
     'EMOJI_NOT_EXIST': ['表情不存在', 100],
     'IMG_NOT_EXIST': ['图片不存在', 100],
     'MARKETFACE_NOT_EXIST': ['大表情不存在', 100],
+    'MARKETFACE_DESERIALIZATION_ERROR': ['大表情反序列化错误', 100],
     'IMG_DESERIALIZATION_ERROR': ['图片反序列化错误', 100],
     'IMG_UNKNOWN_TYPE': ['图片类型未知', 100],
     'VIDEO_DESERIALIZATION_ERROR': ['视频反序列化错误', 100],
@@ -115,16 +118,10 @@ class ErrCode():
         else:
             self.counts[code] = 1
 
-        err = {
-            "s": False,
-            "errinfo": codes[code][0] + f"，相关信息：{errdata}"
-
-        }
+        errinfo = codes[code][0] + f"，相关信息：{errdata}"
         self.count_check(code)
-        print(err["errinfo"])
-        self.log_file.write(err["errinfo"] + "\n")
-
-        return err
+        print(errinfo)
+        self.log_file.write(errinfo + "\n")
 
     def log_err_count(self):
         for key, value in self.counts.items():

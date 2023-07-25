@@ -163,7 +163,7 @@ class QQParse:
                 cmd = "select msgtype,senderuin,msgData,time,extStr from mr_troop_{}_New order by time".format(
                     targetQQmd5)
 
-        print(cmd)
+        # print(cmd)
 
         # if self.cmdpre != "":
         #     cmd = self.cmdpre
@@ -269,27 +269,28 @@ https://github.com/WhiteWingNightStar/QQHistoryExport上提issue，请附上outp
         elif msgType in javaSerializedDataType:
             msgOutData = self.javaSerializedDataParsing.parse(msgType, msgData, extStr)
             return msgOutData
-        print(msgType)
 
 
+        #if msgType == -2060:# unknown
+        #    print(-2060, msgData.decode("utf-8"))
+        #    # -2060 {"text":"xxx","bgColor":-xxxxx,"ts":16xxxx**,"cover":""}
 
-        if msgType == -2060:# unknown
-            print(-2060, msgData.decode("utf-8"))
-            # -2060 {"text":"xxx","bgColor":-xxxxx,"ts":16xxxx**,"cover":""}
-
-        elif msgType == -7010:# unknown
-            print(-7010, msgData.decode("utf-8"))
-            # -7010 [{"key_profile_introduction":"人际交往xxxxx","key_ts":16****,"key_type":xxxx}]
+        #elif msgType == -7010:# unknown
+        #    print(-7010, msgData.decode("utf-8"))
+        #    # -7010 [{"key_profile_introduction":"人际交往xxxxx","key_ts":16****,"key_type":xxxx}]
 
 
         else:
-
-            print("unknown:", msgType)
-            print(msgData)
+            msgOutData = {
+                "t": "uns",
+                "c": {"text": "[未知类型]"},
+                "e": {}
+            }
+            self.ERRCODE.parse_err("UNKNOWN_MSG_TYPE", [msgType, msgData, extStr])
             # with open("./11.bin", 'wb') as f:  # 二进制流写到.bin文件
             #     f.write(msgData)
             # 1
-        return msgOutData
+            return msgOutData
 
     def getFriends(self):
         """获取好友列表
