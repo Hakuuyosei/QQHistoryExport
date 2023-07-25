@@ -589,17 +589,17 @@ class DataProcessor:
         width, height = self.drawingQuery.resize_image(imgWidth, imgHeight, maxWidth, maxHeight)
 
         if name:
-            MsgHeight = self.style["tipTextHeight"] + height
+            msgHeight = self.style["tipTextHeight"] + height
             detaY = - height - self.style["textHeight"]
 
         else:
-            MsgHeight = height
+            MsgHight = height
             detaY = - height
         drawData = [[self.pdfDraw.drawImg, [path, name, width, height], [0, detaY, 0]]]
 
-        if MsgHeight > heightSpace:
-            return False, MsgHeight, None
-        return True, MsgHeight, drawData
+        if msgHeight > heightSpace:
+            return False, msgHeight, None
+        return True, msgHeight, drawData
 
     def procChatBoxMessage(self, dataList, heightSpace):
         """根据给定的数据和可用的垂直空间处理带框消息（普通消息，混合消息，回复消息等），并返回绘制细节数据

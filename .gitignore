@@ -6,4 +6,5 @@
 /dist/
 /build/
 /config/parse_config.json
+/config/GeneratePDF_ReportLab_config.ini
 /output/
