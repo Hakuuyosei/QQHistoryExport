@@ -135,14 +135,14 @@ class DrawingQuery:
         """
         fileName = self.unicode_emoji_to_filename(emoji_unicode)
         filePath = f"output/temp/{fileName}"
-        print(filePath, emoji_unicode)
+        #print(filePath, emoji_unicode)
 
         with sqlite3.connect(self.paths["emojiFontDBPath"]) as conn:
             cursor = conn.execute('''SELECT start_offset, end_offset FROM files_info
                                      WHERE file_name = ?''', (fileName,))
             row = cursor.fetchone()
             if not row:
-                print("文件不存在")
+                print("表情文件不存在")
                 return
             start_offset, end_offset = row
 
@@ -491,6 +491,8 @@ class DataProcessor:
             drawText = f'{data["c"]["text"]}'
         elif dataType == "nudge":
             drawText = f'{data["c"]["text"]}'
+        elif dataType == "voice":
+            drawText = f'语音：{data["c"]["length"]}秒，路径{data["c"]["path"]}'
         drawData = [{
             "t": "m",
             "c": {"m": drawText}
@@ -541,16 +543,21 @@ class DataProcessor:
         return True, MsgHeight, drawData
 
 
-    def procImgMessage(self, data, heightSpace):
-        """根据给定的数据和可用的垂直空间处理图片消息，并返回绘制细节数据
+    def procImgVideoMessage(self, data, heightSpace):
+        """根据给定的数据和可用的垂直空间处理图片视频，并返回绘制细节数据
 
         :param data: 消息数据
         :param heightSpace: 可用的垂直空间
         :return: 是否绘制完毕，消息框高度，绘制数据
         """
-        path = data["c"]["path"]
-        name = data["c"]["name"]
-        imgType = data["c"]["type"]
+        if data["t"] == "video":
+            path = data["c"]["thumb"]
+            name = data["c"]["name"]
+            imgType = "video"
+        elif data["t"] == "img":
+            path = data["c"]["path"]
+            name = data["c"]["name"]
+            imgType = data["c"]["type"]
 
         # 使用PIL读取图片的真实长宽
         with Image.open(self.paths["outputDirPath"] + path) as img:
@@ -653,7 +660,7 @@ class DataProcessor:
         for itemNum in range(len(dataList)):
             item = dataList[itemNum]
             # 处理 "m" 类型的元素
-            if item["t"] == "m" or item["t"] == "text":
+            if item["t"] == "m":
                 if lastItem in ["start", "img", "reply"]:
                     # 校正初次换行
                     textHeight -= self.style["textHeight"] + self.style["lineSpacing"]
@@ -663,6 +670,7 @@ class DataProcessor:
                     else:
                         curY += self.style["lineSpacing"]
 
+                bufStartX = curX
                 lastItem = "m"
                 # 暂存一行中的文本
                 buffer = ""
@@ -1094,14 +1102,14 @@ class Generate:
                 if obj["t"] == "msg" or obj["t"] == "mixmsg":
                     self.drawMsg(self.dataprocessor.procChatBoxMessage, obj, True, True)
 
-                if obj["t"] == "uns" or obj["t"] == "err" or obj["t"] == "nudge":
+                if obj["t"] in ["uns", "err", "nudge", "file", "voice"]:
                     self.drawMsg(self.dataprocessor.procDetailMessage, obj, False, True)
 
                 elif obj["t"] == "revoke" or obj["t"] == "tip":
                     self.drawMsg(self.dataprocessor.procTipMessage, obj, False, False)
 
-                elif obj["t"] == "img":
-                    self.drawMsg(self.dataprocessor.procImgMessage, obj, False, True)
+                elif obj["t"] == "img" or obj["t"] == "video":
+                    self.drawMsg(self.dataprocessor.procImgVideoMessage, obj, False, True)
 
                 elif obj["t"] == "file":
                     self.drawMsg(self.dataprocessor.procDetailMessage, obj, False, True)
