@@ -157,6 +157,7 @@ class ValidateSettings:
             return False, ""
 
         state, info = self.validate_bool(self.configs[key], f"{key} {name}")
+        self.state = state and self.state
         self.info += info
         return state, self.configs[key]
 
@@ -185,6 +186,7 @@ class ValidateSettings:
             self.info += f"设置项中{key} {name}项丢失\n"
             return False, ""
         state, info = self.validate_num_str(self.configs[key], f"{key} {name}")
+        self.state = state and self.state
         self.info += info
         return state, self.configs[key]
 
@@ -222,6 +224,7 @@ class ValidateSettings:
             self.info += f"设置项中{key} {name}项丢失\n"
             return False, ""
         state, info = self.validate_file_exist(self.configs[key], f"{key} {name}")
+        self.state = state and self.state
         self.info += info
         return state, self.configs[key]
 
@@ -280,6 +283,7 @@ class ValidateSettings:
             return False, ""
 
         state, info = self.validate_folder_exist(self.configs[key], f"{key} {name}")
+        self.state = state and self.state
         self.info += info
         return state, self.configs[key]
 
