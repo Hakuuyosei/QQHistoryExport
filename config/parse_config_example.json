@@ -33,9 +33,6 @@
   "needImages": true,    //是否需要图片解析
   "imagesPath":"",     //chatimg文件夹路径
 
-  "needShortVideo": false,//是否需要短视频解析
-  "shortvideoPath":"",    //shortvideo文件夹路径
-
   "needVoice": false,//是否需要语音解析
   "voicePath":"",  //ptt文件夹路径
 

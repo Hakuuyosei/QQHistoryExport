@@ -4,7 +4,8 @@ from src.generate import GeneratePDF_ReportLab
 from src.avatarDownload import download
 from src.validateSettings import validateSettings
 from src.errcode import errcode
-test = 5
+from src.GUI import GUI
+test = 6
 if __name__ == '__main__':
     if test == 1:
         qqParse = parsing.QQParse()
@@ -26,6 +27,8 @@ if __name__ == '__main__':
         if state:
             qq_parse = parsing.QQParse(configs, err_code)
             qq_parse.procDb()
+    if test == 6:
+        GUI.gui_init()
 
 
 

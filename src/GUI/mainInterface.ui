@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>693</width>
-    <height>700</height>
+    <height>739</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,7 +20,7 @@
       <x>0</x>
       <y>0</y>
       <width>391</width>
-      <height>591</height>
+      <height>621</height>
      </rect>
     </property>
     <property name="title">
@@ -80,15 +80,24 @@
        <x>10</x>
        <y>330</y>
        <width>371</width>
-       <height>255</height>
+       <height>283</height>
       </rect>
      </property>
      <layout class="QGridLayout" name="gridLayout_3">
-      <item row="1" column="2" colspan="2">
-       <widget class="QLineEdit" name="targetQQInputBox"/>
+      <item row="4" column="1">
+       <widget class="QLabel" name="label_18">
+        <property name="font">
+         <font>
+          <pointsize>9</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>QQ表情</string>
+        </property>
+       </widget>
       </item>
       <item row="4" column="0">
-       <widget class="QCheckBox" name="QQemojiVerSelectBox">
+       <widget class="QCheckBox" name="QQemojiVerCheckBox">
         <property name="enabled">
          <bool>true</bool>
         </property>
@@ -103,8 +112,23 @@
         </property>
        </widget>
       </item>
+      <item row="1" column="2" colspan="2">
+       <widget class="QLineEdit" name="targetQQInputBox"/>
+      </item>
+      <item row="9" column="1">
+       <widget class="QLabel" name="label_19">
+        <property name="font">
+         <font>
+          <pointsize>9</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>shortvideo文件夹</string>
+        </property>
+       </widget>
+      </item>
       <item row="5" column="0">
-       <widget class="QCheckBox" name="useImageSelectButton">
+       <widget class="QCheckBox" name="useImageCheckBox">
         <property name="enabled">
          <bool>true</bool>
         </property>
@@ -152,8 +176,8 @@
         </widget>
        </widget>
       </item>
-      <item row="9" column="0">
-       <widget class="QCheckBox" name="needMarketFaceSelectButton">
+      <item row="11" column="0">
+       <widget class="QCheckBox" name="needMarketFaceCheckBox">
         <property name="enabled">
          <bool>true</bool>
         </property>
@@ -226,8 +250,8 @@
         </property>
        </widget>
       </item>
-      <item row="10" column="0">
-       <widget class="QCheckBox" name="needjavaDeserSelectButton">
+      <item row="12" column="0">
+       <widget class="QCheckBox" name="needjavaDeserCheckBox">
         <property name="enabled">
          <bool>true</bool>
         </property>
@@ -242,7 +266,7 @@
         </property>
        </widget>
       </item>
-      <item row="11" column="1" colspan="3">
+      <item row="13" column="1" colspan="3">
        <widget class="QLabel" name="label_20">
         <property name="text">
          <string>包括：引用消息的引用部分，群文件信息</string>
@@ -285,6 +309,51 @@
       </item>
       <item row="5" column="2">
        <widget class="QLineEdit" name="chatimgPathInputBox">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="9" column="0">
+       <widget class="QCheckBox" name="useVideoCheckBox">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+        <property name="tristate">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="9" column="3">
+       <widget class="QPushButton" name="videoPathSelectButton">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>9</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>选取</string>
+        </property>
+       </widget>
+      </item>
+      <item row="12" column="1" colspan="3">
+       <widget class="QLabel" name="label_14">
+        <property name="text">
+         <string>java序列化解析，需要安装java环境</string>
+        </property>
+       </widget>
+      </item>
+      <item row="9" column="2">
+       <widget class="QLineEdit" name="videoPathInputBox">
         <property name="enabled">
          <bool>false</bool>
         </property>
@@ -371,7 +440,14 @@
         </property>
        </widget>
       </item>
-      <item row="9" column="1" colspan="3">
+      <item row="8" column="1" colspan="3">
+       <widget class="QLabel" name="label_9">
+        <property name="text">
+         <string>语音文件</string>
+        </property>
+       </widget>
+      </item>
+      <item row="11" column="1" colspan="3">
        <widget class="QLabel" name="label_11">
         <property name="text">
          <string>大表情 即单独发QQ表情出来的大表情</string>
@@ -409,29 +485,10 @@
         </property>
        </widget>
       </item>
-      <item row="4" column="1">
-       <widget class="QLabel" name="label_18">
-        <property name="font">
-         <font>
-          <pointsize>9</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>QQ表情版本</string>
-        </property>
-       </widget>
-      </item>
       <item row="10" column="1" colspan="3">
-       <widget class="QLabel" name="label_14">
+       <widget class="QLabel" name="label_21">
         <property name="text">
-         <string>java序列化解析，需要安装java环境</string>
-        </property>
-       </widget>
-      </item>
-      <item row="8" column="1" colspan="3">
-       <widget class="QLabel" name="label_9">
-        <property name="text">
-         <string>语音文件</string>
+         <string>视频文件</string>
         </property>
        </widget>
       </item>
@@ -494,7 +551,7 @@
         </widget>
        </item>
        <item row="1" column="0" colspan="2">
-        <widget class="QCheckBox" name="qqSlowtableselectButton2">
+        <widget class="QCheckBox" name="useSlowtableCheckBox2">
          <property name="text">
           <string>解析两个月以前的聊天记录</string>
          </property>
@@ -566,7 +623,7 @@
         </widget>
        </item>
        <item row="2" column="0">
-        <widget class="QCheckBox" name="useSlowTableCheckBox">
+        <widget class="QCheckBox" name="useSlowtableCheckBox">
          <property name="enabled">
           <bool>false</bool>
          </property>
@@ -743,7 +800,7 @@
     <property name="geometry">
      <rect>
       <x>570</x>
-      <y>610</y>
+      <y>650</y>
       <width>121</width>
       <height>41</height>
      </rect>
@@ -760,8 +817,8 @@
    <widget class="QLabel" name="label_6">
     <property name="geometry">
      <rect>
-      <x>270</x>
-      <y>630</y>
+      <x>260</x>
+      <y>670</y>
       <width>181</width>
       <height>21</height>
      </rect>
@@ -773,8 +830,8 @@
    <widget class="QPushButton" name="startParseButton">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>600</y>
+      <x>0</x>
+      <y>630</y>
       <width>241</width>
       <height>61</height>
      </rect>
