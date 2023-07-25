@@ -129,7 +129,10 @@ class ErrCode():
     def log_err_count(self):
         for key, value in self.counts.items():
             info = f"解析发生错误次数：{key} {codes[key][0]}  {value}次\n"
-        self.log("parse", self.LOG_LEVEL_WARN, info)
+            self.log("parse", self.LOG_LEVEL_WARN, info)
+        if not self.counts:
+            info = f"解析未发生错误，恭喜！\n"
+            self.log("parse", self.LOG_LEVEL_WARN, info)
 
     def count_check(self, code):
         """检查错误码有没有过量，及时弹出警告信息

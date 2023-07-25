@@ -70,7 +70,6 @@ class javaSerializedDataParsing():
             return self.ERRCODE.parse_err("JAVA_DESER_ERR_INPUT_TYPE", [str(data), str(type(data))]), None
 
         deser_err_code, deser_out_data = self.proc_java_deser(dataStr)
-        print(deser_out_data)
         if deser_out_data:
             try:
                 jsonData = json.loads(deser_out_data)
@@ -114,14 +113,14 @@ class javaSerializedDataParsing():
                     return self.ERRCODE.parse_err("EXTSTR_JSON_ERR_DECODE", []), None
 
                 if extStrJson:
-                    start_time = time.time()
+                    # start_time = time.time()
                     sourceMsgInfo = extStrJson["sens_msg_source_msg_info"]
                     err, jsonData = self.javaDeserializationToJson(sourceMsgInfo)
 
                     # 记录程序结束时间
-                    end_time = time.time()
-                    run_time = end_time - start_time
-                    print(f"程序运行时间为{run_time:.6f}秒")
+                    # end_time = time.time()
+                    # run_time = end_time - start_time
+                    # print(f"程序运行时间为{run_time:.6f}秒")
                     if jsonData:
                         mSourceMsgText = jsonData["mSourceMsgText"]
                         mSourceMsgSenderUin = jsonData["mSourceMsgSenderUin"]

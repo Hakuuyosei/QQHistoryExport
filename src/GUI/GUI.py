@@ -14,6 +14,8 @@ class mainWindow():
     def __init__(self, window):
         super().__init__()
 
+        self.ERRCODE = None
+
         ui = Ui_MainWindow()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(window)
@@ -183,7 +185,7 @@ class mainWindow():
         configs['targetQQ'] = self.ui.targetQQInputBox.text()
         configs['selfQQ'] = self.ui.selfQQInputBox.text()
         configs['needQQEmoji'] = self.ui.useImageCheckBox.isChecked()
-        configs['QQEmojiVer'] = 'new' if self.ui.qqEmojiVerRadioButton1.isChecked() else 'old'
+        configs['QQEmojiVer'] = 'old' if self.ui.qqEmojiVerRadioButton1.isChecked() else 'new'
         configs['needImages'] = self.ui.useImageCheckBox.isChecked()
         configs['imagesPath'] = self.ui.chatimgPathInputBox.text()
         configs['needVoice'] = self.ui.usePttCheckBox.isChecked()
@@ -199,24 +201,31 @@ class mainWindow():
         self.ui.logBox.append(info)
 
     def start_parse(self):
-        self.ui.startParseButton.setEnabled(False)
-        self.ui.parseConfigContainer.setEnabled(False)
-        configs = self.read_control_values()
-        print(configs)
+        if self.ui.startParseButton.text() == "停止解析":
+            print(1234)
+            if self.ERRCODE:
+                self.ERRCODE.parse_stop("用户停止解析")
 
-        err_code = errcode.ErrCode("func",self.log)
+        elif self.ui.startParseButton.text() == "开始解析":
+            print(1234333)
+            self.ui.startParseButton.setText("停止解析")
+            self.ui.parseConfigContainer.setEnabled(False)
+            configs = self.read_control_values()
+            print(configs)
 
-        validate_settings = validateSettings.ValidateSettings()
-        state, info, v_configs = validate_settings.validate(False, configs)
-        self.ui.logBox.append(info)
+            err_code = errcode.ErrCode("func", self.log)
+            self.ERRCODE = err_code
+
+            validate_settings = validateSettings.ValidateSettings()
+            state, info, v_configs = validate_settings.validate(False, configs)
+            self.ui.logBox.append(info)
 
 
-        if state:
-            qq_parse = parsing.QQParse(v_configs, err_code)
-            qq_parse.procDb()
-            pass
-        else:
-            self.ui.startParseButton.setEnabled(True)
+            if state:
+                qq_parse = parsing.QQParse(v_configs, err_code)
+                qq_parse.procDb()
+
+            self.ui.startParseButton.setText("开始解析")
             self.ui.parseConfigContainer.setEnabled(True)
 
 

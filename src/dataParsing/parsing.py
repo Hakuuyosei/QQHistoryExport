@@ -160,7 +160,7 @@ class QQParse:
                 self.ERRCODE.log("parse", self.ERRCODE.LOG_LEVEL_ERR, info)
                 return False
             else:
-                cmd = "select msgtype,senderuin,msgData,time,extStr from mr_group_{}_New order by time".format(
+                cmd = "select msgtype,senderuin,msgData,time,extStr from mr_troop_{}_New order by time".format(
                     targetQQmd5)
 
         print(cmd)
