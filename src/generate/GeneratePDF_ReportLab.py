@@ -36,7 +36,7 @@ class DrawingQuery:
         # 连接数据库
         self.conn = sqlite3.connect(paths["fontInfoPath"])
 
-    def queryCharWidth(self, char):
+    def query_char_width(self, char):
         """查询字体宽度
 
         :param char: 字符
@@ -548,37 +548,8 @@ class DataProcessor:
         :param heightSpace: 可用的垂直空间
         :return: 是否绘制完毕，消息框高度，绘制数据
         """
-        if data["t"] == "video":
-            path = data["c"]["thumb"]
-            name = data["c"]["name"]
-            imgType = "video"
-        elif data["t"] == "img":
-            path = data["c"]["path"]
-            name = data["c"]["name"]
-            imgType = data["c"]["type"]
 
-        # 使用PIL读取图片的真实长宽
-        # print(imgType)
-        with Image.open(self.paths["outputDirPath"] + path) as img:
-            imgWidth, imgHeight = img.size
-        # 如果是图片表情
-        if imgType == "marketface":
-            maxWidth = self.style["imgEmoMaxSize"]
-            maxHeight = self.style["imgEmoMaxSize"]
-            name = ""
-        elif imgType == "pic":
-            if data["c"]["size"] < self.style["intEmoPicSepSize"]*1000:
-                maxWidth = self.style["imgEmoMaxSize"]
-                maxHeight = self.style["imgEmoMaxSize"]
-                name = ""
-            else:
-                maxWidth = self.style["imgMaxWidth"]
-                maxHeight = self.style["imgMaxHeight"]
-        else:
-            maxWidth = self.style["imgMaxWidth"]
-            maxHeight = self.style["imgMaxHeight"]
-
-        width, height = self.drawingQuery.resize_image(imgWidth, imgHeight, maxWidth, maxHeight)
+        width, height, name, path = self.getImgData(data)
 
         if name:
             msgHeight = self.style["tipTextHeight"] + height
@@ -624,6 +595,48 @@ class DataProcessor:
             })
             drawData.insert(0, [self.pdfDraw.drawChatBox, [chatBoxWidth, chatBoxHeight], [0, chatBoxY, 0]])
         return isFinish, chatBoxHeight, drawData, isStart, remaindData
+
+    def getImgData(self, data):
+        """获取图片大小等数据
+        注意，一般不直接调用
+
+        :param data: 消息数据
+        :return: width,height
+        """
+        if data["t"] == "video":
+            path = data["c"]["thumb"]
+            name = data["c"]["name"]
+            imgType = "video"
+        elif data["t"] == "img":
+            path = data["c"]["path"]
+            name = data["c"]["name"]
+            imgType = data["c"]["type"]
+
+        # 使用PIL读取图片的真实长宽
+        # print(imgType)
+        with Image.open(self.paths["outputDirPath"] + path) as img:
+            imgWidth, imgHeight = img.size
+        # 如果是图片表情
+        if imgType == "marketface":
+            maxWidth = self.style["imgEmoMaxSize"]
+            maxHeight = self.style["imgEmoMaxSize"]
+            name = ""
+        elif imgType == "pic":
+            if data["c"]["size"] < self.style["intEmoPicSepSize"]*1000:
+                maxWidth = self.style["imgEmoMaxSize"]
+                maxHeight = self.style["imgEmoMaxSize"]
+                name = ""
+            else:
+                maxWidth = self.style["imgMaxWidth"]
+                maxHeight = self.style["imgMaxHeight"]
+        else:
+            maxWidth = self.style["imgMaxWidth"]
+            maxHeight = self.style["imgMaxHeight"]
+
+        width, height = self.drawingQuery.resize_image(imgWidth, imgHeight, maxWidth, maxHeight)
+        return width, height, name, path
+
+
 
     def processMessageList(self, dataList, heightSpace):
         """根据给定的数据和可用的垂直空间处理混合文本列表，并返回绘制细节数据
@@ -734,7 +747,7 @@ class DataProcessor:
 
                     else:
                         # 如果不是表情符号，先查询其宽度
-                        charWidth = self.drawingQuery.queryCharWidth(character)
+                        charWidth = self.drawingQuery.query_char_width(character)
                         # 判断是否需要换行
                         if curX + charWidth > self.style["chatBoxTextMaxWidth"]:
                             # 如果该字符加上前面已暂存字符串的宽度会超出列宽，则将暂存字符串绘制出来并换行
@@ -816,7 +829,7 @@ class DataProcessor:
                         curX = 0
 
                     else:
-                        charWidth = self.drawingQuery.queryCharWidth(character)
+                        charWidth = self.drawingQuery.query_char_width(character)
                         # 判断是否需要换行
                         if curX + charWidth > self.style["chatBoxTextMaxWidth"] - 2 * self.style["chatBoxPadding"]:
                             # 如果该字符加上前面已暂存字符串的宽度会超出列宽，则将暂存字符串绘制出来并换行
@@ -860,43 +873,27 @@ class DataProcessor:
             # 处理 "img" 类型的元素
             elif item["t"] == "img":
                 lastItem = "img"
-                data = item["c"]
-                path = data["path"]
-                name = data["name"]
-                imgType = data["type"]
+                width, height, name, path = self.getImgData(item)
 
-                with Image.open(self.paths["outputDirPath"] + path) as img:
-                    imgWidth, imgHeight = img.size
-                # 如果是图片表情
-                if imgType == "marketface":
-                    maxWidth = self.style["imgEmoMaxSize"]
-                    maxHeight = self.style["imgEmoMaxSize"]
-                    name = ""
-                elif imgType == "pic":
-                    if data["size"] < self.style["intEmoPicSepSize"] * 1000:
-                        maxWidth = self.style["imgEmoMaxSize"]
-                        maxHeight = self.style["imgEmoMaxSize"]
-                        name = ""
-                    else:
-                        maxWidth = self.style["imgMaxWidth"]
-                        maxHeight = self.style["imgMaxHeight"]
+                if name:
+                    msgHeight = self.style["tipTextHeight"] + height
+
                 else:
-                    maxWidth = self.style["imgMaxWidth"]
-                    maxHeight = self.style["imgMaxHeight"]
+                    msgHeight = height
 
-                width, height = self.drawingQuery.resize_image(imgWidth, imgHeight, maxWidth, maxHeight)
+                print(msgHeight, "msgHeight")
 
 
-                if curY - height - self.style["textHeight"] < 0:
+                if curY - msgHeight < 0:
                     remaindData = []
                     remaindData.extend(dataList[itemNum:])
                     return False, textHeight, textWidth, drawData, remaindData
 
                 # 绘制图片并更新坐标
                 drawData.append([self.pdfDraw.drawImg,
-                                 [path, name, width, height], [0, curY, 0]])
-                textHeight += height + self.style["textHeight"]
-                curY -= height + self.style["textHeight"]
+                                 [path, name, width, height], [0, curY - heightSpace - msgHeight, 0]])
+                textHeight += msgHeight
+                curY -= msgHeight
                 curX = 0
                 if width > textWidth:
                     textWidth = width
@@ -1279,9 +1276,9 @@ class GenerateInit:
         cur_time = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
         dst_file = os.path.join('old', cur_time + ".pdf")
 
-        # 判断目标目录是否存在，不存在则创建
-        if not os.path.exists('old'):
-            os.mkdir('old')
-
-        # 复制文件到目标目录
-        shutil.copy("output/chatData.pdf", dst_file)
+        # # 判断目标目录是否存在，不存在则创建
+        # if not os.path.exists('old'):
+        #     os.mkdir('old')
+        #
+        # # 复制文件到目标目录
+        # shutil.copy("output/chatData.pdf", dst_file)
