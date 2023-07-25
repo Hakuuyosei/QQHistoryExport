@@ -19,6 +19,8 @@ codes = {
     'EXTSTR_NOT_EXIST_TARGET': ['EXTSTR不存在目标', 100],
     'EXTSTR_JSON_ERR_DECODE': ['EXTSTR JSON解码错误', 100],
     'IO_ERROR': ['IO读取写入错误', 100],
+    'JAVA_DESER_PROC_ERR': ['Java反序列化进程错误', 100],
+    'JAVA_DESER_PROC_TIMEOUT': ['Java反序列化超时', 100],
     'JAVA_DESER_ERR_INPUT_TYPE': ['Java反序列化错误  输入类型错误', 100],
     'JAVA_DESER_JSON_ERR_DECODE': ['Java反序列化错误 - JSON解码错误', 100]
 }
@@ -38,6 +40,9 @@ class ErrCode():
         self.codes = codes
 
         self.counts = {}
+
+        self.parse_state = False
+
 
 
     #设置日志等级
@@ -64,9 +69,30 @@ class ErrCode():
             elif self.mode == "log":
                 pass
 
+
+    def parse_start(self):
+        """
+        开始解析
+        """
+        self.parse_state = True
+
+    def parse_stop(self, info):
+        """
+        关闭解析
+        :param info:错误信息
+        :return:
+        """
+        self.parse_state = False
+        log_info = f"发生错误：{info} 解析停止！"
+        self.log("parse", self.LOG_LEVEL_ERR, log_info)
+
+    def parse_quote_state(self):
+        return self.parse_state
+
+
     def parse_err(self, code, errdata):
         """
-
+        解析错误处理
         :param code:
         :param errdata:
         :return:

@@ -121,8 +121,8 @@ class ValidateSettings:
 
         _, configs_validated["needMarketFace"] = self.validate_bool_conf(
             "needMarketFace", "是否需要QQ大表情")
-        _, configs_validated["needReplyMsg"] = self.validate_bool_conf(
-            "needReplyMsg", "是否需要引用消息的引用部分")
+        _, configs_validated["needJavaDeser"] = self.validate_bool_conf(
+            "needJavaDeser", "是否需要引用消息的引用部分")
 
         print(self.state, self.info, configs_validated)
         return self.state, self.info, configs_validated

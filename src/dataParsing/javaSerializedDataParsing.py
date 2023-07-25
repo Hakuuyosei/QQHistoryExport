@@ -18,6 +18,43 @@ class javaSerializedDataParsing():
         self.textParsing = textparsingobj
         self.configs = configs
 
+        self.java_deser_proc = None
+
+        if self.configs["needJavaDeser"]:
+            self.open_proc()
+
+    def open_proc(self):
+        try:
+            self.java_deser_proc.kill()
+        except:
+            pass
+
+        try:
+            cmd = "java -jar ./lib/javaDeserialization/QQdeserialization-1.0.jar"
+            self.java_deser_proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                                    stderr=subprocess.PIPE, text=True)
+            # TODO:其它错误处理 ^
+        except FileNotFoundError:
+            self.ERRCODE.parse_stop("Java环境无效！请安装java环境并在命令行用java -version检查\n")
+        except Exception as e:
+            self.ERRCODE.parse_stop(f"命令行运行jar包发生{e}错误")
+
+
+
+    def proc_java_deser(self, input_data):
+        try:
+            self.java_deser_proc.stdin.write(input_data + '\n')
+            self.java_deser_proc.stdin.flush()
+            # 从进程输出中获取响应
+            # TODO: 超时处理
+            response = self.java_deser_proc.stdout.readline()
+            if not response:
+                return self.ERRCODE.parse_err("JAVA_DESER_PROC_ERR", ["No Response", input_data]), None
+        except Exception as e:
+            return self.ERRCODE.parse_err("JAVA_DESER_PROC_ERR", [e, input_data]), None
+        return {}, response
+
+
     def javaDeserializationToJson(self, data):
         """java序列化转json
 
@@ -32,15 +69,17 @@ class javaSerializedDataParsing():
         else:
             return self.ERRCODE.parse_err("JAVA_DESER_ERR_INPUT_TYPE", [str(data), str(type(data))]), None
 
-        javaDeserCmd = "java -jar ./lib/javaDeserialization/QQdeserialization-1.0.jar " + dataStr
+        deser_err_code, deser_out_data = self.proc_java_deser(dataStr)
+        print(deser_out_data)
+        if deser_out_data:
+            try:
+                jsonData = json.loads(deser_out_data)
+                return {}, jsonData
+            except Exception as e:
+                return self.ERRCODE.parse_err("JAVA_DESER_JSON_ERR_DECODE", [dataStr, e]), None
+        else:
+            return deser_err_code, None
 
-        javaDeserCmdOutput = subprocess.getoutput(javaDeserCmd)
-
-        try:
-            jsonData = json.loads(javaDeserCmdOutput)
-            return {}, jsonData
-        except json.JSONDecodeError as e:
-            return self.ERRCODE.parse_err("JAVA_DESER_JSON_ERR_DECODE", [dataStr]), None
 
 
     def parse(self, msgType, msgData, extStr):
@@ -61,12 +100,12 @@ class javaSerializedDataParsing():
                 "c": self.textParsing.parse(msgData.decode("utf-8")),
                 "e": {}
             }
-            if self.configs["needReplyMsg"] == False:
+            if self.configs["needJavaDeser"] == False:
                 msgOutData["c"].insert(0, {"t": "uns",
                                            "c": {"text": "[回复消息]"},
                                            "e": {}
                                            })
-            elif self.configs["needReplyMsg"] == True:
+            elif self.configs["needJavaDeser"] == True:
 
                 try:
                     # print(extStr)
@@ -110,27 +149,34 @@ class javaSerializedDataParsing():
 
         # 群文件
         elif msgType == -2017:
-            err, jsonData = self.javaDeserializationToJson(msgData)
+            if not self.configs["needJavaDeser"]:
+                msgOutData = {
+                    "t": "uns",
+                    "c": {"text":"[文件]"},
+                    "e": {}
+                }
+            else:
+                err, jsonData = self.javaDeserializationToJson(msgData)
 
-            fileName = ""
-            filePath = ""
-            fileSize = ""
-            if jsonData:
-                fileName = jsonData["fileName"]
-                fileSize = jsonData["lfileSize"]
+                fileName = ""
+                filePath = ""
+                fileSize = ""
+                if jsonData:
+                    fileName = jsonData["fileName"]
+                    fileSize = jsonData["lfileSize"]
 
-            file = {
-                "received": False,
-                "name": fileName,
-                "path": filePath,
-                "size": fileSize
-            }
-            msgOutData = {
-                "t": "file",
-                "c": file,
-                "e": err
-            }
-            # print(msgOutData)
+                file = {
+                    "received": False,
+                    "name": fileName,
+                    "path": filePath,
+                    "size": fileSize
+                }
+                msgOutData = {
+                    "t": "file",
+                    "c": file,
+                    "e": err
+                }
+                # print(msgOutData)
 
         # 转发的聊天记录，java序列化
         elif msgType == -2011:

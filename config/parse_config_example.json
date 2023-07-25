@@ -44,5 +44,5 @@
   "videoPath":"",  //shortvideo文件夹路径
 
   "needMarketFace": true,//大表情 即单独发QQ表情出来的大表情
-  "needReplyMsg": true //引用消息的源消息部分
+  "needJavaDeser": true //引用消息的源消息部分、群文件解析 java反序列化开关，需要java环境
 }

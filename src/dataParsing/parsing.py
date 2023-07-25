@@ -37,6 +37,8 @@ class QQParse:
         self.DBcursor2 = None
 
         self.ERRCODE = errcode_obj
+        self.ERRCODE.parse_start()
+
         self.textParsing = textParsing(self.ERRCODE, self.configs)
         self.unserializedDataParsing = unserializedDataParsing(self.ERRCODE, self.textParsing, self.configs)
         self.protoDataParsing = protoDataParsing(self.ERRCODE, self.textParsing, self.configs)
@@ -106,6 +108,8 @@ class QQParse:
         """处理数据库
 
         """
+        if not self.ERRCODE.parse_quote_state():
+            return False
 
         targetQQ = self.configs["targetQQ"]
         targetQQmd5 = hashlib.md5(targetQQ.encode("utf-8")).hexdigest().upper()
@@ -165,6 +169,8 @@ class QQParse:
 
         for cs in cursors:
             for row in cs:
+                if not self.ERRCODE.parse_quote_state():
+                    return False
                 msgType = row[0]
                 senderQQ = self.decrypt(row[1])
                 if senderQQ not in self.senderUins:
