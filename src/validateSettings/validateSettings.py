@@ -92,8 +92,6 @@ class ValidateSettings:
                     _, configs_validated["key"] = self.validate_num_str_conf(
                         "key", "输入的秘钥")
 
-        _, configs_validated["noSelectNeedDisplay"] = self.validate_bool_conf(
-            "noSelectNeedDisplay", "未选择消息类型是否以类似[图片]文本替代")
 
         _, configs_validated["needQQEmoji"] = self.validate_bool_conf(
             "needQQEmoji", "是否需要QQ小表情")

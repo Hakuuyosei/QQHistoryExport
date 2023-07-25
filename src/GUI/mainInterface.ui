@@ -18,9 +18,9 @@
     <property name="geometry">
      <rect>
       <x>0</x>
-      <y>10</y>
+      <y>0</y>
       <width>391</width>
-      <height>571</height>
+      <height>591</height>
      </rect>
     </property>
     <property name="title">
@@ -80,41 +80,46 @@
        <x>10</x>
        <y>330</y>
        <width>371</width>
-       <height>237</height>
+       <height>255</height>
       </rect>
      </property>
      <layout class="QGridLayout" name="gridLayout_3">
-      <item row="8" column="3">
-       <widget class="QPushButton" name="pttPathSelectButton">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>9</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>选取</string>
-        </property>
-       </widget>
-      </item>
       <item row="1" column="2" colspan="2">
        <widget class="QLineEdit" name="targetQQInputBox"/>
       </item>
-      <item row="2" column="1">
-       <widget class="QLabel" name="label_17">
-        <property name="font">
-         <font>
-          <pointsize>9</pointsize>
-         </font>
+      <item row="4" column="0">
+       <widget class="QCheckBox" name="QQemojiVerSelectBox">
+        <property name="enabled">
+         <bool>true</bool>
         </property>
         <property name="text">
-         <string>模式</string>
+         <string/>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+        <property name="tristate">
+         <bool>false</bool>
         </property>
        </widget>
       </item>
-      <item row="5" column="2" colspan="2">
+      <item row="5" column="0">
+       <widget class="QCheckBox" name="useImageSelectButton">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+        <property name="tristate">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="2" colspan="2">
        <widget class="QWidget" name="modeSelectContainer_2" native="true">
         <widget class="QRadioButton" name="qqEmojiVerRadioButton1">
          <property name="geometry">
@@ -147,8 +152,8 @@
         </widget>
        </widget>
       </item>
-      <item row="4" column="0">
-       <widget class="QCheckBox" name="noNeedDisplaySelectButton">
+      <item row="9" column="0">
+       <widget class="QCheckBox" name="needMarketFaceSelectButton">
         <property name="enabled">
          <bool>true</bool>
         </property>
@@ -163,22 +168,68 @@
         </property>
        </widget>
       </item>
-      <item row="5" column="1">
-       <widget class="QLabel" name="label_18">
+      <item row="5" column="3">
+       <widget class="QPushButton" name="chatimgPathSelectButton">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="font">
          <font>
           <pointsize>9</pointsize>
          </font>
         </property>
         <property name="text">
-         <string>QQ表情版本</string>
+         <string>选取</string>
         </property>
        </widget>
       </item>
-      <item row="0" column="0">
-       <widget class="QCheckBox" name="checkBox_9">
+      <item row="6" column="1" colspan="3">
+       <widget class="QLabel" name="label_10">
+        <property name="text">
+         <string>聊天图片</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLabel" name="label_15">
+        <property name="font">
+         <font>
+          <pointsize>9</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>你自己的QQ号</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1">
+       <widget class="QLabel" name="label_12">
+        <property name="font">
+         <font>
+          <pointsize>9</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>chatimg文件夹</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QLabel" name="label_17">
+        <property name="font">
+         <font>
+          <pointsize>9</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>模式</string>
+        </property>
+       </widget>
+      </item>
+      <item row="10" column="0">
+       <widget class="QCheckBox" name="needjavaDeserSelectButton">
         <property name="enabled">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <property name="text">
          <string/>
@@ -191,7 +242,14 @@
         </property>
        </widget>
       </item>
-      <item row="8" column="1">
+      <item row="11" column="1" colspan="3">
+       <widget class="QLabel" name="label_20">
+        <property name="text">
+         <string>包括：引用消息的引用部分，群文件信息</string>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="1">
        <widget class="QLabel" name="label_13">
         <property name="font">
          <font>
@@ -203,22 +261,32 @@
         </property>
        </widget>
       </item>
-      <item row="7" column="1" colspan="3">
-       <widget class="QLabel" name="label_10">
-        <property name="text">
-         <string>聊天图片</string>
+      <item row="7" column="2">
+       <widget class="QLineEdit" name="pttPathInputBox">
+        <property name="enabled">
+         <bool>false</bool>
         </property>
        </widget>
       </item>
-      <item row="4" column="1" colspan="3">
-       <widget class="QLabel" name="label_19">
+      <item row="1" column="1">
+       <widget class="QLabel" name="label_16">
         <property name="font">
          <font>
           <pointsize>9</pointsize>
          </font>
         </property>
         <property name="text">
-         <string>没选择解析的类型用[xxx]代替，比如[图片]</string>
+         <string>目标QQ号</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2" colspan="2">
+       <widget class="QLineEdit" name="selfQQInputBox"/>
+      </item>
+      <item row="5" column="2">
+       <widget class="QLineEdit" name="chatimgPathInputBox">
+        <property name="enabled">
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -255,6 +323,38 @@
         </widget>
        </widget>
       </item>
+      <item row="7" column="0">
+       <widget class="QCheckBox" name="usePttCheckBox">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+        <property name="tristate">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QCheckBox" name="checkBox_9">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+        <property name="tristate">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
       <item row="2" column="0">
        <widget class="QCheckBox" name="checkBox_11">
         <property name="enabled">
@@ -268,6 +368,13 @@
         </property>
         <property name="tristate">
          <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="9" column="1" colspan="3">
+       <widget class="QLabel" name="label_11">
+        <property name="text">
+         <string>大表情 即单独发QQ表情出来的大表情</string>
         </property>
        </widget>
       </item>
@@ -287,32 +394,8 @@
         </property>
        </widget>
       </item>
-      <item row="6" column="1">
-       <widget class="QLabel" name="label_12">
-        <property name="font">
-         <font>
-          <pointsize>9</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>chatimg文件夹</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QLabel" name="label_16">
-        <property name="font">
-         <font>
-          <pointsize>9</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>目标QQ号</string>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="3">
-       <widget class="QPushButton" name="chatimgPathSelectButton">
+      <item row="7" column="3">
+       <widget class="QPushButton" name="pttPathSelectButton">
         <property name="enabled">
          <bool>false</bool>
         </property>
@@ -326,130 +409,26 @@
         </property>
        </widget>
       </item>
-      <item row="6" column="2">
-       <widget class="QLineEdit" name="chatimgPathInputBox">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="8" column="2">
-       <widget class="QLineEdit" name="pttPathInputBox">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QLabel" name="label_15">
+      <item row="4" column="1">
+       <widget class="QLabel" name="label_18">
         <property name="font">
          <font>
           <pointsize>9</pointsize>
          </font>
         </property>
         <property name="text">
-         <string>你自己的QQ号</string>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="0">
-       <widget class="QCheckBox" name="QQemojiVerSelectBox">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-        <property name="tristate">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="0">
-       <widget class="QCheckBox" name="useImageSelectButton">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-        <property name="checked">
-         <bool>false</bool>
-        </property>
-        <property name="tristate">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="2" colspan="2">
-       <widget class="QLineEdit" name="selfQQInputBox"/>
-      </item>
-      <item row="8" column="0">
-       <widget class="QCheckBox" name="usePttCheckBox">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-        <property name="checked">
-         <bool>false</bool>
-        </property>
-        <property name="tristate">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="10" column="0">
-       <widget class="QCheckBox" name="needMarketFaceSelectButton">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-        <property name="tristate">
-         <bool>false</bool>
+         <string>QQ表情版本</string>
         </property>
        </widget>
       </item>
       <item row="10" column="1" colspan="3">
-       <widget class="QLabel" name="label_11">
-        <property name="text">
-         <string>大表情 即单独发QQ表情出来的大表情</string>
-        </property>
-       </widget>
-      </item>
-      <item row="11" column="0">
-       <widget class="QCheckBox" name="needReplyMsgSelectButton">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-        <property name="tristate">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="11" column="1" colspan="3">
        <widget class="QLabel" name="label_14">
         <property name="text">
-         <string>引用消息的源消息部分</string>
+         <string>java序列化解析，需要安装java环境</string>
         </property>
        </widget>
       </item>
-      <item row="9" column="1" colspan="2">
+      <item row="8" column="1" colspan="3">
        <widget class="QLabel" name="label_9">
         <property name="text">
          <string>语音文件</string>
@@ -795,7 +774,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>590</y>
+      <y>600</y>
       <width>241</width>
       <height>61</height>
      </rect>
