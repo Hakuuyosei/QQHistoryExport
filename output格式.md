@@ -91,8 +91,9 @@
 | 键   | 值                           |
 | ---- | ---------------------------- |
 | path | 文件路径（已经拷贝到output） |
-| type | 图片类型，marketface,pic     |
+| type | 图片类型，marketface, pic    |
 | name | 新的图片名/表情名            |
+| size | 图片大小（仅pic）            |
 
 ### revoke  撤回消息
 

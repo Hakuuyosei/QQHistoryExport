@@ -277,13 +277,19 @@ class PdfDraw:
         # print("Img", x, y, width, height)
 
         path = self.paths["outputDirPath"] + path
-        self.pdf_canvas.drawImage(path, x, y + self.style["textHeight"],
-                                  width=width, height=height,
-                                  mask='auto')
-        text = f"file:  {name}"
-        self.pdf_canvas.setFillColor(self.style["textColor"])
-        self.pdf_canvas.setFont(self.style["fontName"], self.style["textHeight"])
-        self.pdf_canvas.drawString(x, y, text)
+        if name:
+            self.pdf_canvas.drawImage(path, x, y + self.style["textHeight"],
+                                      width=width, height=height,
+                                      mask='auto')
+
+            text = f"file:  {name}"
+            self.pdf_canvas.setFillColor(self.style["textColor"])
+            self.pdf_canvas.setFont(self.style["fontName"], self.style["textHeight"])
+            self.pdf_canvas.drawString(x, y, text)
+        else:
+            self.pdf_canvas.drawImage(path, x, y,
+                                      width=width, height=height,
+                                      mask='auto')
 
     def drawTextEmoji(self, char, x, y, c):
         """绘制文本unicode表情
@@ -560,22 +566,37 @@ class DataProcessor:
             imgType = data["c"]["type"]
 
         # 使用PIL读取图片的真实长宽
+        # print(imgType)
         with Image.open(self.paths["outputDirPath"] + path) as img:
             imgWidth, imgHeight = img.size
         # 如果是图片表情
         if imgType == "marketface":
             maxWidth = self.style["imgEmoMaxSize"]
             maxHeight = self.style["imgEmoMaxSize"]
+            name = ""
+        elif imgType == "pic":
+            if data["c"]["size"] < self.style["intEmoPicSepSize"]*1000:
+                maxWidth = self.style["imgEmoMaxSize"]
+                maxHeight = self.style["imgEmoMaxSize"]
+                name = ""
+            else:
+                maxWidth = self.style["imgMaxWidth"]
+                maxHeight = self.style["imgMaxHeight"]
         else:
             maxWidth = self.style["imgMaxWidth"]
             maxHeight = self.style["imgMaxHeight"]
 
         width, height = self.drawingQuery.resize_image(imgWidth, imgHeight, maxWidth, maxHeight)
 
-        detaY = - height - self.style["textHeight"]
+        if name:
+            MsgHeight = self.style["tipTextHeight"] + height
+            detaY = - height - self.style["textHeight"]
+
+        else:
+            MsgHeight = height
+            detaY = - height
         drawData = [[self.pdfDraw.drawImg, [path, name, width, height], [0, detaY, 0]]]
 
-        MsgHeight = self.style["tipTextHeight"] + height
         if MsgHeight > heightSpace:
             return False, MsgHeight, None
         return True, MsgHeight, drawData

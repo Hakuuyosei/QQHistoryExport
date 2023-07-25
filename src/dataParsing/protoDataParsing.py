@@ -119,6 +119,9 @@ class protoDataParsing():
                 "c": {"path": "", "type": "", "name": ""}
             }
             try:
+                # deserialize_data, message_type = blackboxprotobuf.decode_message(data)
+                # print(f"图片原始数据: {deserialize_data}")
+                # print(f"消息类型: {message_type}")
                 doc = PicRec()
                 doc.ParseFromString(data)
 
@@ -129,6 +132,7 @@ class protoDataParsing():
                 imgPath = os.path.join(filename[-3:], filename)
                 # print(doc.uint32_width, doc.uint32_height, doc.uint32_image_type)
                 msgOutData["c"]["type"] = "pic"
+                msgOutData["c"]["size"] = doc.size
                 # msgOutData["c"]["imgType"] = doc.uint32_image_type
                 # 数据中，这两项宽高不可靠，请注意！
                 # msgOutData["c"]["imgWidth"] = doc.uint32_height
@@ -226,7 +230,7 @@ class protoDataParsing():
             }
         elif self.configs["needVoice"] == True:
             msgOutData = {
-                "t": "video",
+                "t": "voice",
                 "c": {}
             }
             try:
@@ -415,6 +419,7 @@ class protoDataParsing():
         # 图片类型
         if msgType == -2000:
             msgOutData = self.decodePic(msgData)
+            print(extStr)
 
 
         # 图文混排
@@ -455,7 +460,7 @@ class protoDataParsing():
                     descErrcode, msgDeseData = self.decodeMarketFace(marketFaceName)
                     msgOutData = {
                         "t": "img",
-                        "c": {"path": msgDeseData, "name": marketFaceName, "type": "marketFace"}
+                        "c": {"path": msgDeseData, "name": marketFaceName, "type": "marketface"}
                     }
                 except:
                     msgOutData = {"t": "err", "c": {"text": "[大表情]"}}
