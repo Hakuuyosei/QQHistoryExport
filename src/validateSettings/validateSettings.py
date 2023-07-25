@@ -64,25 +64,20 @@ class ValidateSettings:
                         if configs_validated["needSlowtable"] == True:
                             dbstfile_paths = [item + f"/slowtable_{self.configs['selfQQ']}.db" for item in databases_paths]
                             _, configs_validated["dbstPath"] = \
-                                self.validate_one_of_files_exist(dbstfile_paths, "slowtable_QQ号.db")
+                                self.validate_one_of_files_exist(dbstfile_paths, "slowtable_QQ号.db 两个月前的聊天记录")
 
-                    _, if_need_read_kc = self.validate_bool_conf("needKey", "秘钥文件")
-                    if if_need_read_kc == True:
-                        kcfile_paths = [item + f"/kc" for item in files_paths]
-                        _, kcfile_path = \
-                            self.validate_one_of_files_exist(kcfile_paths, "kc秘钥文件")
-                        _, configs_validated["key"] = self.read_kc(kcfile_path)
+                    kcfile_paths = [item + f"/kc" for item in files_paths]
+                    _, kcfile_path = \
+                        self.validate_one_of_files_exist(kcfile_paths, "kc秘钥文件")
+                    _, configs_validated["key"] = self.read_kc(kcfile_path)
 
-                    elif  if_need_read_kc == False:
-                        _, configs_validated["key"] = self.validate_num_str_conf(
-                            "key", "输入的秘钥")
             elif find_files_mode == "files":
                 _, configs_validated["dbPath"] = \
                     self.validate_file_exist_conf("dbPath", "QQ号.db")
                 _, configs_validated["dbstPath"] = \
-                    self.validate_file_exist_conf("dbstPath", "slowtable_QQ号.db")
+                    self.validate_file_exist_conf("dbstPath", "slowtable_QQ号.db 两个月前的聊天记录")
 
-                _, if_need_read_kc = self.validate_bool_conf("needKey", "秘钥文件")
+                _, if_need_read_kc = self.validate_bool_conf("needKey", "秘钥输入方式")
                 if if_need_read_kc == True:
                     _, kcfile_path = \
                         self.validate_file_exist_conf("keyPath", "kc秘钥文件")

@@ -54,24 +54,38 @@ class QQParse:
         dir_path = 'output'
 
         # 判断目录是否存在并删除
-        if os.path.exists(dir_path):
-            shutil.rmtree(dir_path)
-        os.mkdir(dir_path)
-        os.mkdir(dir_path + "/emoticons")
-        os.mkdir(dir_path + "/emoticons/emoticon1")
-        os.mkdir(dir_path + "/emoticons/emoticon1/new")
-        os.mkdir(dir_path + "/emoticons/emoticon1/old")
-        os.mkdir(dir_path + "/emoticons/emoticon2")
-        os.mkdir(dir_path + "/emoticons/nudgeaction")
-        os.mkdir(dir_path + "/images")
-        os.mkdir(dir_path + "/videos")
-        os.mkdir(dir_path + "/videos/thumbs")
-        os.mkdir(dir_path + "/voices")
-        os.mkdir(dir_path + "/temp")
-        os.mkdir(dir_path + "/senders")
+        try:
+            if os.path.exists(dir_path):
+                for root, dirs, files in os.walk(dir_path):
+                    for file in files:
+                        file_path = os.path.join(root, file)
+                        if file != 'parse_log.txt':
+                                os.remove(file_path)
+
+                    for dir in dirs:
+                        dir_path_2 = os.path.join(root, dir)
+                        shutil.rmtree(dir_path_2)
+            else:
+                os.mkdir(dir_path)
 
 
-        self.outputFile = open('output/chatData.txt', 'w')
+            os.mkdir(dir_path + "/emoticons")
+            os.mkdir(dir_path + "/emoticons/emoticon1")
+            os.mkdir(dir_path + "/emoticons/emoticon1/new")
+            os.mkdir(dir_path + "/emoticons/emoticon1/old")
+            os.mkdir(dir_path + "/emoticons/emoticon2")
+            os.mkdir(dir_path + "/emoticons/nudgeaction")
+            os.mkdir(dir_path + "/images")
+            os.mkdir(dir_path + "/videos")
+            os.mkdir(dir_path + "/videos/thumbs")
+            os.mkdir(dir_path + "/voices")
+            os.mkdir(dir_path + "/temp")
+            os.mkdir(dir_path + "/senders")
+
+
+            self.outputFile = open('output/chatData.txt', 'w')
+        except Exception as e:
+            self.ERRCODE.parse_stop(f"清空和创建output文件夹时发生（{e}）错误")
         return
 
 
@@ -163,8 +177,7 @@ class QQParse:
             self.ERRCODE.log("parse", self.ERRCODE.LOG_LEVEL_ERR, info)
             return False
 
-        info = """数据库解析初始化成功，开始解析……
-        提示：出现较多的图片未找到等错误是正常的，有可能没接收、被清理"""
+        info = """数据库解析初始化成功，开始解析……"""
         self.ERRCODE.log("parse", self.ERRCODE.LOG_LEVEL_INFO, info)
 
         for cs in cursors:
@@ -187,8 +200,7 @@ class QQParse:
         self.outputFile.close()
 
         # print(self.groupMembers[targetQQ])
-        info = """聊天记录解析完毕！恭喜！
-                """
+        info = """聊天记录解析完毕！恭喜！"""
         self.ERRCODE.log("parse", self.ERRCODE.LOG_LEVEL_INFO, info)
 
         # 读取发送者数据
@@ -227,6 +239,14 @@ class QQParse:
 
         with open(filename, "w", encoding="utf-8") as f:
             json.dump(senders, f, ensure_ascii=False, indent=4)
+
+        info = """下面是解析中发生的错误统计，因为图片，视频可能没被接收，被清理，或者有新的消息类型和存储方式
+未被分析，所以出现一些错误是正常的，若某项错误出现次数过多，请检查你的设置项，若确保没问题，可以在
+https://github.com/WhiteWingNightStar/QQHistoryExport上提issue，请附上output/parse_log.txt
+中的异常部分"""
+        self.ERRCODE.log("parse", self.ERRCODE.LOG_LEVEL_INFO, info)
+        self.ERRCODE.log_err_count()
+        return True
 
 
     def proMsg(self, msgType, msgData, extStr):

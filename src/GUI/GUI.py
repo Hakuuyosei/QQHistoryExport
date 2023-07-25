@@ -204,7 +204,7 @@ class mainWindow():
         configs = self.read_control_values()
         print(configs)
 
-        err_code = errcode.ErrCode("print")
+        err_code = errcode.ErrCode("func",self.log)
 
         validate_settings = validateSettings.ValidateSettings()
         state, info, v_configs = validate_settings.validate(False, configs)
@@ -212,8 +212,8 @@ class mainWindow():
 
 
         if state:
-            # qq_parse = parsing.QQParse(v_configs, err_code)
-            # qq_parse.procDb()
+            qq_parse = parsing.QQParse(v_configs, err_code)
+            qq_parse.procDb()
             pass
         else:
             self.ui.startParseButton.setEnabled(True)

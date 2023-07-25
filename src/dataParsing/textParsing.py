@@ -112,7 +112,7 @@ class textParsing():
                 else:
                     msgOutData["e"] = self.ERRCODE.parse_err("EMOJI_NOT_EXIST", [self.configs["QQEmojiVer"], str(num)])
                     msgList.append(msgOutData)
-            elif self.configs["noSelectNeedDisplay"] == True:
+            else:
                 msgOutData = {
                     "t": "uns",
                     "c": {"text": "[表情]"},

@@ -28,8 +28,10 @@ codes = {
 
 
 class ErrCode():
-    def __init__(self, mode):
+    def __init__(self, mode, log_func=None):
         self.mode = mode
+        self.log_func = log_func
+        self.codes = codes
         #日志等级
         self.LOG_LEVEL_INFO = 0
         self.LOG_LEVEL_WARN = 1
@@ -37,12 +39,10 @@ class ErrCode():
 
         self.logLevel = self.LOG_LEVEL_INFO
 
-        self.codes = codes
-
-        self.counts = {}
-
         self.parse_state = False
 
+        self.counts = {}
+        self.log_file = None
 
 
     #设置日志等级
@@ -64,10 +64,12 @@ class ErrCode():
         :return: 无
         """
         if logLevel >= self.logLevel:
+            self.log_file.write(tag + " :" + info + "\n")
+
             if self.mode == "print":
                 print(tag + " :" + info)
-            elif self.mode == "log":
-                pass
+            elif self.mode == "func":
+                self.log_func(tag + " :" + info)
 
 
     def parse_start(self):
@@ -75,18 +77,23 @@ class ErrCode():
         开始解析
         """
         self.parse_state = True
+        self.log_file = open("output/parse_log.txt", 'w', encoding='utf-8')
 
     def parse_stop(self, info):
         """
         关闭解析
         :param info:错误信息
-        :return:
         """
         self.parse_state = False
         log_info = f"发生错误：{info} 解析停止！"
         self.log("parse", self.LOG_LEVEL_ERR, log_info)
+        self.log_file.close()
 
     def parse_quote_state(self):
+        """
+        查询解析状态
+        :return: bool
+        """
         return self.parse_state
 
 
@@ -113,8 +120,16 @@ class ErrCode():
             "errinfo": codes[code][0] + f"，相关信息：{errdata}"
 
         }
+        self.count_check(code)
         print(err["errinfo"])
+        self.log_file.write(err["errinfo"] + "\n")
+
         return err
+
+    def log_err_count(self):
+        for key, value in self.counts.items():
+            info = f"解析发生错误次数：{key} {codes[key][0]}  {value}次\n"
+        self.log("parse", self.LOG_LEVEL_WARN, info)
 
     def count_check(self, code):
         """检查错误码有没有过量，及时弹出警告信息
