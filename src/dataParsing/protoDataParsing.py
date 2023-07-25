@@ -457,11 +457,14 @@ class protoDataParsing():
                     doc = Msg_pb2.marketFace()
                     doc.ParseFromString(msgData)
                     marketFaceName = doc.field7.decode("utf-8")[1:]
-                    descErrcode, msgDeseData = self.decodeMarketFace(marketFaceName)
-                    msgOutData = {
-                        "t": "img",
-                        "c": {"path": msgDeseData, "name": marketFaceName, "type": "marketface"}
-                    }
+                    state, msgDeseData = self.decodeMarketFace(marketFaceName)
+                    if state:
+                        msgOutData = {
+                            "t": "img",
+                            "c": {"path": msgDeseData, "name": marketFaceName, "type": "marketface"}
+                        }
+                    else:
+                        msgOutData = {"t": "err", "c": {"text": "[大表情]", "type": "media"}}
                 except:
                     msgOutData = {"t": "err", "c": {"text": "[大表情]", "type": "media"}}
                     self.ERRCODE.parse_err("MARKETFACE_DESERIALIZATION_ERROR", [msgType, msgData])
