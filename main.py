@@ -5,7 +5,7 @@ from src.avatarDownload import download
 from src.validateSettings import validateSettings
 from src.errcode import errcode
 from src.GUI import GUI
-test = 5
+test = 2
 if __name__ == '__main__':
     if test == 1:
         qqParse = parsing.QQParse()
