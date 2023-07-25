@@ -50,10 +50,10 @@ class protoDataParsing():
         self.textParsing = textparsingobj
         self.configs = configs
 
-        self.imgMD5Map = {}
-        self.imgNum = 1
-        self.videoNum = 1
-        self.voiceNum = 1
+        self.img_md5_map = {}
+        self.img_num = 1
+        self.video_num = 1
+        self.voice_num = 1
 
     def decodeMarketFace(self, data):
         """解码大表情并移动
@@ -63,13 +63,13 @@ class protoDataParsing():
         """
         emoticon_name = data + ".gif"
         output_path = "output/emoticons/emoticon2/" + emoticon_name
-        lib_path = "lib/emoticons/emoticon2/" + emoticon_name
+        res_path = "resources/emoticons/emoticon2/" + emoticon_name
 
         try:
             if os.path.exists(output_path):
                 return {}, output_path
-            elif os.path.exists(lib_path):
-                shutil.copy(lib_path, output_path)
+            elif os.path.exists(res_path):
+                shutil.copy(res_path, output_path)
                 return {}, output_path
             else:
                 return self.ERRCODE.parse_err("MARKETFACE_NOT_EXIST", [data]), None
@@ -153,10 +153,10 @@ class protoDataParsing():
                     md5 = hashlib.md5(img_data).hexdigest()
 
                 # 查找图片的MD5值是否已经存在
-                if md5 in self.imgMD5Map:
+                if md5 in self.img_md5_map:
                     msgOutData["e"] = {}
-                    msgOutData["c"]["path"] = self.imgMD5Map[md5][0]
-                    msgOutData["c"]["name"] = self.imgMD5Map[md5][1]
+                    msgOutData["c"]["path"] = self.img_md5_map[md5][0]
+                    msgOutData["c"]["name"] = self.img_md5_map[md5][1]
                     return msgOutData
 
                 # 确定图片类型并添加后缀名
@@ -165,8 +165,8 @@ class protoDataParsing():
                     msgOutData["e"] = self.ERRCODE.parse_err("IMG_UNKNOWN_TYPE_ERROR", [imgPath])
                     return msgOutData
 
-                new_filename = f'{self.imgNum}.{img_type}'
-                self.imgNum = self.imgNum + 1
+                new_filename = f'{self.img_num}.{img_type}'
+                self.img_num = self.img_num + 1
                 new_file_path = os.path.join('output', 'images', new_filename)
 
                 # 移动图片文件到output/images文件夹中，并重命名
@@ -177,7 +177,7 @@ class protoDataParsing():
                     return msgOutData
 
                 # 将MD5和新文件路径添加到imgMD5Map中
-                self.imgMD5Map[md5] = [new_file_path, new_filename]
+                self.img_md5_map[md5] = [new_file_path, new_filename]
 
                 msgOutData["e"] = {}
                 msgOutData["c"]["path"] = new_file_path
@@ -231,7 +231,7 @@ class protoDataParsing():
                 doc.ParseFromString(data)
                 file_path = doc.field1.decode("utf-8")
                 voice_length = doc.field19
-                print(file_path, voice_length)
+                # print(file_path, voice_length)
             except:
                 msgOutData["e"] = self.ERRCODE.parse_err("VOICE_DESERIALIZATION_ERROR", [data])
                 return msgOutData
@@ -245,7 +245,6 @@ class protoDataParsing():
                 return msgOutData
 
             relpath = self.configs["voicePath"] + "\\" + match.group(1)
-            print(relpath)
 
             if os.path.exists(relpath + ".amr"):
                 relpath = relpath + ".amr"
@@ -265,9 +264,9 @@ class protoDataParsing():
                 return msgOutData
 
             cmd_list = []
-            new_filename = f'{self.voiceNum}.mp3'
+            new_filename = f'{self.voice_num}.mp3'
             new_file_path = os.path.join('output', 'voices', new_filename)
-            self.voiceNum += 1
+            self.voice_num += 1
             temp_path = "output\\temp\\voice.pcm"
 
             def starts_with_bytes(bytesA, bytesB):
@@ -371,9 +370,9 @@ class protoDataParsing():
                 return msgOutData
 
             _, file_extension = os.path.splitext(found_file)
-            new_filename = f'{self.videoNum}{file_extension}'
-            new_picname = f'{self.videoNum}.jpg'
-            self.videoNum += 1
+            new_filename = f'{self.video_num}{file_extension}'
+            new_picname = f'{self.video_num}.jpg'
+            self.video_num += 1
             new_file_path = os.path.join('output', 'videos', new_filename)
             new_pic_path = os.path.join('output', 'videos', 'thumbs', new_picname)
             # 移动图片文件到output/videos文件夹中，并重命名

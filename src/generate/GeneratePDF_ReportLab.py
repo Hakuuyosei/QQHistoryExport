@@ -1245,7 +1245,7 @@ class GenerateInit:
         fontName = style["fontName"]
         emojiFontName = style["emojiFontName"]
         paths = {
-            "fontDirPath": "lib/fonts/",
+            "fontDirPath": "resources/fonts/",
             "outputDirPath": ""
         }
         paths["fontPath"] = paths["fontDirPath"] + fontName + ".ttf"

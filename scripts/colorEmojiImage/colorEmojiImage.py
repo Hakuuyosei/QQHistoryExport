@@ -59,8 +59,8 @@ def restore_file(merged_file, db_path, file_name):
 # 示例用法
 fonts_Name = "AppleEmoji"
 png_dir = 'E:\Projects/13QQhistoryback/fonts/AppleEmoji/160'
-db_path = f'../../lib/fonts/{fonts_Name}/{fonts_Name}.db'
-merged_file = f'../../lib/fonts/{fonts_Name}/{fonts_Name}'
+db_path = f'../../resources/fonts/{fonts_Name}/{fonts_Name}.db'
+merged_file = f'../../resources/fonts/{fonts_Name}/{fonts_Name}'
 
 # 调用 merge_files 函数将文件夹中的所有文件拼接成一个大文件，并记录文件信息到数据库中
 merge_files(png_dir, db_path, merged_file)

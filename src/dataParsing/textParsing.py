@@ -26,7 +26,7 @@ class textParsing():
 
         :return: 表情索引
         """
-        with open('lib/emoticons/emoticon1/face_config.json', encoding='utf-8') as f:
+        with open('resources/emoticons/emoticon1/face_config.json', encoding='utf-8') as f:
             emojis = json.load(f)
         new_emoji_map = {}
         for e in emojis['sysface']:
@@ -92,15 +92,15 @@ class textParsing():
                         filename = "old/" + index + ".gif"
 
                     output_path = "output/emoticons/emoticon1/" + filename
-                    lib_path = "lib/emoticons/emoticon1/" + filename
+                    res_path = "resources/emoticons/emoticon1/" + filename
 
                     if os.path.exists(output_path):
                         msgOutData["c"]["path"] = output_path
                         msgOutData["c"]["index"] = index
                         msgList.append(msgOutData)
 
-                    elif os.path.exists(lib_path):
-                        shutil.copy(lib_path, output_path)
+                    elif os.path.exists(res_path):
+                        shutil.copy(res_path, output_path)
 
                         msgOutData["c"]["path"] = output_path
                         msgOutData["c"]["index"] = index

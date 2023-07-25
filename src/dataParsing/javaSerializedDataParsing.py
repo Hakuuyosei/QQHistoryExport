@@ -33,6 +33,7 @@ class javaSerializedDataParsing():
             return self.ERRCODE.parse_err("JAVA_DESER_ERR_INPUT_TYPE", [str(data), str(type(data))]), None
 
         javaDeserCmd = "java -jar ./lib/javaDeserialization/QQdeserialization-1.0.jar " + dataStr
+
         javaDeserCmdOutput = subprocess.getoutput(javaDeserCmd)
 
         try:

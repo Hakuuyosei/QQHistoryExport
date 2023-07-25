@@ -7,7 +7,7 @@ import os
 from PIL import ImageFont
 
 # 要处理的文件路径
-file_path = '../../lib/fonts/simhei.ttf'
+file_path = '../../resources/fonts/simhei.ttf'
 
 
 # 获取文件名称、拓展名和路径
@@ -35,7 +35,7 @@ c.execute('''CREATE TABLE IF NOT EXISTS font_metrics
              (unicode INT PRIMARY KEY, aspect_ratio REAL)''')
 
 # 加载字体
-font = ImageFont.truetype('../../lib/fonts/simhei.ttf', size=16)
+font = ImageFont.truetype('../../resources/fonts/simhei.ttf', size=16)
 
 
 
