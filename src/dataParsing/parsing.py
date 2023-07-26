@@ -34,15 +34,17 @@ class QQParse:
         self.DBcursor1 = None
         self.DBcursor2 = None
 
+        self.createOutputFolder()
         self.ERRCODE = errcode_obj
         self.ERRCODE.parse_start()
+
 
         self.textParsing = textParsing(self.ERRCODE, self.configs)
         self.unserializedDataParsing = unserializedDataParsing(self.ERRCODE, self.textParsing, self.configs)
         self.protoDataParsing = protoDataParsing(self.ERRCODE, self.textParsing, self.configs)
         self.javaSerializedDataParsing = javaSerializedDataParsing(self.ERRCODE, self.textParsing, self.configs)
 
-        self.createOutputFolder()
+
 
 
     def createOutputFolder(self):

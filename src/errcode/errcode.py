@@ -1,3 +1,4 @@
+import os
 
 # 错误码:[提示信息,触发警告需要的次数(每n次警告一次)]
 codes = {
@@ -30,7 +31,7 @@ codes = {
 
 
 
-class ErrCode():
+class ErrCode:
     def __init__(self, mode, log_func=None):
         self.mode = mode
         self.log_func = log_func
@@ -80,7 +81,17 @@ class ErrCode():
         开始解析
         """
         self.parse_state = True
-        self.log_file = open("output/parse_log.txt", 'w', encoding='utf-8')
+        try:
+            if not os.path.exists("output"):
+                if not os.path.isdir("output"):
+                    os.makedirs("output")
+
+            self.log_file = open("output/parse_log.txt", 'w', encoding='utf-8')
+        except Exception as e:
+            self.parse_state = False
+            log_info = f"创建日志时发生错误：{e} 解析停止！"
+            self.log("parse", self.LOG_LEVEL_ERR, log_info)
+
 
     def parse_stop(self, info):
         """
@@ -90,7 +101,11 @@ class ErrCode():
         self.parse_state = False
         log_info = f"发生错误：{info} 解析停止！"
         self.log("parse", self.LOG_LEVEL_ERR, log_info)
-        self.log_file.close()
+        try:
+            self.log_file.close()
+        except Exception as e:
+            log_info = f"保存日志时发生错误{e}，解析日志可能并没有正确保存"
+            self.log("parse", self.LOG_LEVEL_WARN, log_info)
 
     def parse_quote_state(self):
         """
