@@ -272,12 +272,17 @@ class QQParse:
         with open(filename, "w", encoding="utf-8") as f:
             json.dump(senders, f, ensure_ascii=False, indent=4)
 
+
         info = """下面是解析中发生的错误统计，因为图片，视频可能没被接收，被清理，或者有新的消息类型和存储方式
 未被分析，所以出现一些错误是正常的，若某项错误出现次数过多，请检查你的设置项，若确保没问题，可以在
 https://github.com/WhiteWingNightStar/QQHistoryExport上提issue，请附上output/parse_log.txt
 中的异常部分"""
         self.ERRCODE.log("parse", self.ERRCODE.LOG_LEVEL_INFO, info)
+
         self.ERRCODE.log_err_count()
+
+        self.ERRCODE.parse_stop("解析完毕")
+
         return True
 
 
@@ -367,7 +372,7 @@ https://github.com/WhiteWingNightStar/QQHistoryExport上提issue，请附上outp
                 groupQQNumber = self.decrypt(row[0])
                 groupName = self.decrypt(row[1])
                 groups[groupQQNumber] = [groupName]
-                # 解码并添加进friends字典
+                # 解码并添加进groups
         return groups
 
     def getGroupMembers(self):

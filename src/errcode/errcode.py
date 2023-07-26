@@ -99,7 +99,7 @@ class ErrCode:
         :param info:错误信息
         """
         self.parse_state = False
-        log_info = f"发生错误：{info} 解析停止！"
+        log_info = f"{info} 解析停止!"
         self.log("parse", self.LOG_LEVEL_ERR, log_info)
         try:
             self.log_file.close()
@@ -137,6 +137,7 @@ class ErrCode:
         self.count_check(code)
         print(errinfo)
         self.log_file.write(errinfo + "\n")
+
 
     def log_err_count(self):
         for key, value in self.counts.items():
