@@ -1,4 +1,6 @@
 from PyQt5 import QtWidgets
+import threading
+
 from src.GUI.mainInterface import Ui_MainWindow
 
 from src.errcode import errcode
@@ -96,15 +98,20 @@ class mainWindow():
         #     lambda state: self.checkbox_changed(state, self.chatimgGroup, None,
         #                                         "needImages", True))
 
-        self.ui.starButton.clicked.connect(self.open_git_url)
+        self.ui.starButton.clicked.connect(
+            lambda: self.start_task(self.open_git_url))
 
-        self.ui.startParseButton.clicked.connect(self.start_parse)
+        self.ui.startParseButton.clicked.connect(
+            lambda: self.start_task(self.start_parse))
 
         self.ui.openSendersJsonButton.clicked.connect(
-            lambda: self.open_file("output/senders/senders.json"))
-        self.ui.copyPDFconfigButton.clicked.connect(self.copy_generatepdf_config)
-        self.ui.downLoadAvatarButton.clicked.connect(self.download_avatar)
-        self.ui.startGeneratePDF.clicked.connect(self.generate_pdf)
+            lambda: self.start_task(lambda: self.open_file("output/senders/senders.json")))
+        self.ui.copyPDFconfigButton.clicked.connect(
+            lambda: self.start_task(self.copy_generatepdf_config))
+        self.ui.downLoadAvatarButton.clicked.connect(
+            lambda: self.start_task(self.download_avatar))
+        self.ui.startGeneratePDF.clicked.connect(
+            lambda: self.start_task(self.generate_pdf))
 
         self.load_setting_values()
 
@@ -167,6 +174,13 @@ class mainWindow():
         if path:
             textbox_obj.setText(path)
 
+    def start_task(self, target):
+        """创建并启动子线程执行耗时任务
+
+        """
+        thread = threading.Thread(target=target)
+        thread.start()
+
     def open_file(self, path):
         """
         用系统软件打开文件
@@ -205,6 +219,7 @@ class mainWindow():
             download.avatarDownload()
         except Exception as e:
             self.log(f"头像下载失败{e}，请手动下载\n")
+            return
         self.log(f"头像下载完成\n")
 
     def generate_pdf(self):
