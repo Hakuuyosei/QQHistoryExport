@@ -14,6 +14,7 @@ import shutil
 import commentjson
 import sys
 
+
 # pyuic5 src/GUI/maininterface.ui -o src/GUI/maininterface.py
 # import src.GUI.res_rc
 
@@ -39,7 +40,6 @@ class WorkerThread(QThread):
             self.open_git_url()
         elif self.task_id == "start_parse":
             self.start_parse(self.task_data)
-
 
     def log(self, info):
         self.messageReady.emit(info)
@@ -89,7 +89,6 @@ class WorkerThread(QThread):
 
         self.log(f"PDF生成成功")
 
-
     def open_git_url(self):
         """
         打开git仓库链接
@@ -100,7 +99,6 @@ class WorkerThread(QThread):
 
     def start_parse(self, configs):
 
-
         err_code = errcode.ErrCode("func", self.log)
         self.ERRCODE = err_code
 
@@ -108,12 +106,9 @@ class WorkerThread(QThread):
         state, info, v_configs = validate_settings.validate(False, configs)
         self.log(info)
 
-
         if state:
             qq_parse = parsing.QQParse(v_configs, err_code)
             qq_parse.procDb()
-
-
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -132,7 +127,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.pttGroup = [self.pttPathInputBox, self.pttPathSelectButton]
         self.videoGroup = [self.videoPathSelectButton, self.videoPathInputBox]
 
-
         # 绑定触发事件
         self.dataDirPathSelectButton.clicked.connect(
             lambda: self.select_dir_path("请选择com.tencent.mobileqq文件夹路径",
@@ -140,8 +134,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.qqDbPathSelectButton.clicked.connect(
             lambda: self.select_file_path("请选择QQ号.db文件路径",
-                                         self.qqDbPathInputBox,
-                                         "DataBases File", "db"))
+                                          self.qqDbPathInputBox,
+                                          "DataBases File", "db"))
 
         self.qqSlowtableDbPathSelectButton.clicked.connect(
             lambda: self.select_file_path("请选择QQ号_slowtable.db文件路径",
@@ -165,8 +159,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             lambda: self.select_dir_path("请选择com.tencent.mobileqq文件夹路径",
                                          self.chatimgPathInputBox))
 
-
-
         self.findFilesModeRadioButton1.toggled.connect(
             lambda state: self.checkbox_changed(state, None, self.findFilesModeContainer1))
 
@@ -182,7 +174,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.useSlowtableCheckBox.toggled.connect(
             lambda state: self.checkbox_changed(state, self.slowtableDbGroup, None))
 
-
         self.useImageCheckBox.toggled.connect(
             lambda state: self.checkbox_changed(state, self.chatimgGroup, None))
 
@@ -195,8 +186,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # self.chatimgPathSelectButton.toggled.connect(
         #     lambda state: self.checkbox_changed(state, self.chatimgGroup, None,
         #                                         "needImages", True))
-
-
 
         self.starButton.clicked.connect(
             lambda: self.start_task("open_git_url"))
@@ -214,7 +203,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             lambda: self.start_task("generate_pdf"))
 
         self.load_setting_values()
-
 
     def checkbox_changed(self, state, selected_enabled_group, selected_enabled_obj):
         """
@@ -239,7 +227,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 for i in selected_enabled_group:
                     i.setEnabled(False)
 
-
     def select_file_path(self, caption, textbox_obj, file_type_name, file_type):
         """
         打开文件浏览框
@@ -259,7 +246,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 f"{file_type_name} Files (*.{file_type});;All Files (*)")
         if path:
             textbox_obj.setText(path)
-
 
     def select_dir_path(self, caption, textbox_obj):
         """
@@ -281,7 +267,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.worker_thread.messageReady.connect(self.log)
         # self.worker_thread.finished.connect(self.on_task_completed)
         self.worker_thread.start()
-
 
     def load_setting_values(self):
         """
@@ -358,8 +343,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 configs['key'] = self.kcInputBox.text()
                 configs['keyPath'] = self.kcPathInputBox.text()
 
-        if self.friendModeRadioButton.isChecked() or self.groupModeRadioButton.isChecked().isChecked():
-            configs['mode'] = 'friend' if self.friendModeRadioButton.isChecked() else 'group'
         configs['targetQQ'] = self.targetQQInputBox.text()
         configs['selfQQ'] = self.selfQQInputBox.text()
         configs['needQQEmoji'] = self.useImageCheckBox.isChecked()
