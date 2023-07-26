@@ -46,6 +46,10 @@ PDF生成：
 
 效果图：
 
+![image-20230726135050874](README/image-20230726135050874.png)
+
+
+
 ![image-20230725211104660](README/image-20230725211104660.png)
 
 ## 使用说明
@@ -83,6 +87,8 @@ data/data/com.tencent.mobileqq/databases/slowtable_{QQ}.db
 data/data/com.tencent.mobileqq/files/kc
 ```
 
+**请注意！**有root的用户若安装了某些xsposed框架，或者手机系统给QQ“空白通行证”，或者其它一些原因，QQ可能读不到真正的IMEI，你填你真正的IMEI无法解密，以kc文件为准！
+
 方案三：（无root）通过手机备份功能拿出QQ的数据，里面有db，f等文件夹，不需要重命名，直接输入程序即可
 
 #### 内部存储
@@ -100,6 +106,8 @@ data/data/com.tencent.mobileqq/files/kc
 ### 2.运行程序
 
 本程序目前提供了基于PyQt5的UI。可以直接通过UI设置解析。
+
+UI可以从`config/parse_config.json`中读取设置项，加载到UI上，解析后也会保存到这个文件里面。你可以在GUI未运行的时候手动修改该文件。点击GUI的解析按钮，会覆盖该文件。
 
 建议使用纯ANSCII路径（纯英文数字或anscii符号），防止出现问题。
 
@@ -145,7 +153,7 @@ data/data/com.tencent.mobileqq/files/kc
 
 欢迎上报问题，因为此项目功能数量多，功能分散，测试样本具有局限性，开发时间跨度大，难以保证每行代码都没问题，各位遇到问题积极提出Issue，有能力的可以直接提pr。
 
-生成的同时会生成一个output/parse_log.json，里面有所有的解析出错数据，上报时请找到bug有关的日志行。
+解析的同时会生成一个output/parse_log.json，里面有所有的解析出错数据，上报时请找到bug有关的日志行。**此文件可能含有敏感信息**，请不要复制整个日志文件。若此聊天记录非常敏感，请勿发到issue，因为日志里看到是乱码，解密后就能看到原数据了。**不用附带IMEI等信息。**
 
 ## 项目原理
 
@@ -236,9 +244,9 @@ voices文件夹是语音，使用slik_v3_decoder和ffmpeg转码为了mp3
 - [ ] web导出
 - [x] 音频消息导出
 - [x] 视频消息导出
-- [ ] PDF生成程序的错误处理
+- [x] PDF生成程序的错误处理
 - [x] 程序UI
-- [ ] 使用说明
+- [x] 使用说明
 - [ ] 支持卡片消息
 - [x] 完善错误管理
 - [ ] 添加多几种emoji表情供选择

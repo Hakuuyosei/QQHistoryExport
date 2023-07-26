@@ -22,7 +22,7 @@ class DrawingQuery:
     """PDF查询相关功能，包括字宽，图片大小等
 
     """
-    def __init__(self, ERRCODE: errcode.ErrCode, paths, style):
+    def __init__(self, ERRCODE: errcode.ErrCode, paths, style, log):
         """
 
         :param ERRCODE: errcode.ErrCode
@@ -32,6 +32,7 @@ class DrawingQuery:
         self.ERRCODE = ERRCODE
         self.paths = paths
         self.style = style
+        self.log = log
 
         # 连接数据库
         self.conn = sqlite3.connect(paths["fontInfoPath"])
@@ -142,7 +143,7 @@ class DrawingQuery:
                                      WHERE file_name = ?''', (fileName,))
             row = cursor.fetchone()
             if not row:
-                print("表情文件不存在")
+                self.log(f"警告：一个unicode emoji未找到：{fileName}")
                 return
             start_offset, end_offset = row
 
@@ -160,7 +161,7 @@ class PdfDraw:
     直接操作PDF数据的层，除绘制书签外，一般不直接调用，通过PDF消息处理层调用
     基本上后三个参数为x，y，c，xy为左下角基点绘制坐标，c为column列数
     """
-    def __init__(self, ERRCODE: errcode.ErrCode, drawingQuery: DrawingQuery, paths, style):
+    def __init__(self, ERRCODE: errcode.ErrCode, drawingQuery: DrawingQuery, paths, style, log):
         """
 
         :param ERRCODE: errcode.ErrCode
@@ -173,6 +174,7 @@ class PdfDraw:
         self.drawingQuery = drawingQuery
         self.paths = paths
         self.style = style
+        self.log = log
 
         pdfmetrics.registerFont(TTFont(self.style["fontName"], self.paths["fontPath"]))
         if self.style["ifUseColorEmoji"] == "False":
@@ -388,7 +390,7 @@ class DataProcessor:
     DataProcessor的函数不直接绘制内容，而是返回drawData
     drawData说明：[函数,[函数参数],[x,y,c]]
     """
-    def __init__(self, ERRCODE: errcode.ErrCode, paths, style, senders, pdfDraw: PdfDraw, drawingQuery: DrawingQuery):
+    def __init__(self, ERRCODE: errcode.ErrCode, paths, style, senders, pdfDraw: PdfDraw, drawingQuery: DrawingQuery, log):
         """PDF消息处理层
         接收垂直空间，处理消息数据，返回绘制细节数据
 
@@ -908,7 +910,7 @@ class Generate:
 
     """
     def __init__(self, ERRCODE: errcode.ErrCode, path, style,
-                 pdfDraw: PdfDraw, dataprocessor: DataProcessor):
+                 pdfDraw: PdfDraw, dataprocessor: DataProcessor, log):
         """
 
         :param ERRCODE: errcode.ErrCode
@@ -922,6 +924,7 @@ class Generate:
         self.ERRCODE = ERRCODE
         self.paths = path
         self.style = style
+        self.log = log
         self.pageNum = 1
         self.curY = self.style["contentStartY"]
         self.curC = 0
@@ -1108,39 +1111,55 @@ class Generate:
         """
         with open(self.paths["outputDirPath"] + "output/chatData.txt", "r") as f:
             i = 1
+            total_num = sum(1 for _ in f)
+            f.seek(0)
+            self.log(f"开始生成：共有{total_num}条")
+            current_num = 0
+            last_persent = 0
 
             for line in f:
                 obj = json.loads(line)
                 i += 1
+                persent = int((current_num + 1) / total_num * 100)
+                if persent % 5 == 0 and persent != last_persent:
+                    last_persent = persent
+                    info = f"生成进度：{persent}%, {current_num + 1}/{total_num}"
+                    self.log(info)
+                current_num += 1
+
                 try:
                     obj["t"]
                 except:
-                    print(obj)
+                    self.log(f"一条消息出错：{obj}\n")
                     continue
 
                 print(obj)
+
                 self.procTime(obj["i"])
-                # 消息类型
-                if obj["t"] == "msg" or obj["t"] == "mixmsg":
-                    self.drawMsg(self.dataprocessor.procChatBoxMessage, obj, True, True)
+                try:
+                    # 消息类型
+                    if obj["t"] == "msg" or obj["t"] == "mixmsg":
+                        self.drawMsg(self.dataprocessor.procChatBoxMessage, obj, True, True)
 
-                if obj["t"] in ["uns", "err", "nudge", "file", "voice"]:
-                    self.drawMsg(self.dataprocessor.procDetailMessage, obj, False, True)
-
-                if obj["t"] in ["uns", "err"]:
-                    if obj["c"]["type"] in ["text", "media", "unknown"]:
+                    if obj["t"] in ["uns", "err", "nudge", "file", "voice"]:
                         self.drawMsg(self.dataprocessor.procDetailMessage, obj, False, True)
-                    elif obj["c"]["type"] in ["tip"]:
+
+                    if obj["t"] in ["uns", "err"]:
+                        if obj["c"]["type"] in ["text", "media", "unknown"]:
+                            self.drawMsg(self.dataprocessor.procDetailMessage, obj, False, True)
+                        elif obj["c"]["type"] in ["tip"]:
+                            self.drawMsg(self.dataprocessor.procTipMessage, obj, False, False)
+
+                    elif obj["t"] == "revoke" or obj["t"] == "tip":
                         self.drawMsg(self.dataprocessor.procTipMessage, obj, False, False)
 
-                elif obj["t"] == "revoke" or obj["t"] == "tip":
-                    self.drawMsg(self.dataprocessor.procTipMessage, obj, False, False)
+                    elif obj["t"] == "img" or obj["t"] == "video":
+                        self.drawMsg(self.dataprocessor.procImgVideoMessage, obj, False, True)
 
-                elif obj["t"] == "img" or obj["t"] == "video":
-                    self.drawMsg(self.dataprocessor.procImgVideoMessage, obj, False, True)
-
-                elif obj["t"] == "file":
-                    self.drawMsg(self.dataprocessor.procDetailMessage, obj, False, True)
+                    elif obj["t"] == "file":
+                        self.drawMsg(self.dataprocessor.procDetailMessage, obj, False, True)
+                except Exception as e:
+                    self.log(f"一条消息出错：{e}消息为：{obj}\n")
 
                 # if i == 80:
                 #    break
@@ -1158,7 +1177,8 @@ class GenerateInit:
     """初始化绘制，加载设置项，初始化绘制层
 
     """
-    def __init__(self):
+    def __init__(self, log):
+        self.log = log
         pass
 
     def read_ini_file(self, file_path: str) -> dict:
@@ -1243,8 +1263,17 @@ class GenerateInit:
         """运行PDF绘制
 
         """
-        style = self.procStyle('config/GeneratePDF_ReportLab_config.ini')
-        senders = self.readSenderInfo()
+        try:
+            style = self.procStyle('config/GeneratePDF_ReportLab_config.ini')
+        except Exception as e:
+            self.log(f"读取设置的时候发生错误：{e}")
+            return
+        try:
+            senders = self.readSenderInfo()
+        except Exception as e:
+            self.log(f"读取senders的时候发生错误：{e}")
+            return
+
         print(style)
 
         fontName = style["fontName"]
@@ -1264,11 +1293,11 @@ class GenerateInit:
 
         ERRCODE = errcode.ErrCode("print")
 
-        drawingQuery = DrawingQuery(ERRCODE, paths, style)
+        drawingQuery = DrawingQuery(ERRCODE, paths, style, self.log)
 
-        pdfDraw = PdfDraw(ERRCODE, drawingQuery, paths, style)
-        dataprocessor = DataProcessor(ERRCODE, paths, style, senders, pdfDraw, drawingQuery)
-        generate = Generate(ERRCODE, paths, style, pdfDraw, dataprocessor)
+        pdfDraw = PdfDraw(ERRCODE, drawingQuery, paths, style, self.log)
+        dataprocessor = DataProcessor(ERRCODE, paths, style, senders, pdfDraw, drawingQuery, self.log)
+        generate = Generate(ERRCODE, paths, style, pdfDraw, dataprocessor, self.log)
         generate.main()
         pdfDraw.save()
 
