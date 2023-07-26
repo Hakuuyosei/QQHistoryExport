@@ -110,7 +110,7 @@ class javaSerializedDataParsing():
 
                 try:
                     # print(extStr)
-                    extStrJson = json.loads(extStr)
+                    extStrJson = json.loads(extStr) if extStr else {}
                 except json.JSONDecodeError as e:
                     self.ERRCODE.parse_err("EXTSTR_JSON_ERR_DECODE", [e, extStr])
                     return msgOutData

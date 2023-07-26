@@ -476,7 +476,7 @@ class protoDataParsing():
 
 
         elif msgType == -5040:  # 灰条消息
-            extStrJson = json.loads(extStr)
+            extStrJson = json.loads(extStr) if extStr else {}
 
             if "revoke_op_type" in extStrJson.keys():
                 # 自己撤回

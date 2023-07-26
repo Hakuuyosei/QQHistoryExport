@@ -52,7 +52,7 @@ class unserializedDataParsing():
 
         # 加群提示
         elif msgType == -1012:
-            extStrJson = json.loads(extStr)
+            extStrJson = json.loads(extStr) if extStr else {}
             msgDecodedData = msgData.decode("utf-8")
             msgDecodedData = msgDecodedData[0:msgDecodedData.find("，点击修改TA的群昵称")]
             items = {
@@ -98,7 +98,7 @@ class unserializedDataParsing():
                 "path": filePath,
                 "size": fileSize
             }
-            extStrJson = json.loads(extStr)
+            extStrJson = json.loads(extStr) if extStr else {}
             # if "file_pic_width" in extStrJson.keys():
             #     if int(extStrJson["file_pic_width"]) > 0:
             #         # 文件形式的图片
