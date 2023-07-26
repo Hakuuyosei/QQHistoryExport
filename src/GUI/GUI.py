@@ -87,8 +87,6 @@ class WorkerThread(QThread):
             self.log(f"生成PDF发生错误{e}，生成失败\n")
             return
 
-        self.log(f"PDF生成成功")
-
     def open_git_url(self):
         """
         打开git仓库链接

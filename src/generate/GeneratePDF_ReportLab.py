@@ -1169,6 +1169,9 @@ class Generate:
                 if self.curY <= self.style["contentMaxY"]:
                     self.nextPage()
 
+            self.log(f"PDF生成成功\n")
+
+
 
 # 为防止设置项被设为小写，使用自己的optionxform函数
 def my_optionxform(optionstr: str) -> str:
@@ -1193,6 +1196,7 @@ class GenerateInit:
 
         parser = configparser.ConfigParser(allow_no_value=True, inline_comment_prefixes=';', comment_prefixes=';')
         parser.optionxform = my_optionxform
+
         parser.read(file_path, encoding="utf-8")
 
         data = {}
@@ -1265,6 +1269,9 @@ class GenerateInit:
         """运行PDF绘制
 
         """
+        if not os.path.exists('config/GeneratePDF_ReportLab_config.ini'):
+            self.log(f"设置文件config/GeneratePDF_ReportLab_config.ini不存在")
+            return
         try:
             style = self.procStyle('config/GeneratePDF_ReportLab_config.ini')
         except Exception as e:
