@@ -79,12 +79,12 @@ class WorkerThread(QThread):
         download.avatarDownload(self.log)
 
     def generate_pdf(self):
-        self.log(f"开始生成PDF……")
+
         try:
-            generateInit = GeneratePDF_ReportLab.GenerateInit()
+            generateInit = GeneratePDF_ReportLab.GenerateInit(self.log)
             generateInit.run()
         except Exception as e:
-            self.log(f"生成PDF发生错误{e}\n")
+            self.log(f"生成PDF发生错误{e}，生成失败\n")
             return
 
         self.log(f"PDF生成成功")
@@ -211,7 +211,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.downLoadAvatarButton.clicked.connect(
             lambda: self.start_task("download_avatar"))
         self.startGeneratePDF.clicked.connect(
-            lambda: self.start_task("worker_thread.generate_pdf"))
+            lambda: self.start_task("generate_pdf"))
 
         self.load_setting_values()
 
