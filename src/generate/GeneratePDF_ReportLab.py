@@ -1218,13 +1218,14 @@ class GenerateInit:
                 elif key == "pageSize":
                     if value == 'A4': value = A4
                     if value == 'A5': value = A5
-                else:
-                    try:
-                        value = float(value) * mm
-                    except ValueError:
-                        pass
+                    data[key] = value
 
-                data[key] = value
+                elif key[0:2] == "mm":
+                    value = float(value) * mm
+                    data[key[2:]] = value
+
+                else:
+                    data[key] = value
 
         return data
 
