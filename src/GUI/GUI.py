@@ -345,6 +345,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         configs['targetQQ'] = self.targetQQInputBox.text()
         configs['selfQQ'] = self.selfQQInputBox.text()
+        if self.friendModeRadioButton.isChecked() or self.groupModeRadioButton.isChecked():
+            configs['mode'] = 'friend' if self.friendModeRadioButton.isChecked() else 'group'
         configs['needQQEmoji'] = self.useImageCheckBox.isChecked()
         if self.qqEmojiVerRadioButton1.isChecked() or self.qqEmojiVerRadioButton2.isChecked():
             configs['QQEmojiVer'] = 'old' if self.qqEmojiVerRadioButton1.isChecked() else 'new'
