@@ -80,12 +80,9 @@ class WorkerThread(QThread):
 
     def generate_pdf(self):
 
-        try:
-            generateInit = GeneratePDF_ReportLab.GenerateInit(self.log)
-            generateInit.run()
-        except Exception as e:
-            self.log(f"生成PDF发生错误{e}，生成失败\n")
-            return
+        generateInit = GeneratePDF_ReportLab.GenerateInit(self.log)
+        generateInit.run()
+
 
     def open_git_url(self):
         """

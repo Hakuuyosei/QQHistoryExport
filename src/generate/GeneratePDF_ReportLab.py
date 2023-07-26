@@ -369,6 +369,10 @@ class PdfDraw:
         # print("Img", x, y, width, height)
 
         path = self.paths["outputDirPath"] + path
+
+        if not os.path.exists(path):
+            self.log(f"头像文件{path}不存在")
+            return
         self.pdf_canvas.drawImage(path, x, y,
                                   width=size, height=size,
                                   mask='auto')
@@ -1160,8 +1164,8 @@ class Generate:
                     elif obj["t"] == "file":
                         self.drawMsg(self.dataprocessor.procDetailMessage, obj, False, True)
                 except Exception as e:
-                    error_info = traceback.format_exc()
-                    self.log(f"一条消息出错：{e}消息为：{obj}\n详细错误信息，建议上报：{error_info}\n")
+                   error_info = traceback.format_exc()
+                   self.log(f"一条消息出错：{e}消息为：{obj}\n详细错误信息，建议上报：{error_info}\n")
 
                 # if i == 80:
                 #    break
@@ -1262,6 +1266,10 @@ class GenerateInit:
         """
         with open('output/senders/senders.json', encoding='utf-8') as f:
             senders = json.load(f)
+
+        for key, item in senders.items():
+            if not os.path.exists(item[1]):
+                raise FileNotFoundError(f"{key}的头像文件{item[1]}不存在，请补全头像, 或者在设置内关闭显示头像")
 
         return senders
 
