@@ -74,8 +74,10 @@ class ValidateSettings:
             elif find_files_mode == "files":
                 _, configs_validated["dbPath"] = \
                     self.validate_file_exist_conf("dbPath", "QQ号.db")
-                _, configs_validated["dbstPath"] = \
-                    self.validate_file_exist_conf("dbstPath", "slowtable_QQ号.db 两个月前的聊天记录")
+
+                if configs_validated["needSlowtable"] == True:
+                    _, configs_validated["dbstPath"] = \
+                        self.validate_file_exist_conf("dbstPath", "slowtable_QQ号.db 两个月前的聊天记录")
 
                 _, if_need_read_kc = self.validate_bool_conf("needKey", "秘钥输入方式")
                 if if_need_read_kc == True:
