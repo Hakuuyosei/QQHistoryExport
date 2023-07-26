@@ -214,13 +214,7 @@ class mainWindow():
 
 
     def download_avatar(self):
-        self.log(f"头像开始下载……\n")
-        try:
-            download.avatarDownload()
-        except Exception as e:
-            self.log(f"头像下载失败{e}，请手动下载\n")
-            return
-        self.log(f"头像下载完成\n")
+        download.avatarDownload(self.log)
 
     def generate_pdf(self):
         self.log(f"开始生成PDF……")
