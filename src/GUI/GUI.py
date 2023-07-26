@@ -78,7 +78,7 @@ class mainWindow():
         self.ui.kcInputModeRadioButton2.toggled.connect(
             lambda state: self.checkbox_changed(state, self.kcSelectModeGroup, None))
 
-        self.ui.qqSlowtableDbPathSelectButton.toggled.connect(
+        self.ui.useSlowtableCheckBox.toggled.connect(
             lambda state: self.checkbox_changed(state, self.slowtableDbGroup, None))
 
 
@@ -205,11 +205,15 @@ class mainWindow():
         self.log(f"头像下载完成\n")
 
     def generate_pdf(self):
+        self.log(f"开始生成PDF……")
         try:
             generateInit = GeneratePDF_ReportLab.GenerateInit()
             generateInit.run()
         except Exception as e:
             self.log(f"生成PDF发生错误{e}\n")
+            return
+
+        self.log(f"PDF生成成功")
 
 
     def open_git_url(self):
@@ -234,7 +238,7 @@ class mainWindow():
             configs['needSlowtable'] = self.ui.useSlowtableCheckBox.isChecked()
             configs['dbPath'] = self.ui.qqDbPathInputBox.text()
             configs['dbstPath'] = self.ui.qqSlowtableDbPathInputBox.text()
-            configs['needKey'] = self.ui.usePttCheckBox.isChecked()
+            configs['needKey'] = self.ui.kcInputModeRadioButton2.isChecked()
             configs['key'] = self.ui.kcInputBox.text()
             configs['keyPath'] = self.ui.kcPathInputBox.text()
 
@@ -267,7 +271,7 @@ class mainWindow():
             self.ui.parseConfigContainer.setEnabled(False)
             self.ui.statusbar.showMessage("正在解析...")
             configs = self.read_control_values()
-            print(configs)
+            print("UI output", configs)
 
             err_code = errcode.ErrCode("func", self.log)
             self.ERRCODE = err_code

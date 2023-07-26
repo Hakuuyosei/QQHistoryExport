@@ -869,9 +869,6 @@
        </item>
        <item row="2" column="0">
         <widget class="QCheckBox" name="useSlowtableCheckBox">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
          <property name="font">
           <font>
            <family>宋体</family>
@@ -989,7 +986,7 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>107</width>
+            <width>111</width>
             <height>16</height>
            </rect>
           </property>
@@ -1014,7 +1011,7 @@
            <rect>
             <x>0</x>
             <y>30</y>
-            <width>101</width>
+            <width>111</width>
             <height>16</height>
            </rect>
           </property>
@@ -1356,7 +1353,7 @@ ReportLab_confige.ini
       <x>400</x>
       <y>320</y>
       <width>211</width>
-      <height>331</height>
+      <height>351</height>
      </rect>
     </property>
     <property name="font">

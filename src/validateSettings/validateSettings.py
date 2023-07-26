@@ -129,12 +129,12 @@ class ValidateSettings:
         """
         if key not in self.configs:
             self.state = False
-            self.info += f"设置项中{key} {name}项丢失\n"
+            self.info += f"设置项中\"{name}\"({key})项丢失\n"
             return False, ""
 
         if self.configs[key] not in list:
             self.state = False
-            self.info += f"设置项中{key} {name}的值不在列表{list}中！\n"
+            self.info += f"设置项中\"{name}\"({key})的值不在列表{list}中！\n"
             return False, ""
 
         return True, self.configs[key]
@@ -148,10 +148,10 @@ class ValidateSettings:
         """
         if key not in self.configs:
             self.state = False
-            self.info += f"设置项中{key} {name}项丢失\n"
+            self.info += f"设置项中\"{name}\"({key})项丢失\n"
             return False, ""
 
-        state, info = self.validate_bool(self.configs[key], f"{key} {name}")
+        state, info = self.validate_bool(self.configs[key], f"\"{name}\"({key})")
         self.state = state and self.state
         self.info += info
         return state, self.configs[key]
@@ -178,9 +178,9 @@ class ValidateSettings:
         """
         if key not in self.configs:
             self.state = False
-            self.info += f"设置项中{key} {name}项丢失\n"
+            self.info += f"设置项中\"{name}\"({key})项丢失\n"
             return False, ""
-        state, info = self.validate_num_str(self.configs[key], f"{key} {name}")
+        state, info = self.validate_num_str(self.configs[key], f"\"{name}\"({key})")
         self.state = state and self.state
         self.info += info
         return state, self.configs[key]
@@ -216,9 +216,9 @@ class ValidateSettings:
         """
         if key not in self.configs:
             self.state = False
-            self.info += f"设置项中{key} {name}项丢失\n"
+            self.info += f"设置项中\"{name}\"({key})项丢失\n"
             return False, ""
-        state, info = self.validate_file_exist(self.configs[key], f"{key} {name}")
+        state, info = self.validate_file_exist(self.configs[key], f"\"{name}\"({key})")
         self.state = state and self.state
         self.info += info
         return state, self.configs[key]
@@ -274,10 +274,10 @@ class ValidateSettings:
         """
         if key not in self.configs:
             self.state = False
-            self.info += f"设置项中{key} {name}项丢失\n"
+            self.info += f"设置项中\"{name}\"({key})项丢失\n"
             return False, ""
 
-        state, info = self.validate_folder_exist(self.configs[key], f"{key} {name}")
+        state, info = self.validate_folder_exist(self.configs[key], f"\"{name}\"({key})")
         self.state = state and self.state
         self.info += info
         return state, self.configs[key]
