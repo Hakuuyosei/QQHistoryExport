@@ -86,7 +86,7 @@ class ValidateSettings:
                     _, configs_validated["key"] = self.read_kc(kcfile_path)
 
                 elif if_need_read_kc == False:
-                    _, configs_validated["key"] = self.validate_num_str_conf(
+                    _, configs_validated["key"] = self.validate_str_conf(
                         "key", "输入的秘钥")
 
 
@@ -170,6 +170,24 @@ class ValidateSettings:
         else:
             self.state = False
             return False, f"{name}不是有效的布尔值(true/false)\n"
+
+    def validate_str_conf(self, key, name=""):
+        """
+        验证字符串设置项
+        :param key: 键名
+        :param name: 数据名称
+        :return: 状态，值
+        """
+        if key not in self.configs:
+            self.state = False
+            self.info += f"设置项中\"{name}\"({key})项丢失\n"
+            return False, ""
+
+        if not self.configs[key]:
+            self.state = False
+            self.info += f"设置项中\"{name}\"({key})项为空\n"
+            return False, ""
+        return True, self.configs[key]
 
     def validate_num_str_conf(self, key, name=""):
         """
@@ -325,7 +343,7 @@ class ValidateSettings:
                 return False, ""
             with open(path, 'r') as file:
                 kc = file.read()
-            state, info, = self.validate_num_str(kc, "从文件里读取出来的秘钥")
+            state, info, = self.validate_str_conf(kc, "从文件里读取出来的秘钥")
             if state == True:
                 return True, kc
             else:
