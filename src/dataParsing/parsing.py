@@ -216,7 +216,7 @@ class QQParse:
                     msgOutData = self.proMsg(msgType, msgData, extStr)
                 except Exception as e:
                     error_info = traceback.format_exc()
-                    self.ERRCODE.parse_err("UNEXPECTED_ERR", [e, error_info, msgOutData])
+                    self.ERRCODE.parse_err("UNEXPECTED_ERR", [e, error_info, msgOutData, msgType, msgData])
                     print(error_info)
                     msgOutData = None
 

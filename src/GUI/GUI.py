@@ -320,7 +320,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.checkBox.setChecked(configs['needMarketFace'])
             self.checkBox_4.setChecked(configs['needJavaDeser'])
         except Exception as e:
-            self.log(f"加载设置时发生{e}错误，加载失败")
+            self.log(f"加载设置{e}时发生错误，加载失败")
             return
 
     def read_setting_values(self):
