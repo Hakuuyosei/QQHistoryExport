@@ -74,13 +74,13 @@ PDF生成：
 
 建议系统：win10 win11
 
-放在一个没有中文路径的目录防止出错，exe和lib都要解压出来。
+放在一个没有中文路径的目录防止出错，exe和lib，resourse都要解压出来。
 
 ### 2.提取文件
 
 #### 根目录
 
-**data/data/com.tencent.mobileqq**
+根目录：**data/data/com.tencent.mobileqq**
 
 方案一：（有root）直接提取出来整个文件夹并填写目录即可
 
@@ -99,7 +99,7 @@ data/data/com.tencent.mobileqq/files/kc
 
 #### 内部存储
 
-**Android/data/com.tencent.mobileqq/Tencent/MobileQQ/**
+内部存储：**Android/data/com.tencent.mobileqq/Tencent/MobileQQ/**
 
 该目录不需要root权限，按需提取：
 
@@ -129,7 +129,7 @@ UI可以从`config/parse_config.json`中读取设置项，加载到UI上，解�
 
 你也可以不运行这个，自己导入头像图片或者不用头像。
 
-解析完毕后，会生成一个output文件夹，里面的chatData.txt即为符合`output格式.md`的解析完的聊天数据。
+解析完毕后，会生成一个output文件夹，里面的chatData.txt即为符合`docs/output格式.md`的解析完的聊天数据。
 
 里面有一个文件夹senders。senders/senders.json现在是这个样子。每一个键是一个用户。
 
@@ -155,17 +155,39 @@ UI可以从`config/parse_config.json`中读取设置项，加载到UI上，解�
 
 
 
-## 4.常见错误排除
+### 4.常见错误排除
 
 1.一直说群组，好友不存在：可能是key错误，解密出来的数据不对
 
-2.一直触发“预期外的错误”，检查parse_log.txt若出现大量的unicode cant decode ,Error parsing ，json错误等，看里面的汉字信息，能发现：![image-20230726210046819](README/image-20230726210046819.png)
+2.一直触发“预期外的错误”，检查parse_log.txt若出现大量的unicode cant decode ,Error parsing ，json错误等，看里面的汉字信息，能发现：
+
+![image-20230726210046819](README/image-20230726210046819.png)
 
 类似的前几个字对，后几个字不对，或者似对非对，可能是key有偏差，**kc文件可能是utf-8，用记事本复制出来可能不行！**建议直接读kc文件！！
 
 如果全乱码的话，就是key错了啦
 
+3.PDF生成大规模错误，或者头像不显示，很可能是设置有问题，请检查设置。
 
+出问题先检查设置！！！出问题先检查设置！！！出问题先检查设置！！！
+
+3.选了图片但是解析后没有图片
+
+请注意，选择chatpic/chatimg文件夹而不是chatpic！若您强力清过手机，可能一些图片会被清掉，也可能未接收。
+
+### 5.Q & A
+
+1.PDF文档中，相同的图片只会保存一次吗？
+
+是的，PDF内只会保存一次
+
+2.我想打包带走，需要带走哪些文件
+
+只想带走PDF的话，只带走PDF文件即可，建议带上output/videos，output/images，output/vioces。PDF文档中相关的文件都有路径文本，您按照您的选择携带媒体文件，不用带chatimg，shortvideo等您从手机里提取出来的文件夹。
+
+3.我想自己写生成其它格式的文件，该怎么办
+
+运行解析后，查看下面项目原理-解析章节。依旧只用在output目录下操作，不用再管您从手机里提取出来的一大堆东西。
 
 ### 5.上报问题
 
@@ -179,7 +201,7 @@ UI可以从`config/parse_config.json`中读取设置项，加载到UI上，解�
 
 ## 项目原理
 
-## 说明
+### 说明
 
 因为此项目功能数量多，功能分散，测试样本具有局限性，开发时间跨度大，我自己水平和时间也很有限，代码写的比较烂。各位多多指教。
 
@@ -187,6 +209,8 @@ UI可以从`config/parse_config.json`中读取设置项，加载到UI上，解�
 
 ```
 config:设置，设置样本文件
+	GeneratePDF_ReportLab_config_example.ini:ini格式的PDF生成配置样例文件，请勿修改
+	parse_config_example.json:json格式的PDF生成配置样例文件，请勿修改
 
 lib:依赖库
 	javaDeserialization:java反序列化程序jar
@@ -227,6 +251,29 @@ src:主程序
 		
 ```
 
+### GUI
+
+GUI使用PyQt5。使用Qtdesinger设计，使用pyrcc5和pyric5生成代码。
+
+我不太会用PyQt，请多多指教。
+
+生成GUI：
+
+```shell
+pyuic5 src/GUI/maininterface.ui -o src/GUI/maininterface.py
+```
+生成好的py程序要改一下：
+
+```python
+import res_rc
+# 改为
+import src.GUI.res_rc
+```
+
+我这个pyric5会把`import res_rc`生成到整个代码的最后一句，若没找到，往后面找找
+
+有程序的GUI控件都有名字，没程序的就是label_12345
+
 ### 解析
 
 解析QQ聊天记录本地数据库，目前只支持安卓。
@@ -243,7 +290,7 @@ src:主程序
 
 [QQ安卓端聊天记录数据分析 三 | 寄东南のBlog (sendtosoutheast.github.io)](https://sendtosoutheast.github.io/2022/11/24/逆向分析/QQ聊天记录/qqhistory3/)
 
-解析完毕后，会生成一个output文件夹，里面的chatData.txt即为符合`output格式.md`的解析完的聊天数据。里面的路径指向以下资源的相对路径。
+解析完毕后，会生成一个output文件夹，里面的chatData.txt即为符合`docs/output格式.md`的解析完的聊天数据。里面的路径指向以下资源的相对路径。
 
 ```
 emoticons文件夹是依赖的表情，只会将用到的复制到output中
@@ -253,11 +300,15 @@ videos文件夹是聊天视频资源，里面有一个文件夹thumbs，是使�
 voices文件夹是语音，使用slik_v3_decoder和ffmpeg转码为了mp3
 ```
 
-你可以参考`output格式.md`，写其它生成脚本，欢迎贡献代码。
+你可以参考`docs/output格式.md`，写其它生成脚本，欢迎贡献代码。
+
+### 导出
 
 目前写完了PDF导出，基于reportLab：
 
 [QQ安卓端聊天记录数据分析 四 | 寄东南のBlog (sendtosoutheast.github.io)](https://sendtosoutheast.github.io/2023/06/12/逆向分析/QQ聊天记录/qqhistory4/)
+
+有计划完成web导出。
 
 ## TODO
 
