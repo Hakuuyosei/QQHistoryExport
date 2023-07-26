@@ -192,6 +192,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             lambda: self.start_task("open_file", "output/senders/senders.json"))
         self.copyPDFconfigButton.clicked.connect(
             lambda: self.start_task("copy_generatepdf_config"))
+        self.openPDFconfigButton.clicked.connect(
+            lambda: self.start_task("open_file", "config/GeneratePDF_ReportLab_config.ini"))
         self.downLoadAvatarButton.clicked.connect(
             lambda: self.start_task("download_avatar"))
         self.startGeneratePDF.clicked.connect(

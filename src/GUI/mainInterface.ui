@@ -1279,7 +1279,7 @@ ReportLab_confige.ini
       </font>
      </property>
      <property name="text">
-      <string>复制并打开</string>
+      <string>复制(覆盖)</string>
      </property>
     </widget>
     <widget class="QPushButton" name="startGeneratePDF">
@@ -1306,6 +1306,25 @@ ReportLab_confige.ini
       <rect>
        <x>100</x>
        <y>60</y>
+       <width>75</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>宋体</family>
+       <pointsize>10</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>打开文件</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="openPDFconfigButton">
+     <property name="geometry">
+      <rect>
+       <x>100</x>
+       <y>170</y>
        <width>75</width>
        <height>23</height>
       </rect>
