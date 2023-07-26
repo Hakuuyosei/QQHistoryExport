@@ -1,6 +1,5 @@
-from PyQt5 import QtWidgets
-import threading
-
+from PyQt5.QtCore import QThread, pyqtSignal
+from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog
 from src.GUI.mainInterface import Ui_MainWindow
 
 from src.errcode import errcode
@@ -13,108 +12,208 @@ import webbrowser
 import os
 import shutil
 import commentjson
+import sys
 
 # pyuic5 src/GUI/maininterface.ui -o src/GUI/maininterface.py
 # import src.GUI.res_rc
-class mainWindow():
-    def __init__(self, window):
+
+
+class WorkerThread(QThread):
+    messageReady = pyqtSignal(str)
+
+    def __init__(self, task_id, task_data=None):
+        super().__init__()
+        self.task_id = task_id
+        self.task_data = task_data
+
+    def run(self):
+        if self.task_id == "open_file":
+            self.open_file(self.task_data)
+        elif self.task_id == "copy_generatepdf_config":
+            self.copy_generatepdf_config()
+        elif self.task_id == "download_avatar":
+            self.download_avatar()
+        elif self.task_id == "generate_pdf":
+            self.generate_pdf()
+        elif self.task_id == "open_git_url":
+            self.open_git_url()
+        elif self.task_id == "start_parse":
+            self.start_parse(self.task_data)
+
+
+    def log(self, info):
+        self.messageReady.emit(info)
+
+    def open_file(self, path):
+        """
+        用系统软件打开文件
+        :param path:
+        :return:
+        """
+        if os.path.exists(path):
+            try:
+                if os.name == 'nt':  # Windows
+                    abs_path = os.path.abspath(path)
+                    os.startfile(abs_path)
+                else:
+                    self.log(f"你用的什么系统啊，自己去打开{path}吧\n")
+            except Exception as e:
+                self.log(f"打开{path}失败！{e} \n")
+
+        else:
+            self.log(f"{path}不存在！\n")
+
+    def copy_generatepdf_config(self):
+        source_file = "config/GeneratePDF_ReportLab_config_example.ini"
+        destination_file = "config/GeneratePDF_ReportLab_config.ini"
+        try:
+            shutil.copy(source_file, destination_file)
+            self.log(f"设置项复制成功\n")
+            self.open_file(destination_file)
+        except FileNotFoundError:
+            self.log(f"文件'{source_file}'未找到！\n")
+        except Exception as e:
+            self.log(f"文件复制失败{e}，请手动复制和打开\n")
+
+    def download_avatar(self):
+        download.avatarDownload(self.log)
+
+    def generate_pdf(self):
+        self.log(f"开始生成PDF……")
+        try:
+            generateInit = GeneratePDF_ReportLab.GenerateInit()
+            generateInit.run()
+        except Exception as e:
+            self.log(f"生成PDF发生错误{e}\n")
+            return
+
+        self.log(f"PDF生成成功")
+
+
+    def open_git_url(self):
+        """
+        打开git仓库链接
+
+        """
+        url = "https://github.com/WhiteWingNightStar/QQHistoryExport"
+        webbrowser.open(url)
+
+    def start_parse(self, configs):
+
+
+        err_code = errcode.ErrCode("func", self.log)
+        self.ERRCODE = err_code
+
+        validate_settings = validateSettings.ValidateSettings()
+        state, info, v_configs = validate_settings.validate(False, configs)
+        self.log(info)
+
+
+        if state:
+            qq_parse = parsing.QQParse(v_configs, err_code)
+            qq_parse.procDb()
+
+
+
+
+class MainWindow(QMainWindow, Ui_MainWindow):
+    def __init__(self):
         super().__init__()
 
         self.ERRCODE = None
 
-        ui = Ui_MainWindow()
-        self.ui = Ui_MainWindow()
-        self.ui.setupUi(window)
+        self.setupUi(self)
 
-        self.kcInputModeGroup = [self.ui.kcInputBox]
-        self.kcSelectModeGroup = [self.ui.kcPathSelectButton, self.ui.kcPathInputBox]
-        self.slowtableDbGroup = [self.ui.qqSlowtableDbPathSelectButton, self.ui.qqSlowtableDbPathInputBox]
+        self.kcInputModeGroup = [self.kcInputBox]
+        self.kcSelectModeGroup = [self.kcPathSelectButton, self.kcPathInputBox]
+        self.slowtableDbGroup = [self.qqSlowtableDbPathSelectButton, self.qqSlowtableDbPathInputBox]
 
-        self.chatimgGroup = [self.ui.chatimgPathInputBox, self.ui.chatimgPathSelectButton]
-        self.pttGroup = [self.ui.pttPathInputBox, self.ui.pttPathSelectButton]
-        self.videoGroup = [self.ui.videoPathSelectButton, self.ui.videoPathInputBox]
+        self.chatimgGroup = [self.chatimgPathInputBox, self.chatimgPathSelectButton]
+        self.pttGroup = [self.pttPathInputBox, self.pttPathSelectButton]
+        self.videoGroup = [self.videoPathSelectButton, self.videoPathInputBox]
 
 
         # 绑定触发事件
-        self.ui.dataDirPathSelectButton.clicked.connect(
+        self.dataDirPathSelectButton.clicked.connect(
             lambda: self.select_dir_path("请选择com.tencent.mobileqq文件夹路径",
-                                         self.ui.dataDirPathInputBox))
+                                         self.dataDirPathInputBox))
 
-        self.ui.qqDbPathSelectButton.clicked.connect(
+        self.qqDbPathSelectButton.clicked.connect(
             lambda: self.select_file_path("请选择QQ号.db文件路径",
-                                         self.ui.qqDbPathInputBox,
+                                         self.qqDbPathInputBox,
                                          "DataBases File", "db"))
 
-        self.ui.qqSlowtableDbPathSelectButton.clicked.connect(
+        self.qqSlowtableDbPathSelectButton.clicked.connect(
             lambda: self.select_file_path("请选择QQ号_slowtable.db文件路径",
-                                          self.ui.qqSlowtableDbPathInputBox,
+                                          self.qqSlowtableDbPathInputBox,
                                           "DataBases File", "db"))
 
-        self.ui.kcPathSelectButton.clicked.connect(
+        self.kcPathSelectButton.clicked.connect(
             lambda: self.select_file_path("请选择kc文件路径",
-                                          self.ui.kcPathInputBox,
+                                          self.kcPathInputBox,
                                           None, None))
 
-        self.ui.pttPathSelectButton.clicked.connect(
+        self.pttPathSelectButton.clicked.connect(
             lambda: self.select_dir_path("请选择com.tencent.mobileqq文件夹路径",
-                                         self.ui.pttPathInputBox))
+                                         self.pttPathInputBox))
 
-        self.ui.videoPathSelectButton.clicked.connect(
+        self.videoPathSelectButton.clicked.connect(
             lambda: self.select_dir_path("请选择com.tencent.mobileqq文件夹路径",
-                                         self.ui.videoPathInputBox))
+                                         self.videoPathInputBox))
 
-        self.ui.chatimgPathSelectButton.clicked.connect(
+        self.chatimgPathSelectButton.clicked.connect(
             lambda: self.select_dir_path("请选择com.tencent.mobileqq文件夹路径",
-                                         self.ui.chatimgPathInputBox))
+                                         self.chatimgPathInputBox))
 
 
 
-        self.ui.findFilesModeRadioButton1.toggled.connect(
-            lambda state: self.checkbox_changed(state, None, self.ui.findFilesModeContainer1))
+        self.findFilesModeRadioButton1.toggled.connect(
+            lambda state: self.checkbox_changed(state, None, self.findFilesModeContainer1))
 
-        self.ui.findFilesModeRadioButton2.toggled.connect(
-            lambda state: self.checkbox_changed(state, None, self.ui.findFilesModeContainer2))
+        self.findFilesModeRadioButton2.toggled.connect(
+            lambda state: self.checkbox_changed(state, None, self.findFilesModeContainer2))
 
-        self.ui.kcInputModeRadioButton1.toggled.connect(
+        self.kcInputModeRadioButton1.toggled.connect(
             lambda state: self.checkbox_changed(state, self.kcInputModeGroup, None))
 
-        self.ui.kcInputModeRadioButton2.toggled.connect(
+        self.kcInputModeRadioButton2.toggled.connect(
             lambda state: self.checkbox_changed(state, self.kcSelectModeGroup, None))
 
-        self.ui.useSlowtableCheckBox.toggled.connect(
+        self.useSlowtableCheckBox.toggled.connect(
             lambda state: self.checkbox_changed(state, self.slowtableDbGroup, None))
 
 
-        self.ui.useImageCheckBox.toggled.connect(
+        self.useImageCheckBox.toggled.connect(
             lambda state: self.checkbox_changed(state, self.chatimgGroup, None))
 
-        self.ui.usePttCheckBox.toggled.connect(
+        self.usePttCheckBox.toggled.connect(
             lambda state: self.checkbox_changed(state, self.pttGroup, None))
 
-        self.ui.useVideoCheckBox.toggled.connect(
+        self.useVideoCheckBox.toggled.connect(
             lambda state: self.checkbox_changed(state, self.videoGroup, None))
 
-        # self.ui.chatimgPathSelectButton.toggled.connect(
+        # self.chatimgPathSelectButton.toggled.connect(
         #     lambda state: self.checkbox_changed(state, self.chatimgGroup, None,
         #                                         "needImages", True))
 
-        self.ui.starButton.clicked.connect(
-            lambda: self.start_task(self.open_git_url))
 
-        self.ui.startParseButton.clicked.connect(
-            lambda: self.start_task(self.start_parse))
 
-        self.ui.openSendersJsonButton.clicked.connect(
-            lambda: self.start_task(lambda: self.open_file("output/senders/senders.json")))
-        self.ui.copyPDFconfigButton.clicked.connect(
-            lambda: self.start_task(self.copy_generatepdf_config))
-        self.ui.downLoadAvatarButton.clicked.connect(
-            lambda: self.start_task(self.download_avatar))
-        self.ui.startGeneratePDF.clicked.connect(
-            lambda: self.start_task(self.generate_pdf))
+        self.starButton.clicked.connect(
+            lambda: self.start_task("open_git_url"))
+
+        self.startParseButton.clicked.connect(
+            self.start_parse)
+
+        self.openSendersJsonButton.clicked.connect(
+            lambda: self.start_task("worker_thread.open_file", "output/senders/senders.json"))
+        self.copyPDFconfigButton.clicked.connect(
+            lambda: self.start_task("copy_generatepdf_config"))
+        self.downLoadAvatarButton.clicked.connect(
+            lambda: self.start_task("download_avatar"))
+        self.startGeneratePDF.clicked.connect(
+            lambda: self.start_task("worker_thread.generate_pdf"))
 
         self.load_setting_values()
-
 
 
     def checkbox_changed(self, state, selected_enabled_group, selected_enabled_obj):
@@ -151,11 +250,11 @@ class mainWindow():
 
         """
         if not file_type_name:
-            path, filter = QtWidgets.QFileDialog.getOpenFileName(
+            path, filter = QFileDialog.getOpenFileName(
                 None, caption, "./",
                 f"All Files (*)")
         else:
-            path, filter = QtWidgets.QFileDialog.getOpenFileName(
+            path, filter = QFileDialog.getOpenFileName(
                 None, caption, "./",
                 f"{file_type_name} Files (*.{file_type});;All Files (*)")
         if path:
@@ -169,72 +268,20 @@ class mainWindow():
         :param textbox_obj: 路径编辑框对象
         :return:
         """
-        path = QtWidgets.QFileDialog.getExistingDirectory(caption=caption)
+        path = QFileDialog.getExistingDirectory(caption=caption)
         print(path)
         if path:
             textbox_obj.setText(path)
 
-    def start_task(self, target):
+    def start_task(self, task_id, task_data=None):
         """创建并启动子线程执行耗时任务
 
         """
-        thread = threading.Thread(target=target)
-        thread.start()
+        self.worker_thread = WorkerThread(task_id, task_data)
+        self.worker_thread.messageReady.connect(self.log)
+        # self.worker_thread.finished.connect(self.on_task_completed)
+        self.worker_thread.start()
 
-    def open_file(self, path):
-        """
-        用系统软件打开文件
-        :param path:
-        :return:
-        """
-        if os.path.exists(path):
-            try:
-                if os.name == 'nt':  # Windows
-                    abs_path = os.path.abspath(path)
-                    os.startfile(abs_path)
-                else:
-                    self.log(f"你用的什么系统啊，自己去打开{path}吧\n")
-            except Exception as e:
-                self.log(f"打开{path}失败！{e} \n")
-
-        else:
-            self.log(f"{path}不存在！\n")
-
-    def copy_generatepdf_config(self):
-        source_file = "config/GeneratePDF_ReportLab_config_example.ini"
-        destination_file = "config/GeneratePDF_ReportLab_config.ini"
-        try:
-            shutil.copy(source_file, destination_file)
-            self.log(f"设置项复制成功\n")
-            self.open_file(destination_file)
-        except FileNotFoundError:
-            self.log(f"文件'{source_file}'未找到！\n")
-        except Exception as e:
-            self.log(f"文件复制失败{e}，请手动复制和打开\n")
-
-
-    def download_avatar(self):
-        download.avatarDownload(self.log)
-
-    def generate_pdf(self):
-        self.log(f"开始生成PDF……")
-        try:
-            generateInit = GeneratePDF_ReportLab.GenerateInit()
-            generateInit.run()
-        except Exception as e:
-            self.log(f"生成PDF发生错误{e}\n")
-            return
-
-        self.log(f"PDF生成成功")
-
-
-    def open_git_url(self):
-        """
-        打开git仓库链接
-
-        """
-        url = "https://github.com/WhiteWingNightStar/QQHistoryExport"
-        webbrowser.open(url)
 
     def load_setting_values(self):
         """
@@ -258,34 +305,34 @@ class mainWindow():
             return
 
         try:
-            self.ui.findFilesModeRadioButton1.setChecked(configs['findFilesMode'] == 'dir')
+            self.findFilesModeRadioButton1.setChecked(configs['findFilesMode'] == 'dir')
 
             if configs['findFilesMode'] == 'dir':
-                self.ui.useSlowtableCheckBox2.setChecked(configs['needSlowtable'])
-                self.ui.dataDirPathInputBox.setText(configs['dataDirPath'])
+                self.useSlowtableCheckBox2.setChecked(configs['needSlowtable'])
+                self.dataDirPathInputBox.setText(configs['dataDirPath'])
             else:
-                self.ui.useSlowtableCheckBox.setChecked(configs['needSlowtable'])
-                self.ui.qqDbPathInputBox.setText(configs['dbPath'])
-                self.ui.qqSlowtableDbPathInputBox.setText(configs['dbstPath'])
-                self.ui.kcInputModeRadioButton2.setChecked(configs['needKey'])
-                self.ui.kcInputBox.setText(configs['key'])
-                self.ui.kcPathInputBox.setText(configs['keyPath'])
+                self.useSlowtableCheckBox.setChecked(configs['needSlowtable'])
+                self.qqDbPathInputBox.setText(configs['dbPath'])
+                self.qqSlowtableDbPathInputBox.setText(configs['dbstPath'])
+                self.kcInputModeRadioButton2.setChecked(configs['needKey'])
+                self.kcInputBox.setText(configs['key'])
+                self.kcPathInputBox.setText(configs['keyPath'])
 
-            self.ui.friendModeRadioButton.setChecked(configs['mode'] == 'friend')
-            self.ui.groupModeRadioButton.setChecked(configs['mode'] == 'group')
-            self.ui.targetQQInputBox.setText(configs['targetQQ'])
-            self.ui.selfQQInputBox.setText(configs['selfQQ'])
-            self.ui.useImageCheckBox.setChecked(configs['needQQEmoji'])
-            self.ui.qqEmojiVerRadioButton1.setChecked(configs['QQEmojiVer'] == 'old')
-            self.ui.qqEmojiVerRadioButton2.setChecked(configs['QQEmojiVer'] == 'new')
-            self.ui.useImageCheckBox.setChecked(configs['needImages'])
-            self.ui.chatimgPathInputBox.setText(configs['imagesPath'])
-            self.ui.usePttCheckBox.setChecked(configs['needVoice'])
-            self.ui.pttPathInputBox.setText(configs['voicePath'])
-            self.ui.useVideoCheckBox.setChecked(configs['needVideo'])
-            self.ui.videoPathInputBox.setText(configs['videoPath'])
-            self.ui.checkBox.setChecked(configs['needMarketFace'])
-            self.ui.checkBox_4.setChecked(configs['needJavaDeser'])
+            self.friendModeRadioButton.setChecked(configs['mode'] == 'friend')
+            self.groupModeRadioButton.setChecked(configs['mode'] == 'group')
+            self.targetQQInputBox.setText(configs['targetQQ'])
+            self.selfQQInputBox.setText(configs['selfQQ'])
+            self.useImageCheckBox.setChecked(configs['needQQEmoji'])
+            self.qqEmojiVerRadioButton1.setChecked(configs['QQEmojiVer'] == 'old')
+            self.qqEmojiVerRadioButton2.setChecked(configs['QQEmojiVer'] == 'new')
+            self.useImageCheckBox.setChecked(configs['needImages'])
+            self.chatimgPathInputBox.setText(configs['imagesPath'])
+            self.usePttCheckBox.setChecked(configs['needVoice'])
+            self.pttPathInputBox.setText(configs['voicePath'])
+            self.useVideoCheckBox.setChecked(configs['needVideo'])
+            self.videoPathInputBox.setText(configs['videoPath'])
+            self.checkBox.setChecked(configs['needMarketFace'])
+            self.checkBox_4.setChecked(configs['needJavaDeser'])
         except Exception as e:
             self.log(f"加载设置时发生{e}错误，加载失败")
             return
@@ -295,32 +342,32 @@ class mainWindow():
 
         # Control values from parseConfigContainer
         configs = {}
-        configs['findFilesMode'] = 'dir' if self.ui.findFilesModeRadioButton1.isChecked() else 'files'
+        configs['findFilesMode'] = 'dir' if self.findFilesModeRadioButton1.isChecked() else 'files'
         if configs['findFilesMode'] == 'dir':
-            configs['needSlowtable'] = self.ui.useSlowtableCheckBox2.isChecked()
-            configs['dataDirPath'] = self.ui.dataDirPathInputBox.text()
+            configs['needSlowtable'] = self.useSlowtableCheckBox2.isChecked()
+            configs['dataDirPath'] = self.dataDirPathInputBox.text()
 
         else:
-            configs['needSlowtable'] = self.ui.useSlowtableCheckBox.isChecked()
-            configs['dbPath'] = self.ui.qqDbPathInputBox.text()
-            configs['dbstPath'] = self.ui.qqSlowtableDbPathInputBox.text()
-            configs['needKey'] = self.ui.kcInputModeRadioButton2.isChecked()
-            configs['key'] = self.ui.kcInputBox.text()
-            configs['keyPath'] = self.ui.kcPathInputBox.text()
+            configs['needSlowtable'] = self.useSlowtableCheckBox.isChecked()
+            configs['dbPath'] = self.qqDbPathInputBox.text()
+            configs['dbstPath'] = self.qqSlowtableDbPathInputBox.text()
+            configs['needKey'] = self.kcInputModeRadioButton2.isChecked()
+            configs['key'] = self.kcInputBox.text()
+            configs['keyPath'] = self.kcPathInputBox.text()
 
-        configs['mode'] = 'friend' if self.ui.friendModeRadioButton.isChecked() else 'group'
-        configs['targetQQ'] = self.ui.targetQQInputBox.text()
-        configs['selfQQ'] = self.ui.selfQQInputBox.text()
-        configs['needQQEmoji'] = self.ui.useImageCheckBox.isChecked()
-        configs['QQEmojiVer'] = 'old' if self.ui.qqEmojiVerRadioButton1.isChecked() else 'new'
-        configs['needImages'] = self.ui.useImageCheckBox.isChecked()
-        configs['imagesPath'] = self.ui.chatimgPathInputBox.text()
-        configs['needVoice'] = self.ui.usePttCheckBox.isChecked()
-        configs['voicePath'] = self.ui.pttPathInputBox.text()
-        configs['needVideo'] = self.ui.useVideoCheckBox.isChecked()
-        configs['videoPath'] = self.ui.videoPathInputBox.text()
-        configs['needMarketFace'] = self.ui.checkBox.isChecked()
-        configs['needJavaDeser'] = self.ui.checkBox_4.isChecked()
+        configs['mode'] = 'friend' if self.friendModeRadioButton.isChecked() else 'group'
+        configs['targetQQ'] = self.targetQQInputBox.text()
+        configs['selfQQ'] = self.selfQQInputBox.text()
+        configs['needQQEmoji'] = self.useImageCheckBox.isChecked()
+        configs['QQEmojiVer'] = 'old' if self.qqEmojiVerRadioButton1.isChecked() else 'new'
+        configs['needImages'] = self.useImageCheckBox.isChecked()
+        configs['imagesPath'] = self.chatimgPathInputBox.text()
+        configs['needVoice'] = self.usePttCheckBox.isChecked()
+        configs['voicePath'] = self.pttPathInputBox.text()
+        configs['needVideo'] = self.useVideoCheckBox.isChecked()
+        configs['videoPath'] = self.videoPathInputBox.text()
+        configs['needMarketFace'] = self.checkBox.isChecked()
+        configs['needJavaDeser'] = self.checkBox_4.isChecked()
 
         with open("config/parse_config.json", 'w', encoding='utf-8') as json_file:
             commentjson.dump(configs, json_file, indent=4, ensure_ascii=False)
@@ -328,40 +375,29 @@ class mainWindow():
         return configs
 
     def log(self, info):
-        self.ui.logBox.append(info)
+        self.logBox.append(info)
 
     def start_parse(self):
-        if self.ui.startParseButton.text() == "停止解析":
+        if self.startParseButton.text() == "停止解析":
             if self.ERRCODE:
                 self.ERRCODE.parse_stop("用户停止解析")
 
-        elif self.ui.startParseButton.text() == "开始解析":
-            self.ui.startParseButton.setText("停止解析")
-            self.ui.parseConfigContainer.setEnabled(False)
-            self.ui.statusbar.showMessage("正在解析...")
+        elif self.startParseButton.text() == "开始解析":
+            self.startParseButton.setText("停止解析")
+            self.parseConfigContainer.setEnabled(False)
+            self.statusbar.showMessage("正在解析...")
             configs = self.read_setting_values()
             print("UI output", configs)
 
-            err_code = errcode.ErrCode("func", self.log)
-            self.ERRCODE = err_code
+            self.start_task("start_parse", configs)
 
-            validate_settings = validateSettings.ValidateSettings()
-            state, info, v_configs = validate_settings.validate(False, configs)
-            self.ui.logBox.append(info)
-
-
-            if state:
-                qq_parse = parsing.QQParse(v_configs, err_code)
-                qq_parse.procDb()
-
-            self.ui.startParseButton.setText("开始解析")
-            self.ui.parseConfigContainer.setEnabled(True)
-            self.ui.statusbar.showMessage("解析停止")
+            self.startParseButton.setText("开始解析")
+            self.parseConfigContainer.setEnabled(True)
+            self.statusbar.showMessage("解析停止")
 
 
 def gui_init():
-    app = QtWidgets.QApplication([])
-    window = QtWidgets.QMainWindow()
-    main_window = mainWindow(window)
+    app = QApplication(sys.argv)
+    window = MainWindow()
     window.show()
     app.exec_()
