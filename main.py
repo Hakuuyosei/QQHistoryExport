@@ -12,10 +12,10 @@ if __name__ == '__main__':
         print(qqParse.configsInit(False, None))
         qqParse.procDb()
     if test == 2:
-        generateInit = GeneratePDF_ReportLab.GenerateInit()
+        generateInit = GeneratePDF_ReportLab.GenerateInit(print)
         generateInit.run()
     if test == 3:
-        download.avatarDownload()
+        download.avatarDownload(print)
     if test == 4:
         validate_settings = validateSettings.ValidateSettings()
         validate_settings.validate(True, 'config/parse_config.json')

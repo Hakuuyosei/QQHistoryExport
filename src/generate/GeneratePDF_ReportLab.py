@@ -178,7 +178,7 @@ class PdfDraw:
         self.log = log
 
         pdfmetrics.registerFont(TTFont(self.style["fontName"], self.paths["fontPath"]))
-        if self.style["ifUseColorEmoji"] == "False":
+        if self.style["ifUseColorEmoji"] == "false":
             pdfmetrics.registerFont(TTFont(self.style["EmojiFontName"], self.paths["emojiFontPath"]))
         self.pdf_canvas = canvas.Canvas("output/chatData.pdf", pagesize=self.style["pageSize"])
         self.drawPageFooter(1)
@@ -304,10 +304,10 @@ class PdfDraw:
         """
         x = self.style["pageWidth"] * c + x - 10
 
-        if self.style["ifUseColorEmoji"] == "False":
+        if self.style["ifUseColorEmoji"] == "false":
             self.pdf_canvas.setFont(self.paths["emojiFontName"], self.style["textHeight"])
             self.pdf_canvas.drawString(x, y, char)
-        elif self.style["ifUseColorEmoji"] == "True":
+        elif self.style["ifUseColorEmoji"] == "true":
             path = self.drawingQuery.get_unicode_file(char)
             self.pdf_canvas.drawImage(path, x, y,
                                       width=self.style["emojiWidth"], height=self.style["emojiWidth"],
@@ -371,6 +371,8 @@ class PdfDraw:
         path = self.paths["outputDirPath"] + path
 
         if not os.path.exists(path):
+            if self.style["emptyAvatarShow"] == "true":
+                return
             self.log(f"头像文件{path}不存在")
             return
         self.pdf_canvas.drawImage(path, x, y,
@@ -1014,7 +1016,7 @@ class Generate:
         # 判断是否显示头像
         isShowAvatar = False
         # 若设置显示头像，并且此消息类型也需要显示头像
-        if self.style["avatarShow"] == "True" and isWithAvatar:
+        if self.style["avatarShow"] == "true" and isWithAvatar:
             # 若消息有头像，且设置了avatarShow则显示头像
             isShowAvatar = True
             startX = self.style["contentStartX"]
@@ -1023,7 +1025,7 @@ class Generate:
 
         # 判断是否显示名称
         isShowName = False
-        if self.style["nameShow"] == "True" and isWithAvatar:
+        if self.style["nameShow"] == "true" and isWithAvatar:
             # 若消息有头像，且设置了nameShow则显示名称
             isShowName = True
 
@@ -1165,7 +1167,7 @@ class Generate:
                         self.drawMsg(self.dataprocessor.procDetailMessage, obj, False, True)
                 except Exception as e:
                    error_info = traceback.format_exc()
-                   self.log(f"一条消息出错：{e}消息为：{obj}\n详细错误信息，建议上报：{error_info}\n")
+                   self.log(f"一条消息出错：{e}消息为：{obj}\n详细错误信息，建议检查您的设置，并看一看错误排除文档，若无法解决可以上报：{error_info}\n")
 
                 # if i == 80:
                 #    break
@@ -1259,7 +1261,7 @@ class GenerateInit:
         style["imgMaxHeight"] = style["pageHeight"] * style["fltimgDrawScale"]
         return style
 
-    def readSenderInfo(self):
+    def readSenderInfo(self, style):
         """读取发送者信息
 
         :return: 发送者数据字典
@@ -1267,9 +1269,10 @@ class GenerateInit:
         with open('output/senders/senders.json', encoding='utf-8') as f:
             senders = json.load(f)
 
-        for key, item in senders.items():
-            if not os.path.exists(item[1]):
-                raise FileNotFoundError(f"{key}的头像文件{item[1]}不存在，请补全头像, 或者在设置内关闭显示头像")
+        if style["emptyAvatarShow"] == "false":
+            for key, item in senders.items():
+                if not os.path.exists(item[1]):
+                    raise FileNotFoundError(f"{key}的头像文件{item[1]}不存在，请补全头像, 或者在设置内关闭显示头像")
 
         return senders
 
@@ -1286,7 +1289,7 @@ class GenerateInit:
             self.log(f"读取设置的时候发生错误：{e}")
             return
         try:
-            senders = self.readSenderInfo()
+            senders = self.readSenderInfo(style)
         except Exception as e:
             self.log(f"读取senders的时候发生错误：{e}")
             return
@@ -1301,9 +1304,9 @@ class GenerateInit:
         }
         paths["fontPath"] = paths["fontDirPath"] + fontName + ".ttf"
         paths["fontInfoPath"] = paths["fontDirPath"] + fontName + "_aspect_ratio.db"
-        if style["ifUseColorEmoji"] == "False":
+        if style["ifUseColorEmoji"] == "false":
             paths["emojiFontPath"] = paths["fontDirPath"] + emojiFontName + ".ttf"
-        elif style["ifUseColorEmoji"] == "True":
+        elif style["ifUseColorEmoji"] == "true":
             paths["emojiFontPath"] = paths["fontDirPath"] + f"{emojiFontName}/{emojiFontName}"
             paths["emojiFontDBPath"] = paths["fontDirPath"] + f"{emojiFontName}/{emojiFontName}.db"
 
