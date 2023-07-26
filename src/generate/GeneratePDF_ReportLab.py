@@ -14,6 +14,7 @@ import datetime
 import time
 import shutil
 import emoji
+import traceback
 
 from src.errcode import errcode
 
@@ -1159,7 +1160,8 @@ class Generate:
                     elif obj["t"] == "file":
                         self.drawMsg(self.dataprocessor.procDetailMessage, obj, False, True)
                 except Exception as e:
-                    self.log(f"一条消息出错：{e}消息为：{obj}\n")
+                    error_info = traceback.format_exc()
+                    self.log(f"一条消息出错：{e}消息为：{obj}\n详细错误信息，建议上报：{error_info}\n")
 
                 # if i == 80:
                 #    break

@@ -306,6 +306,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         try:
             self.findFilesModeRadioButton1.setChecked(configs['findFilesMode'] == 'dir')
+            self.findFilesModeRadioButton2.setChecked(configs['findFilesMode'] == 'files')
 
             if configs['findFilesMode'] == 'dir':
                 self.useSlowtableCheckBox2.setChecked(configs['needSlowtable'])
@@ -342,24 +343,28 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # Control values from parseConfigContainer
         configs = {}
-        configs['findFilesMode'] = 'dir' if self.findFilesModeRadioButton1.isChecked() else 'files'
-        if configs['findFilesMode'] == 'dir':
-            configs['needSlowtable'] = self.useSlowtableCheckBox2.isChecked()
-            configs['dataDirPath'] = self.dataDirPathInputBox.text()
+        if self.findFilesModeRadioButton1.isChecked() or self.findFilesModeRadioButton2.isChecked():
+            configs['findFilesMode'] = 'dir' if self.findFilesModeRadioButton1.isChecked() else 'files'
+            if configs['findFilesMode'] == 'dir':
+                configs['needSlowtable'] = self.useSlowtableCheckBox2.isChecked()
+                configs['dataDirPath'] = self.dataDirPathInputBox.text()
 
-        else:
-            configs['needSlowtable'] = self.useSlowtableCheckBox.isChecked()
-            configs['dbPath'] = self.qqDbPathInputBox.text()
-            configs['dbstPath'] = self.qqSlowtableDbPathInputBox.text()
-            configs['needKey'] = self.kcInputModeRadioButton2.isChecked()
-            configs['key'] = self.kcInputBox.text()
-            configs['keyPath'] = self.kcPathInputBox.text()
+            else:
+                configs['needSlowtable'] = self.useSlowtableCheckBox.isChecked()
+                configs['dbPath'] = self.qqDbPathInputBox.text()
+                configs['dbstPath'] = self.qqSlowtableDbPathInputBox.text()
+                if self.kcInputModeRadioButton2.isChecked() or self.kcInputModeRadioButton1.isChecked():
+                    configs['needKey'] = self.kcInputModeRadioButton2.isChecked()
+                configs['key'] = self.kcInputBox.text()
+                configs['keyPath'] = self.kcPathInputBox.text()
 
-        configs['mode'] = 'friend' if self.friendModeRadioButton.isChecked() else 'group'
+        if self.friendModeRadioButton.isChecked() or self.groupModeRadioButton.isChecked().isChecked():
+            configs['mode'] = 'friend' if self.friendModeRadioButton.isChecked() else 'group'
         configs['targetQQ'] = self.targetQQInputBox.text()
         configs['selfQQ'] = self.selfQQInputBox.text()
         configs['needQQEmoji'] = self.useImageCheckBox.isChecked()
-        configs['QQEmojiVer'] = 'old' if self.qqEmojiVerRadioButton1.isChecked() else 'new'
+        if self.qqEmojiVerRadioButton1.isChecked() or self.qqEmojiVerRadioButton2.isChecked():
+            configs['QQEmojiVer'] = 'old' if self.qqEmojiVerRadioButton1.isChecked() else 'new'
         configs['needImages'] = self.useImageCheckBox.isChecked()
         configs['imagesPath'] = self.chatimgPathInputBox.text()
         configs['needVoice'] = self.usePttCheckBox.isChecked()
