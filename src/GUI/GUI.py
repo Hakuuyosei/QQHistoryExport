@@ -10,6 +10,7 @@ from src.validateSettings import validateSettings
 import webbrowser
 import os
 import shutil
+import commentjson
 
 # pyuic5 src/GUI/maininterface.ui -o src/GUI/maininterface.py
 # import src.GUI.res_rc
@@ -104,6 +105,8 @@ class mainWindow():
         self.ui.copyPDFconfigButton.clicked.connect(self.copy_generatepdf_config)
         self.ui.downLoadAvatarButton.clicked.connect(self.download_avatar)
         self.ui.startGeneratePDF.clicked.connect(self.generate_pdf)
+
+        self.load_setting_values()
 
 
 
@@ -224,7 +227,61 @@ class mainWindow():
         url = "https://github.com/WhiteWingNightStar/QQHistoryExport"
         webbrowser.open(url)
 
-    def read_control_values(self):
+    def load_setting_values(self):
+        """
+        从config/parse_config.json中加载设置
+
+        """
+        if not os.path.exists("config/parse_config.json"):
+            self.log(f"未发现设置文件，未加载设置")
+            return
+
+        try:
+            with open("config/parse_config.json", 'r', encoding="utf-8") as file:
+                try:
+                    # 读取带注释的json
+                    configs = commentjson.load(file)
+                except:
+                    self.log(f"加载设置时发生解析错误，加载失败")
+                    return
+        except:
+            self.log(f"加载设置时发生IO错误，加载失败")
+            return
+
+        try:
+            self.ui.findFilesModeRadioButton1.setChecked(configs['findFilesMode'] == 'dir')
+
+            if configs['findFilesMode'] == 'dir':
+                self.ui.useSlowtableCheckBox2.setChecked(configs['needSlowtable'])
+                self.ui.dataDirPathInputBox.setText(configs['dataDirPath'])
+            else:
+                self.ui.useSlowtableCheckBox.setChecked(configs['needSlowtable'])
+                self.ui.qqDbPathInputBox.setText(configs['dbPath'])
+                self.ui.qqSlowtableDbPathInputBox.setText(configs['dbstPath'])
+                self.ui.kcInputModeRadioButton2.setChecked(configs['needKey'])
+                self.ui.kcInputBox.setText(configs['key'])
+                self.ui.kcPathInputBox.setText(configs['keyPath'])
+
+            self.ui.friendModeRadioButton.setChecked(configs['mode'] == 'friend')
+            self.ui.groupModeRadioButton.setChecked(configs['mode'] == 'group')
+            self.ui.targetQQInputBox.setText(configs['targetQQ'])
+            self.ui.selfQQInputBox.setText(configs['selfQQ'])
+            self.ui.useImageCheckBox.setChecked(configs['needQQEmoji'])
+            self.ui.qqEmojiVerRadioButton1.setChecked(configs['QQEmojiVer'] == 'old')
+            self.ui.qqEmojiVerRadioButton2.setChecked(configs['QQEmojiVer'] == 'new')
+            self.ui.useImageCheckBox.setChecked(configs['needImages'])
+            self.ui.chatimgPathInputBox.setText(configs['imagesPath'])
+            self.ui.usePttCheckBox.setChecked(configs['needVoice'])
+            self.ui.pttPathInputBox.setText(configs['voicePath'])
+            self.ui.useVideoCheckBox.setChecked(configs['needVideo'])
+            self.ui.videoPathInputBox.setText(configs['videoPath'])
+            self.ui.checkBox.setChecked(configs['needMarketFace'])
+            self.ui.checkBox_4.setChecked(configs['needJavaDeser'])
+        except Exception as e:
+            self.log(f"加载设置时发生{e}错误，加载失败")
+            return
+
+    def read_setting_values(self):
         # Read the values from the controls and store them in the configs dictionary
 
         # Control values from parseConfigContainer
@@ -256,6 +313,9 @@ class mainWindow():
         configs['needMarketFace'] = self.ui.checkBox.isChecked()
         configs['needJavaDeser'] = self.ui.checkBox_4.isChecked()
 
+        with open("config/parse_config.json", 'w', encoding='utf-8') as json_file:
+            commentjson.dump(configs, json_file, indent=4, ensure_ascii=False)
+
         return configs
 
     def log(self, info):
@@ -270,7 +330,7 @@ class mainWindow():
             self.ui.startParseButton.setText("停止解析")
             self.ui.parseConfigContainer.setEnabled(False)
             self.ui.statusbar.showMessage("正在解析...")
-            configs = self.read_control_values()
+            configs = self.read_setting_values()
             print("UI output", configs)
 
             err_code = errcode.ErrCode("func", self.log)

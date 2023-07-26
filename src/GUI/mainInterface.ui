@@ -292,7 +292,7 @@
          </font>
         </property>
         <property name="text">
-         <string>聊天图片</string>
+         <string>选该项会解析聊天图片</string>
         </property>
        </widget>
       </item>
@@ -366,7 +366,7 @@
          </font>
         </property>
         <property name="text">
-         <string>包括：引用消息的引用部分，群文件信息</string>
+         <string>该项包括：引用消息的引用部分，群文件信息</string>
         </property>
        </widget>
       </item>
@@ -479,7 +479,7 @@
          </font>
         </property>
         <property name="text">
-         <string>java序列化解析，需要安装java环境</string>
+         <string>选该项会进行java序列化解析，需要安装java环境</string>
         </property>
        </widget>
       </item>
@@ -622,7 +622,7 @@
          </font>
         </property>
         <property name="text">
-         <string>语音文件</string>
+         <string>选该项会解析语音文件</string>
         </property>
        </widget>
       </item>
@@ -686,7 +686,7 @@
          </font>
         </property>
         <property name="text">
-         <string>视频文件</string>
+         <string>选该项会解析视频文件</string>
         </property>
        </widget>
       </item>
@@ -1084,7 +1084,7 @@
           </font>
          </property>
          <property name="text">
-          <string>两个月以内的聊天记录</string>
+          <string>只选该项会解析两个月以内的聊天记录(时间不一定准确)</string>
          </property>
         </widget>
        </item>
@@ -1097,7 +1097,7 @@
           </font>
          </property>
          <property name="text">
-          <string>两个月以前的聊天记录</string>
+          <string>加选该项会解析两个月以前的所有未被清理的聊天记录</string>
          </property>
         </widget>
        </item>
