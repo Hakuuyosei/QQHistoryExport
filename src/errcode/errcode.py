@@ -26,7 +26,8 @@ codes = {
     'JAVA_DESER_PROC_ERR': ['Java反序列化进程错误', 100],
     'JAVA_DESER_PROC_TIMEOUT': ['Java反序列化超时', 100],
     'JAVA_DESER_ERR_INPUT_TYPE': ['Java反序列化错误  输入类型错误', 100],
-    'JAVA_DESER_JSON_ERR_DECODE': ['Java反序列化错误 - JSON解码错误', 100]
+    'JAVA_DESER_JSON_ERR_DECODE': ['Java反序列化错误 - JSON解码错误', 100],
+    'UNEXPECTED_ERR': ['预期外的错误（建议上报）', 100]
 }
 
 

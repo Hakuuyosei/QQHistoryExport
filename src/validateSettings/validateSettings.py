@@ -343,12 +343,7 @@ class ValidateSettings:
                 return False, ""
             with open(path, 'r') as file:
                 kc = file.read()
-            state, info, = self.validate_str_conf(kc, "从文件里读取出来的秘钥")
-            if state == True:
-                return True, kc
-            else:
-                self.info += info
-                return False, ""
+            return True, kc
         except IOError:
             self.info += f"读取秘钥 '{path}' 时出现IO错误\n"
             return False, ""

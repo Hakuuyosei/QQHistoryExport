@@ -4,6 +4,7 @@ import os
 import traceback
 import json
 import shutil
+import traceback
 import commentjson
 
 
@@ -211,7 +212,14 @@ class QQParse:
                 msgData = self.decrypt(row[2])
                 ltime = row[3]
                 extStr = self.decrypt(row[4])
-                msgOutData = self.proMsg(msgType, msgData, extStr)
+                try:
+                    msgOutData = self.proMsg(msgType, msgData, extStr)
+                except Exception as e:
+                    error_info = traceback.format_exc()
+                    self.ERRCODE.parse_err("UNEXPECTED_ERR", [e, error_info, msgOutData])
+                    print(error_info)
+                    msgOutData = None
+
                 if msgOutData != None and msgOutData != {}:
                     msgOutData["s"] = senderQQ
                     msgOutData["i"] = ltime
