@@ -192,7 +192,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.start_parse)
 
         self.openSendersJsonButton.clicked.connect(
-            lambda: self.start_task("worker_thread.open_file", "output/senders/senders.json"))
+            lambda: self.start_task("open_file", "output/senders/senders.json"))
         self.copyPDFconfigButton.clicked.connect(
             lambda: self.start_task("copy_generatepdf_config"))
         self.downLoadAvatarButton.clicked.connect(
