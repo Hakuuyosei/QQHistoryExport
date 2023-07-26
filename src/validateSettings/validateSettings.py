@@ -253,6 +253,10 @@ class ValidateSettings:
         :param name: 路径名
         :return: state
         """
+        if not path:
+            state = False
+            info = f"{name}路径未填写！\n"
+            return state, info
         if os.path.exists(path):
             if os.path.isfile(path):
                 return True, ""
@@ -290,6 +294,11 @@ class ValidateSettings:
         :param name: 路径名
         :return: state
         """
+        if not path:
+            state = False
+            info = f"{name}路径未填写！\n"
+            return state, info
+
         if os.path.exists(path):
             if os.path.isdir(path):
                 return True, ""
@@ -309,6 +318,9 @@ class ValidateSettings:
         :return:
         """
         try:
+            if not path:
+                self.info += f"秘钥路径未填写！\n"
+                return False, ""
             with open(path, 'r') as file:
                 kc = file.read()
             state, info, = self.validate_num_str(kc, "从文件里读取出来的秘钥")
