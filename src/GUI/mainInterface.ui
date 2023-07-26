@@ -7,8 +7,14 @@
     <x>0</x>
     <y>0</y>
     <width>909</width>
-    <height>748</height>
+    <height>734</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
   <property name="windowTitle">
    <string>QQHistoryExport-QQ聊天记录导出  白羽夜星制作组 v0.1.0</string>
@@ -1380,7 +1386,6 @@ ReportLab_confige.ini
     </widget>
    </widget>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
  </widget>
  <resources>
   <include location="res/res.qrc"/>

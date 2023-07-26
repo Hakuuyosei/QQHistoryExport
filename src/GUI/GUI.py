@@ -390,7 +390,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif self.startParseButton.text() == "开始解析":
             self.startParseButton.setText("停止解析")
             self.parseConfigContainer.setEnabled(False)
-            self.statusbar.showMessage("正在解析...")
             configs = self.read_setting_values()
             print("UI output", configs)
 
@@ -398,7 +397,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             self.startParseButton.setText("开始解析")
             self.parseConfigContainer.setEnabled(True)
-            self.statusbar.showMessage("解析停止")
 
 
 def gui_init():
