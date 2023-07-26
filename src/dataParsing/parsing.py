@@ -282,9 +282,10 @@ class QQParse:
 
 
         info = """下面是解析中发生的错误统计，因为图片，视频可能没被接收，被清理，或者有新的消息类型和存储方式
-未被分析，所以出现一些错误是正常的，若某项错误出现次数过多，请检查你的设置项，若确保没问题，可以在
+未被分析，所以出现一些错误是正常的，若某项错误出现次数过多，请检查你的设置项，查看错误排除文档，，查看错误排除文档，
+查看错误排除文档（重要），若确保没问题，可以在
 https://github.com/WhiteWingNightStar/QQHistoryExport上提issue，请附上output/parse_log.txt
-中的异常部分"""
+中的异常部分""".replace("\n","")
         self.ERRCODE.log("parse", self.ERRCODE.LOG_LEVEL_INFO, info)
 
         self.ERRCODE.log_err_count()
