@@ -696,7 +696,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "QQHistoryExport-QQ聊天记录导出  白羽夜星制作组 v0.1.0"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "QQHistoryExport-QQ聊天记录导出  白羽夜星制作组 v0.1.1"))
         self.parseConfigContainer.setTitle(_translate("MainWindow", "解析设置"))
         self.findFilesModeRadioButton1.setText(_translate("MainWindow", "选择整个Data文件夹"))
         self.findFilesModeRadioButton2.setText(_translate("MainWindow", "分别选取每个文件"))
@@ -735,7 +735,7 @@ class Ui_MainWindow(object):
         self.kcInputModeRadioButton2.setText(_translate("MainWindow", "选取kc文件路径"))
         self.label_5.setText(_translate("MainWindow", "只选该项会解析两个月以内的聊天记录(时间不一定准确)"))
         self.label_4.setText(_translate("MainWindow", "加选该项会解析两个月以前的所有未被清理的聊天记录"))
-        self.label_6.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:14pt;\">by 白羽夜星制作组 v0.1.0</span></p></body></html>"))
+        self.label_6.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:14pt;\">by 白羽夜星制作组 v0.1.1</span></p></body></html>"))
         self.startParseButton.setText(_translate("MainWindow", "开始解析"))
         self.generatePDFConfainer.setTitle(_translate("MainWindow", "生成PDF"))
         self.label.setText(_translate("MainWindow", "1.填写output/senders/\n"
