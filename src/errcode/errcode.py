@@ -69,7 +69,10 @@ class ErrCode:
         :return: 无
         """
         if logLevel >= self.logLevel:
-            self.log_file.write(tag + " :" + info + "\n")
+            try:
+                self.log_file.write(tag + " :" + info + "\n")
+            except:
+                print("写入日志失败")
 
             if self.mode == "print":
                 print(tag + " :" + info)
@@ -137,7 +140,10 @@ class ErrCode:
         errinfo = codes[code][0] + f"，相关信息：{errdata}"
         self.count_check(code)
         print(errinfo)
-        self.log_file.write(errinfo + "\n")
+        try:
+            self.log_file.write(errinfo + "\n")
+        except:
+            print("写入日志失败")
 
 
     def log_err_count(self):

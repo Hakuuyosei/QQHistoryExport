@@ -88,16 +88,26 @@ class QQParse:
         return
 
     def fill_cursors_nost(self, cmd):
-        cursors = []
-        cursors.append(self.DBcursor1.execute(cmd))
-        return cursors
+        try:
+            cursors = []
+            cursors.append(self.DBcursor1.execute(cmd))
+            return cursors
+        except Exception as e:
+            self.ERRCODE.parse_stop(f"数据库查询发生{e}错误：execute")
+            return []
+
 
     def fill_cursors(self, cmd):
-        cursors = []
-        if self.configs["needSlowtable"]:
-            cursors.append(self.DBcursor2.execute(cmd))
-        cursors.append(self.DBcursor1.execute(cmd))
-        return cursors
+        try:
+            cursors = []
+            if self.configs["needSlowtable"]:
+                cursors.append(self.DBcursor2.execute(cmd))
+            cursors.append(self.DBcursor1.execute(cmd))
+            return cursors
+        except Exception as e:
+            self.ERRCODE.parse_stop(f"数据库查询发生{e}错误：execute")
+            return []
+
 
 
     def decrypt(self, data):
@@ -150,7 +160,7 @@ class QQParse:
 
         if mode == "friend":
             if targetQQ not in friends.keys():
-                info = f"{targetQQ} 查无此人/无聊天内容"
+                info = f"{targetQQ} 查无此人/无聊天内容\n也可能是秘钥没填对"
                 self.ERRCODE.log("parse", self.ERRCODE.LOG_LEVEL_ERR, info)
                 return False
             else:
@@ -159,7 +169,7 @@ class QQParse:
 
         elif mode == "group":
             if targetQQ not in groups.keys():
-                info = f"{targetQQ} 查无此群/无聊天内容"
+                info = f"{targetQQ} 查无此群/无聊天内容\n也可能是秘钥没填对"
                 self.ERRCODE.log("parse", self.ERRCODE.LOG_LEVEL_ERR, info)
                 return False
             else:
@@ -238,10 +248,10 @@ class QQParse:
         self.ERRCODE.log("parse", self.ERRCODE.LOG_LEVEL_INFO, info)
 
         info = """下面是解析中发生的错误统计，因为图片，视频可能没被接收，被清理，或者有新的消息类型和存储方式
-        未被分析，所以出现一些错误是正常的，若某项错误出现次数过多，请检查你的设置项，查看错误排除文档，，查看错误排除文档，
-        查看错误排除文档（重要），若确保没问题，可以在
-        https://github.com/Hakuuyosei/QQHistoryExport上提issue，请附上output/parse_log.txt
-        中的异常部分""".replace("\n", "")
+未被分析，所以出现一些错误是正常的，若某项错误出现次数过多，请检查你的设置项，查看错误排除文档，，查看错误排除文档，
+查看错误排除文档（重要），若确保没问题，可以在
+https://github.com/Hakuuyosei/QQHistoryExport上提issue，请附上output/parse_log.txt
+中的异常部分""".replace("\n", "")
         self.ERRCODE.log("parse", self.ERRCODE.LOG_LEVEL_INFO, info)
 
         self.ERRCODE.log_err_count()
