@@ -141,7 +141,7 @@ class javaSerializedDataParsing():
                         msgOutData["c"].insert(0, {"t": "uns",
                                                    "c": {"text": "[回复消息]", "type": "text"}
                                                    })
-                    print(msgOutData)
+                    # print(msgOutData)
 
                     # HACK
                     # (目前已弃用)

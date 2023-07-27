@@ -89,6 +89,10 @@ class QQParse:
             self.ERRCODE.parse_stop(f"清空和创建output文件夹时发生（{e}）错误")
         return
 
+    def fill_cursors_nost(self, cmd):
+        cursors = []
+        cursors.append(self.DBcursor1.execute(cmd))
+        return cursors
 
     def fill_cursors(self, cmd):
         cursors = []
@@ -133,9 +137,9 @@ class QQParse:
         try:
             self.DBcursor1 = sqlite3.connect(self.configs["dbPath"]).cursor()
             if self.configs["needSlowtable"]:
-                self.DBcursor2 = sqlite3.connect(self.configs["dbslPath"]).cursor()
-        except:
-            info = "数据库连接错误！sqlite3.connect error"
+                self.DBcursor2 = sqlite3.connect(self.configs["dbstPath"]).cursor()
+        except Exception as e:
+            info = f"数据库连接错误！{e}sqlite3.connect error"
             self.ERRCODE.log("parse", self.ERRCODE.LOG_LEVEL_ERR, info)
             return False
 
@@ -344,7 +348,7 @@ https://github.com/WhiteWingNightStar/QQHistoryExport上提issue，请附上outp
         """
         friends = {}
         cmd = "SELECT uin, name ,remark FROM Friends"# 从Friends表中取uin, name,remark
-        cursors = self.fill_cursors(cmd)
+        cursors = self.fill_cursors_nost(cmd)
         for cs in cursors:
             for row in cs:
                 friendQQNumber = self.decrypt(row[0])
@@ -391,7 +395,7 @@ https://github.com/WhiteWingNightStar/QQHistoryExport上提issue，请附上outp
         """
         groupMembers = {}
         cmd = "SELECT troopuin, memberuin, friendnick, troopnick FROM TroopMemberInfo"
-        cursors = self.fill_cursors(cmd)
+        cursors = self.fill_cursors_nost(cmd)
         for cs in cursors:
             for row in cs:
                 groupQQNumber = self.decrypt(row[0])
