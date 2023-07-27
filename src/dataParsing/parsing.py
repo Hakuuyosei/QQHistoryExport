@@ -172,6 +172,10 @@ class QQParse:
 
         # if self.cmdpre != "":
         #     cmd = self.cmdpre
+
+        info = f"正在进行数据库查询，若数据库比较大，索引建立时间可能比较长"
+        self.ERRCODE.log("parse", self.ERRCODE.LOG_LEVEL_INFO, info)
+
         total_num = 0
         current_num = 0
         last_persent = 0
@@ -379,7 +383,7 @@ https://github.com/WhiteWingNightStar/QQHistoryExport上提issue，请附上outp
         groups = {}
         cmd = "SELECT troopuin, troopname FROM TroopInfoV2"#从Friends表中取uin, remark
 
-        cursors = self.fill_cursors(cmd)
+        cursors = self.fill_cursors_nost(cmd)
         for cs in cursors:
             for row in cs:
                 groupQQNumber = self.decrypt(row[0])

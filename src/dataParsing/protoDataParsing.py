@@ -491,9 +491,12 @@ class protoDataParsing():
                     # print(extStr)
                 # 群主（或管理员，待验证）撤回
                 elif extStrJson["revoke_op_type"] == "2":
+                    doc = Msg_pb2.grayTipBar()
+                    doc.ParseFromString(msgData)
+                    msgText = doc.field5.decode("utf-8")
                     msgOutData = {
                         "t": "revoke",
-                        "c": {"text": msgData, "type": "by_admin"}
+                        "c": {"text": msgText, "type": "by_admin"}
                     }
                     # print(extStr)
                 else:
