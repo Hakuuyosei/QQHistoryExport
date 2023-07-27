@@ -339,7 +339,7 @@ class ValidateSettings:
         """
         try:
             if not path:
-                self.info += f"秘钥路径未填写！\n"
+                self.info += f"秘钥路径不存在！\n"
                 return False, ""
             with open(path, 'r') as file:
                 kc = file.read()
