@@ -117,6 +117,9 @@ class javaSerializedDataParsing():
 
                 if extStrJson:
                     # start_time = time.time()
+                    if "sens_msg_source_msg_info" not in extStrJson:
+                        self.ERRCODE.parse_err("EXTSTR_NOT_EXIST_TARGET", [extStr, "sens_msg_source_msg_info"])
+                        return msgOutData
                     sourceMsgInfo = extStrJson["sens_msg_source_msg_info"]
                     state, jsonData = self.javaDeserializationToJson(sourceMsgInfo)
 
