@@ -6,7 +6,9 @@
 
 本项目的消息解密，数据库读取，QQ表情（emoticon1）来自[Yiyiyimu/QQ-History-Backup](https://github.com/Yiyiyimu/QQ-History-Backup)，感谢为QQ聊天记录解析的一众大佬
 
-本项目支持更多（大部分重要的消息类型）解析了java序列化类型消息，支持PDF导出，未来将支持html导出。
+本项目支持更多（大部分重要的消息类型），解析了java序列化类型消息和更多的protobuf序列化消息，支持PDF导出，未来将支持html导出。相比于网上的闭源软件，多了很多功能。
+
+网上搜的大多数文章和软件都浅尝辄止，或者收费，本软件开源免费，希望能帮助大家。
 
 ## features
 
@@ -93,13 +95,13 @@ data/data/com.tencent.mobileqq/databases/slowtable_{QQ}.db
 data/data/com.tencent.mobileqq/files/kc
 ```
 
-**请注意！**有root的用户若安装了某些xsposed框架，或者手机系统给QQ“空白通行证”，或者其它一些原因，QQ可能读不到真正的IMEI，你填你真正的IMEI无法解密，以kc文件为准！
+**请注意！**有root的用户若安装了某些xsposed框架，或者手机系统给QQ“空白通行证”，或者其它一些原因，QQ可能读不到真正的IMEI，你填你真正的IMEI无法解密，（kc还可能有utf-8字符，大小写也可能不一致）以kc文件为准！
 
 方案三：（无root）通过手机备份功能拿出QQ的数据，里面有db，f等文件夹，不需要重命名，直接输入程序即可
 
 如何提取呢？
 
-
+提取教程：[提取教程](docs/提取教程.md)
 
 #### 内部存储
 
