@@ -1,11 +1,8 @@
-import hashlib
-import sqlite3
 import os
 import traceback
 import json
-import imghdr
 import shutil
-import binascii
+# import binascii
 
 
 from src.errcode.errcode import ErrCode

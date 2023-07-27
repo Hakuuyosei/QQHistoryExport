@@ -3,8 +3,11 @@
 /testdata.txt
 /scripts/nudgeactionResDownload/nudgeaction/
 /old/
+
 /dist/
 /build/
+/main.spec
+
 /config/parse_config.json
 /config/GeneratePDF_ReportLab_config.ini
 /output/
@@ -925,3 +928,4 @@ healthchecksdb
 MigrationBackup/
 
 # End of https://www.gitignore.io/api/vim,node,xcode,linux,macos,windows,eclipse,webstorm,notepadpp,visualstudio,jetbrains+all,androidstudio,visualstudiocode
+

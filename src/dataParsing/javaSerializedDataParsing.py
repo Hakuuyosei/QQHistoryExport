@@ -3,7 +3,6 @@ import json
 import binascii
 import traceback
 import subprocess
-import time
 
 from src.errcode.errcode import ErrCode
 from .textParsing import textParsing
