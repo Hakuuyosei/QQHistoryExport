@@ -197,6 +197,10 @@ UI可以从`config/parse_config.json`中读取设置项，加载到UI上，解�
 
 显示PDF生成成功后，还得
 
+6.文件夹没选对。应该选择databases/db文件夹的上一层文件夹（com.tencent.mobileqq）
+
+![image-20230727204025516](README/image-20230727204025516.png)
+
 ### 5.Q & A
 
 1.PDF文档中，相同的图片只会保存一次吗？
