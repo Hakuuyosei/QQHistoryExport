@@ -68,7 +68,7 @@ PDF生成：
 
 ### 1.下载软件
 
-[Releases · WhiteWingNightStar/QQHistoryExport (github.com)](https://github.com/WhiteWingNightStar/QQHistoryExport/releases)
+[Releases · Hakuuyosei/QQHistoryExport (github.com)](https://github.com/Hakuuyosei/QQHistoryExport/releases)
 
 在这里下载编译好的软件，目前只编译Windows版本，python编译版本3.8，理论上支持win7
 
@@ -203,7 +203,7 @@ UI可以从`config/parse_config.json`中读取设置项，加载到UI上，解�
 
 欢迎上报问题，因为此项目功能数量多，功能分散，测试样本具有局限性，开发时间跨度大，难以保证每行代码都没问题，各位遇到问题积极提出Issue，有能力的可以直接提pr。
 
-解析的同时会生成一个output/parse_log.json，里面有所有的解析出错数据，上报时请找到bug有关的日志行。**此文件可能含有敏感信息**，请不要复制整个日志文件。若此聊天记录非常敏感，请勿发到issue，若您觉得信息不宜公开但是也并不特别私密，可以发到我们的邮箱mailto:WhiteWingNightStar@outlook.com。 因为日志里看到是乱码，解密后就能看到原数据了。**不用附带IMEI等信息。**您在提issue时需要先尝试最新的release，注明所用软件版本，系统环境，日志等。
+解析的同时会生成一个output/parse_log.json，里面有所有的解析出错数据，上报时请找到bug有关的日志行。**此文件可能含有敏感信息**，请不要复制整个日志文件。若此聊天记录非常敏感，请勿发到issue，若您觉得信息不宜公开但是也并不特别私密，可以发到我们的邮箱mailto:Hakuuyosei@outlook.com。 因为日志里看到是乱码，解密后就能看到原数据了。**不用附带IMEI等信息。**您在提issue时需要先尝试最新的release，注明所用软件版本，系统环境，日志等。
 
 若您并不是用的release，需要注明python版本。
 
@@ -376,7 +376,7 @@ voices文件夹是语音，使用slik_v3_decoder和ffmpeg转码为了mp3
 <table>
     <tr>
         <td align="center">
-            <a href="https://github.com/WhiteWingNightStar">
+            <a href="https://github.com/Hakuuyosei">
                 <img src="https://avatars.githubusercontent.com/u/108645779?s=200&v=4" width="160px"   alt=""/>
                 <br />
                 <sub><b>白羽夜星制作组</b></sub>

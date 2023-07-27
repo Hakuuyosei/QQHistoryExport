@@ -89,7 +89,7 @@ class WorkerThread(QThread):
         打开git仓库链接
 
         """
-        url = "https://github.com/WhiteWingNightStar/QQHistoryExport"
+        url = "https://github.com/Hakuuyosei/QQHistoryExport"
         webbrowser.open(url)
 
     def start_parse(self, configs):
