@@ -890,7 +890,7 @@ class DataProcessor:
                 else:
                     msgHeight = height
 
-                print(msgHeight, "msgHeight")
+                # print(msgHeight, "msgHeight")
 
 
                 if curY - msgHeight < 0:
@@ -1140,7 +1140,7 @@ class Generate:
                     self.log(f"一条消息出错：{obj}\n")
                     continue
 
-                print(obj)
+                # print(obj)
 
                 self.procTime(obj["i"])
                 try:
