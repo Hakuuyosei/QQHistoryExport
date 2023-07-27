@@ -129,6 +129,12 @@ UI可以从`config/parse_config.json`中读取设置项，加载到UI上，解�
 
 命令行输入`java -version`检查java环境是否安装成功。
 
+假如你选择了java解析，在运行发行版时，会有一个java窗口：
+
+![image-20230727172230773](README/image-20230727172230773.png)
+
+不要关！不要关！不要关！不要关！不要关！
+
 ### 3.生成PDF
 
 接下来可以运行自动下载头像，将会访问QQ接口下载头像。
@@ -285,7 +291,7 @@ src:主程序
 
 ### GUI
 
-GUI使用PyQt5。使用Qtdesinger设计，使用pyrcc5和pyric5生成代码。
+GUI使用PyQt5。使用Qtdesinger设计，使用pyrcc5和pyuic5生成代码。
 
 我不太会用PyQt，请多多指教。
 
@@ -302,7 +308,7 @@ import res_rc
 import src.GUI.res_rc
 ```
 
-我这个pyric5会把`import res_rc`生成到整个代码的最后一句，若没找到，往后面找找
+我这个pyuic5会把`import res_rc`生成到整个代码的最后一句，若没找到，往后面找找
 
 有程序的GUI控件都有名字，没程序的就是label_12345
 
@@ -420,6 +426,12 @@ voices文件夹是语音，使用slik_v3_decoder和ffmpeg转码为了mp3
         </td>
     </tr>
 </table>
+
+
+
+
+<a href="https://afdian.net/a/Hakuuyosei"><img width="200" src="README/button-sponsorme.jpg" alt=""></a>
+
 
 
 
