@@ -1,5 +1,7 @@
 <RCC>
   <qresource prefix="Image">
+    <file>logo.png</file>
+    <file>sponsor.png</file>
     <file>star.jpg</file>
   </qresource>
 </RCC>

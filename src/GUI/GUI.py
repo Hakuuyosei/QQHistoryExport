@@ -36,8 +36,8 @@ class WorkerThread(QThread):
             self.download_avatar()
         elif self.task_id == "generate_pdf":
             self.generate_pdf()
-        elif self.task_id == "open_git_url":
-            self.open_git_url()
+        elif self.task_id == "open_url":
+            self.open_url(self.task_data)
         elif self.task_id == "start_parse":
             self.start_parse(self.task_data)
 
@@ -84,13 +84,15 @@ class WorkerThread(QThread):
         generateInit.run()
 
 
-    def open_git_url(self):
+    def open_url(self, url):
         """
-        打开git仓库链接
+        打开链接
 
         """
-        url = "https://github.com/Hakuuyosei/QQHistoryExport"
-        webbrowser.open(url)
+        try:
+            webbrowser.open(url)
+        except:
+            pass
 
     def start_parse(self, configs):
 
@@ -183,7 +185,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         #                                         "needImages", True))
 
         self.starButton.clicked.connect(
-            lambda: self.start_task("open_git_url"))
+            lambda: self.start_task("open_url", "https://github.com/Hakuuyosei/QQHistoryExport"))
+        self.sponsorButton.clicked.connect(
+            lambda: self.start_task("open_url", "https://afdian.net/a/Hakuuyosei"))
 
         self.startParseButton.clicked.connect(
             self.start_parse)

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>909</width>
+    <width>989</width>
     <height>734</height>
    </rect>
   </property>
@@ -18,6 +18,10 @@
   </property>
   <property name="windowTitle">
    <string>QQHistoryExport-QQ聊天记录导出  白羽夜星制作组 v0.1.0</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="res/res.qrc">
+    <normaloff>:/Image/logo.png</normaloff>:/Image/logo.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QGroupBox" name="parseConfigContainer">
@@ -1116,7 +1120,7 @@
      <rect>
       <x>620</x>
       <y>10</y>
-      <width>281</width>
+      <width>361</width>
       <height>651</height>
      </rect>
     </property>
@@ -1130,7 +1134,7 @@
    <widget class="QPushButton" name="starButton">
     <property name="geometry">
      <rect>
-      <x>730</x>
+      <x>810</x>
       <y>670</y>
       <width>171</width>
       <height>61</height>
@@ -1403,6 +1407,30 @@ ReportLab_confige.ini
       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;本项目&lt;span style=&quot; font-size:11pt; font-weight:600;&quot;&gt;完全免费开源&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt; font-weight:600;&quot;&gt;请勿用于商业用途！&lt;/span&gt;&lt;/p&gt;&lt;p&gt;关于如何使用软件，请参考教程:&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/Hakuuyosei/QQHistoryExport&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;github.com/&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/Hakuuyosei/QQHistoryExport&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;Hakuuyosei/&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/Hakuuyosei/QQHistoryExport&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;QQHistoryExport&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;（点击左下角按钮直达）&lt;/p&gt;&lt;p&gt;&lt;br/&gt;白羽夜星制作组 制作&lt;/p&gt;&lt;p&gt;感谢您的使用！&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
     </widget>
+   </widget>
+   <widget class="QPushButton" name="sponsorButton">
+    <property name="geometry">
+     <rect>
+      <x>630</x>
+      <y>670</y>
+      <width>171</width>
+      <height>61</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>宋体</family>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton {
+    border-image: url(:/Image/sponsor.png)
+}</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
    </widget>
   </widget>
  </widget>
