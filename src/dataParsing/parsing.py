@@ -142,6 +142,9 @@ class QQParse:
         targetQQmd5 = hashlib.md5(targetQQ.encode("utf-8")).hexdigest().upper()
         mode = self.configs["mode"]
 
+        info = f"正在进行数据库查询，若数据库比较大，索引建立时间可能比较长"
+        self.ERRCODE.log("parse", self.ERRCODE.LOG_LEVEL_INFO, info)
+
         try:
             self.DBcursor1 = sqlite3.connect(self.configs["dbPath"]).cursor()
             if self.configs["needSlowtable"]:
@@ -181,8 +184,7 @@ class QQParse:
         # if self.cmdpre != "":
         #     cmd = self.cmdpre
 
-        info = f"正在进行数据库查询，若数据库比较大，索引建立时间可能比较长"
-        self.ERRCODE.log("parse", self.ERRCODE.LOG_LEVEL_INFO, info)
+
 
         total_num = 0
         current_num = 0
