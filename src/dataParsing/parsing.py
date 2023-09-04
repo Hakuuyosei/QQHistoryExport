@@ -6,24 +6,23 @@ import json
 import shutil
 import traceback
 
-
 from src.dataParsing.unserializedDataParsing import unserializedDataParsing
 from src.dataParsing.textParsing import textParsing
 from src.dataParsing.protoDataParsing import protoDataParsing
 from src.dataParsing.javaSerializedDataParsing import javaSerializedDataParsing
 
-
 # QQ消息类型以及处理方式
-unserializedDataType =      [-1000, -1051, -1012, -2042, -2015, -1034, -2005, -3008,
-                             -2016, -4008, -1013, -2009, -1001, -5018, -5012]
-protoDataType =             [-2000, -1035, -2002, -2022, -5020, -5023, -8018, -5040]
-javaSerializedDataType =    [-1049, -2017, -2025, -2011, -5008, -2007, -2025]
+unserializedDataType = [-1000, -1051, -1012, -2042, -2015, -1034, -2005, -3008,
+                        -2016, -4008, -1013, -2009, -1001, -5018, -5012]
+protoDataType = [-2000, -1035, -2002, -2022, -5020, -5023, -8018, -5040]
+javaSerializedDataType = [-1049, -2017, -2025, -2011, -5008, -2007, -2025]
 
 
 class QQParse:
     """QQ数据库读取，解析
 
     """
+
     def __init__(self, configs, errcode_obj):
         self.configs = configs
         self.key = None
@@ -37,14 +36,10 @@ class QQParse:
         self.ERRCODE = errcode_obj
         self.ERRCODE.parse_start()
 
-
         self.textParsing = textParsing(self.ERRCODE, self.configs)
         self.unserializedDataParsing = unserializedDataParsing(self.ERRCODE, self.textParsing, self.configs)
         self.protoDataParsing = protoDataParsing(self.ERRCODE, self.textParsing, self.configs)
         self.javaSerializedDataParsing = javaSerializedDataParsing(self.ERRCODE, self.textParsing, self.configs)
-
-
-
 
     def createOutputFolder(self):
         """创建输出文件夹
@@ -59,14 +54,13 @@ class QQParse:
                     for file in files:
                         file_path = os.path.join(root, file)
                         if file != 'parse_log.txt':
-                                os.remove(file_path)
+                            os.remove(file_path)
 
                     for dir in dirs:
                         dir_path_2 = os.path.join(root, dir)
                         shutil.rmtree(dir_path_2)
             else:
                 os.mkdir(dir_path)
-
 
             os.mkdir(dir_path + "/emoticons")
             os.mkdir(dir_path + "/emoticons/emoticon1")
@@ -80,7 +74,6 @@ class QQParse:
             os.mkdir(dir_path + "/voices")
             os.mkdir(dir_path + "/temp")
             os.mkdir(dir_path + "/senders")
-
 
             self.outputFile = open('output/chatData.txt', 'w')
         except Exception as e:
@@ -96,7 +89,6 @@ class QQParse:
             self.ERRCODE.parse_stop(f"数据库查询发生{e}错误：execute")
             return []
 
-
     def fill_cursors(self, cmd):
         try:
             cursors = []
@@ -107,8 +99,6 @@ class QQParse:
         except Exception as e:
             self.ERRCODE.parse_stop(f"数据库查询发生{e}错误：execute")
             return []
-
-
 
     def decrypt(self, data):
         """解密消息
@@ -128,7 +118,6 @@ class QQParse:
             for i in range(0, len(data)):
                 msg += chr(ord(data[i]) ^ ord(key[i % len(key)]))
             return msg
-
 
     # 处理数据库
     def procDb(self):
@@ -153,7 +142,6 @@ class QQParse:
             info = f"数据库连接错误！{e}sqlite3.connect error"
             self.ERRCODE.log("parse", self.ERRCODE.LOG_LEVEL_ERR, info)
             return False
-
 
         friends = self.getFriends()
         groups = self.getGroups()
@@ -199,8 +187,6 @@ class QQParse:
         for cs in cursors:
             total_num += cs.fetchone()[0]
 
-
-
         try:
             cursors = self.fill_cursors(cmd)
         except Exception as e:
@@ -213,10 +199,10 @@ class QQParse:
 
         for cs in cursors:
             for row in cs:
-                persent = int((current_num+1) / total_num * 100)
+                persent = int((current_num + 1) / total_num * 100)
                 if persent % 5 == 0 and persent != last_persent:
                     last_persent = persent
-                    info = f"解析进度：{persent}%, {current_num+1}/{total_num}"
+                    info = f"解析进度：{persent}%, {current_num + 1}/{total_num}"
                     self.ERRCODE.log("parse", self.ERRCODE.LOG_LEVEL_INFO, info)
                 current_num += 1
 
@@ -239,10 +225,16 @@ class QQParse:
                     msgOutData = None
 
                 if msgOutData != None and msgOutData != {}:
-                    msgOutData["s"] = senderQQ
-                    msgOutData["i"] = ltime
-                    json_str = json.dumps(msgOutData)
-                    self.outputFile.write(json_str + '\n')
+                    try:
+                        msgOutData["s"] = senderQQ
+                        msgOutData["i"] = ltime
+                        json_str = json.dumps(msgOutData)
+                        self.outputFile.write(json_str + '\n')
+                    except Exception as e:
+                        error_info = traceback.format_exc()
+                        self.ERRCODE.parse_err("UNEXPECTED_ERR", [e, error_info, msgOutData, msgType, msgData])
+                        print(error_info)
+                        msgOutData = None
         self.outputFile.close()
 
         # print(self.groupMembers[targetQQ])
@@ -300,18 +292,15 @@ https://github.com/Hakuuyosei/QQHistoryExport上提issue，请附上output/parse
                     info = f"{uin}不在你的数据库中，一会需要你自己去填写昵称"
                     self.ERRCODE.log("parse", self.ERRCODE.LOG_LEVEL_WARN, info)
 
-
         filename = "output/senders/senders.json"
         # 写入 JSON 数据到文件
 
         with open(filename, "w", encoding="utf-8") as f:
             json.dump(senders, f, ensure_ascii=False, indent=4)
 
-
         self.ERRCODE.parse_stop("解析完毕")
 
         return True
-
 
     def proMsg(self, msgType, msgData, extStr):
         """处理单条信息
@@ -322,7 +311,6 @@ https://github.com/Hakuuyosei/QQHistoryExport上提issue，请附上output/parse
         :return: msgOutData
         """
         msgOutData = {}
-
 
         if msgType in unserializedDataType:
             msgOutData = self.unserializedDataParsing.parse(msgType, msgData, extStr)
@@ -335,14 +323,13 @@ https://github.com/Hakuuyosei/QQHistoryExport上提issue，请附上output/parse
             return msgOutData
 
 
-        #if msgType == -2060:# unknown
+        # if msgType == -2060:# unknown
         #    print(-2060, msgData.decode("utf-8"))
         #    # -2060 {"text":"xxx","bgColor":-xxxxx,"ts":16xxxx**,"cover":""}
 
-        #elif msgType == -7010:# unknown
+        # elif msgType == -7010:# unknown
         #    print(-7010, msgData.decode("utf-8"))
         #    # -7010 [{"key_profile_introduction":"人际交往xxxxx","key_ts":16****,"key_type":xxxx}]
-
 
         else:
             msgOutData = {
@@ -361,7 +348,7 @@ https://github.com/Hakuuyosei/QQHistoryExport上提issue，请附上output/parse
         :return: {friendQQNumber: [FriendName, FriendRemark]}
         """
         friends = {}
-        cmd = "SELECT uin, name ,remark FROM Friends"# 从Friends表中取uin, name,remark
+        cmd = "SELECT uin, name ,remark FROM Friends"  # 从Friends表中取uin, name,remark
         cursors = self.fill_cursors_nost(cmd)
         for cs in cursors:
             for row in cs:
@@ -391,7 +378,7 @@ https://github.com/Hakuuyosei/QQHistoryExport上提issue，请附上output/parse
         """
 
         groups = {}
-        cmd = "SELECT troopuin, troopname FROM TroopInfoV2"#从Friends表中取uin, remark
+        cmd = "SELECT troopuin, troopname FROM TroopInfoV2"  # 从Friends表中取uin, remark
 
         cursors = self.fill_cursors_nost(cmd)
         for cs in cursors:
@@ -423,5 +410,3 @@ https://github.com/Hakuuyosei/QQHistoryExport上提issue，请附上output/parse
                     groupMembers[groupQQNumber] = {memberQQ: [memberName, memberNick]}
         return groupMembers
         # print(self.groupMembers)
-
-

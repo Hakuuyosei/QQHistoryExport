@@ -1,6 +1,6 @@
 import os
 import json
-
+import traceback
 
 from src.errcode.errcode import ErrCode
 from .textParsing import textParsing
@@ -82,15 +82,27 @@ class unserializedDataParsing():
 
 
         elif msgType == -2015:  # 发表说说，明文json
-            return 0
+            return None
 
         elif msgType == -1034:  # 似乎是个性签名，明文json
-            return 0
+            return None
 
         elif msgType == -2005:  # 已经被保存到本地的文件，内容为路径
             fileData = msgData[1:].decode("utf-8").split("|")
-            filePath = fileData[-5]
-            fileSize = int(fileData[-4])
+            try:
+                filePath = fileData[-5]
+            except IndexError as e:
+                error_info = traceback.format_exc()
+                self.ERRCODE.parse_err("UNKNOWN_MSG_TYPE", [e, error_info, msgOutData, msgType, msgData])
+                print(error_info)
+                return None
+            try:
+                fileSize = int(fileData[-4])
+            except ValueError as e:
+                error_info = traceback.format_exc()
+                self.ERRCODE.parse_err("UNKNOWN_MSG_TYPE", [e, error_info, msgOutData, msgType, msgData])
+                print(error_info)
+                return None
             fileName = os.path.basename(filePath)
             file = {
                 "received": True,

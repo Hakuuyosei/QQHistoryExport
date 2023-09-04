@@ -5,6 +5,7 @@ from src.avatarDownload import download
 from src.validateSettings import validateSettings
 from src.errcode import errcode
 from src.GUI import GUI
+
 test = 6
 if __name__ == '__main__':
     if test == 1:
@@ -29,8 +30,3 @@ if __name__ == '__main__':
             qq_parse.procDb()
     if test == 6:
         GUI.gui_init()
-
-
-
-
-
