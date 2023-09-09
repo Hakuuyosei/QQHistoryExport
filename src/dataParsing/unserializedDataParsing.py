@@ -43,10 +43,18 @@ class unserializedDataParsing():
 
         # 普通文字
         if msgType == -1000 or msgType == -1051:
-            msgOutData = {
-                "t": "msg",
-                "c": self.textParsing.parse(msgData.decode("utf-8"))
-            }
+            try:
+                str_data = msgData.decode("utf-8")
+                msgOutData = {
+                    "t": "msg",
+                    "c": self.textParsing.parse(str_data)
+                }
+            except UnicodeDecodeError:
+                self.ERRCODE.parse_err("TEXT_UNICODE_DECODE_ERROR", [msgType, msgData])
+                msgOutData = {"t": "err", "c": {"text": "[文字]", "type": "text"}}
+
+
+
             # print(msgOutData)
             # print(extStr)
 
@@ -149,7 +157,7 @@ class unserializedDataParsing():
             fileName = msgData.decode("utf-8")
             file = {
                 "received": False,
-                "fileName": fileName
+                "name": fileName
             }
             msgOutData = {
                 "t": "file",

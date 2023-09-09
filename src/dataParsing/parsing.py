@@ -229,8 +229,14 @@ class QQParse:
                 try:
                     msgOutData = self.proMsg(msgType, msgData, extStr)
                 except Exception as e:
+                    msgOutDataText = ""
+                    try:
+                        # 防止msgOutData没有拿到而造成的问题
+                        msgOutDataText = str(msgOutData)
+                    except:
+                        pass
                     error_info = traceback.format_exc()
-                    self.ERRCODE.parse_err("UNEXPECTED_ERR", [e, error_info, msgOutData, msgType, msgData])
+                    self.ERRCODE.parse_err("UNEXPECTED_ERR", [e, error_info,msgOutDataText, msgType, msgData])
                     print(error_info)
                     msgOutData = None
 

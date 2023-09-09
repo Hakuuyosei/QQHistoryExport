@@ -5,6 +5,7 @@ codes = {
     'Normal': ['一切正常', 0],
     'UNKNOWN_MSG_TYPE': ['未知消息类型', 100],
     'DIDNOT_PARSE_MSG': ['解析不完全消息(解析代码不完全)', 100],
+    'TEXT_UNICODE_DECODE_ERROR': ['文本消息utf8解码失败', 20],
     'FILE_UNKNOWN_FORMAT': ['文件信息格式未知', 100],
     'EMOJI_NOT_EXIST': ['QQ表情在resourses中不存在', 100],
     'IMG_NOT_EXIST': ['图片不存在', 100],
