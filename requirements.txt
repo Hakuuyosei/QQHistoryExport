@@ -1,8 +1,11 @@
-blackboxprotobuf
+blackboxprotobuf==1.0.1
 commentjson
 emoji
-google
+google==3.0.0
 protobuf==3.19.4
 reportlab
 requests
 Pillow
+PyQt5
+configparser
+DateTime
