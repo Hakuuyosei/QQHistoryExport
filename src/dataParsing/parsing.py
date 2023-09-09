@@ -81,24 +81,24 @@ class QQParse:
         return
 
     def fill_cursors_nost(self, cmd):
-        try:
-            cursors = []
-            cursors.append(self.DBcursor1.execute(cmd))
-            return cursors
-        except Exception as e:
-            self.ERRCODE.parse_stop(f"数据库查询发生{e}错误：execute")
-            return []
+        cursors = []
+        cursors.append(self.DBcursor1.execute(cmd))
+        return cursors
 
     def fill_cursors(self, cmd):
-        try:
-            cursors = []
-            if self.configs["needSlowtable"]:
+        err_info = ""
+        cursors = []
+        if self.configs["needSlowtable"]:
+            try:
                 cursors.append(self.DBcursor2.execute(cmd))
+            except Exception as e:
+                err_info += f"{e}\n"
+        try:
             cursors.append(self.DBcursor1.execute(cmd))
-            return cursors
         except Exception as e:
-            self.ERRCODE.parse_stop(f"数据库查询发生{e}错误：execute")
-            return []
+            err_info += f"{e}\n"
+        return cursors, err_info
+
 
     def decrypt(self, data):
         """解密消息
@@ -146,6 +146,10 @@ class QQParse:
         friends = self.getFriends()
         groups = self.getGroups()
         groupMembers = self.getGroupMembers()
+        if not friends or not groupMembers or not groups:
+            return False
+        print(friends)
+        print(groups)
 
         self.senderUins = []
 
@@ -167,6 +171,7 @@ class QQParse:
                 cmd = f"select msgtype,senderuin,msgData,time,extStr from mr_troop_{targetQQmd5}_New order by time"
                 cmd_2 = f"SELECT COUNT(*) FROM mr_troop_{targetQQmd5}_New"
 
+
         # print(cmd)
 
         # if self.cmdpre != "":
@@ -178,19 +183,24 @@ class QQParse:
         current_num = 0
         last_persent = 0
         # 行数统计
-        try:
-            cursors = self.fill_cursors(cmd_2)
-        except Exception as e:
-            info = f"数据库查询出错！sqlite3.execute error {e}"
+        count_cursors, err_info = self.fill_cursors(cmd_2)
+        print(count_cursors)
+        if count_cursors == []:
+            info = f"数据库查询出错！sqlite3.execute error {err_info}"
+            if "no such table" in info:
+                info += ", 可能没有聊天信息，数据库里没有此table"
             self.ERRCODE.log("parse", self.ERRCODE.LOG_LEVEL_ERR, info)
             return False
-        for cs in cursors:
+
+        for cs in count_cursors:
             total_num += cs.fetchone()[0]
 
-        try:
-            cursors = self.fill_cursors(cmd)
-        except Exception as e:
-            info = f"数据库查询出错！sqlite3.execute error {e}"
+
+        cursors, err_info = self.fill_cursors(cmd)
+        if count_cursors == []:
+            info = f"数据库查询出错！sqlite3.execute error {err_info}"
+            if "no such table" in info:
+                info += ", 可能没有聊天信息，数据库里没有此table"
             self.ERRCODE.log("parse", self.ERRCODE.LOG_LEVEL_ERR, info)
             return False
 
@@ -349,7 +359,11 @@ https://github.com/Hakuuyosei/QQHistoryExport上提issue，请附上output/parse
         """
         friends = {}
         cmd = "SELECT uin, name ,remark FROM Friends"  # 从Friends表中取uin, name,remark
-        cursors = self.fill_cursors_nost(cmd)
+        try:
+            cursors = self.fill_cursors_nost(cmd)
+        except Exception as e:
+            self.ERRCODE.parse_stop(f"数据库查询发生{e}错误：execute")
+            return None
         for cs in cursors:
             for row in cs:
                 friendQQNumber = self.decrypt(row[0])
@@ -380,7 +394,11 @@ https://github.com/Hakuuyosei/QQHistoryExport上提issue，请附上output/parse
         groups = {}
         cmd = "SELECT troopuin, troopname FROM TroopInfoV2"  # 从Friends表中取uin, remark
 
-        cursors = self.fill_cursors_nost(cmd)
+        try:
+            cursors = self.fill_cursors_nost(cmd)
+        except Exception as e:
+            self.ERRCODE.parse_stop(f"数据库查询发生{e}错误：execute")
+            return None
         for cs in cursors:
             for row in cs:
                 groupQQNumber = self.decrypt(row[0])
@@ -396,7 +414,12 @@ https://github.com/Hakuuyosei/QQHistoryExport上提issue，请附上output/parse
         """
         groupMembers = {}
         cmd = "SELECT troopuin, memberuin, friendnick, troopnick FROM TroopMemberInfo"
-        cursors = self.fill_cursors_nost(cmd)
+        try:
+            cursors = self.fill_cursors_nost(cmd)
+        except Exception as e:
+
+            self.ERRCODE.parse_stop(f"数据库查询发生{e}错误：execute")
+            return None
         for cs in cursors:
             for row in cs:
                 groupQQNumber = self.decrypt(row[0])
