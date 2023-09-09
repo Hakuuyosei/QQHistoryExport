@@ -64,7 +64,7 @@ class WorkerThread(QThread):
             self.log(f"{path}不存在！\n")
 
     def copy_generatepdf_config(self):
-        source_file = "config/GeneratePDF_ReportLab_config_example.ini"
+        source_file = "resources/config_examples/GeneratePDF_ReportLab_config_example.ini"
         destination_file = "config/GeneratePDF_ReportLab_config.ini"
         try:
             shutil.copy(source_file, destination_file)

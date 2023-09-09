@@ -1,5 +1,5 @@
 /QQdb/
-/~$QQ消息格式.xlsx
+/docs/~$QQ消息格式.xlsx
 /testdata.txt
 /scripts/nudgeactionResDownload/nudgeaction/
 /old/
@@ -8,8 +8,7 @@
 /build/
 /main.spec
 
-/config/parse_config.json
-/config/GeneratePDF_ReportLab_config.ini
+/config/
 /output/
 
 

@@ -741,8 +741,7 @@ class Ui_MainWindow(object):
         self.label.setText(_translate("MainWindow", "1.填写output/senders/\n"
 "senders.json"))
         self.downLoadAvatarButton.setText(_translate("MainWindow", "下载头像"))
-        self.label_22.setText(_translate("MainWindow", "2.将config/GeneratePDF_\n"
-"ReportLab_config_example.ini\n"
+        self.label_22.setText(_translate("MainWindow", "2.将resources中的设置示例\n"
 "复制为config/GeneratePDF_\n"
 "ReportLab_confige.ini\n"
 "并修改生成的样式设置并保存"))

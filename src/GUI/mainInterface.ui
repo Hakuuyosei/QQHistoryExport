@@ -1260,8 +1260,7 @@ senders.json</string>
       </rect>
      </property>
      <property name="text">
-      <string>2.将config/GeneratePDF_
-ReportLab_config_example.ini
+      <string>2.将resources中的设置示例
 复制为config/GeneratePDF_
 ReportLab_confige.ini
 并修改生成的样式设置并保存</string>
