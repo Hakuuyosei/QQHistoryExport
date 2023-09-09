@@ -88,29 +88,33 @@ class unserializedDataParsing():
             return None
 
         elif msgType == -2005:  # 已经被保存到本地的文件，内容为路径
-            fileData = msgData[1:].decode("utf-8").split("|")
             try:
-                filePath = fileData[-5]
-            except IndexError as e:
+                isSucceed = True
+                fileData = msgData[1:].decode("utf-8").split("|")
+                if len(fileData) >= 5:
+                    filePath = fileData[-5]
+                    fileSize = int(fileData[-4])
+                    fileName = os.path.basename(filePath)
+
+                elif 4 >= len(fileData) > 2:
+                    filePath = fileData[0]
+                    fileSize = int(fileData[1])
+                    fileName = os.path.basename(filePath)
+
+                else:
+                    self.ERRCODE.parse_err("FILE_UNKNOWN_FORMAT", [msgType, msgData])
+                    isSucceed = False
+
+                # 文件信息split后可能并不是准确个数的数据，所以采用倒着索引
+
+            except Exception as e:
                 error_info = traceback.format_exc()
-                self.ERRCODE.parse_err("UNKNOWN_MSG_TYPE", [e, error_info, msgOutData, msgType, msgData])
-                print(error_info)
-                return None
-            try:
-                fileSize = int(fileData[-4])
-            except ValueError as e:
-                error_info = traceback.format_exc()
-                self.ERRCODE.parse_err("UNKNOWN_MSG_TYPE", [e, error_info, msgOutData, msgType, msgData])
-                print(error_info)
-                return None
-            fileName = os.path.basename(filePath)
-            file = {
-                "received": True,
-                "name": fileName,
-                "path": filePath,
-                "size": fileSize
-            }
-            extStrJson = json.loads(extStr) if extStr else {}
+                self.ERRCODE.parse_err("FILE_UNKNOWN_FORMAT", [e, error_info, msgType,  msgData])
+                isSucceed = False
+                # print(error_info)
+
+
+            # extStrJson = json.loads(extStr) if extStr else {}
             # if "file_pic_width" in extStrJson.keys():
             #     if int(extStrJson["file_pic_width"]) > 0:
             #         # 文件形式的图片
@@ -125,11 +129,21 @@ class unserializedDataParsing():
             #             "c": file
             #         }
             # else:
-            msgOutData = {
-                "t": "file",
-                "c": file
-            }
+
             # print(fileData, extStr)
+            if isSucceed:
+                file = {
+                    "received": True,
+                    "name": fileName,
+                    "path": filePath,
+                    "size": fileSize
+                }
+                msgOutData = {
+                    "t": "file",
+                    "c": file
+                }
+            else:
+                msgOutData = {"t": "err", "c": {"text": "[文件]", "type": "media"}}
 
         elif msgType == -3008:  # 未被接收的文件，内容为文件名
             fileName = msgData.decode("utf-8")
