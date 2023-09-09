@@ -97,10 +97,16 @@ class javaSerializedDataParsing():
 
         # 带回复引用的消息
         if msgType == -1049:
-            msgOutData = {
-                "t": "msg",
-                "c": self.textParsing.parse(msgData.decode("utf-8"))
-            }
+            try:
+                str_data = msgData.decode("utf-8")
+                msgOutData = {
+                    "t": "msg",
+                    "c": self.textParsing.parse(str_data)
+                }
+            except UnicodeDecodeError:
+                self.ERRCODE.parse_err("TEXT_UNICODE_DECODE_ERROR", [msgType, msgData])
+                msgOutData = {"t": "err", "c": {"text": "[文字]", "type": "text"}}
+
             if self.configs["needJavaDeser"] == False:
                 msgOutData["c"].insert(0, {"t": "uns",
                                            "c": {"text": "[回复消息]", "type": "text"}
