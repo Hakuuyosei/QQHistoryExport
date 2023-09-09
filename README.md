@@ -84,9 +84,11 @@ PDF生成：
 
 
 
-[<font size=10>使用教程</font>](docs/使用教程.md)
+===================
 
+## ==[使用教程](docs/使用教程.md)==
 
+===================
 
 ## Q & A
 
@@ -126,6 +128,8 @@ PDF生成：
 
 解析的同时会生成一个output/parse_log.json，里面有所有的解析出错数据，上报时请找到bug有关的日志行。**此文件可能含有敏感信息**，请不要复制整个日志文件。若此聊天记录非常敏感，请勿发到issue，若您觉得信息不宜公开但是也并不特别私密，可以发到我们的邮箱Hakuuyosei@outlook.com。 因为日志里看到是乱码，解密后就能看到原数据了。**不用附带IMEI等信息。** 您在提issue时需要先尝试最新的release，注明所用软件版本，系统环境，日志等。
 
+若您直接将数据库文件发送过来（不建议），需要附带IMEI（以kc文件为准），你自己的QQ号，你的目标QQ号。
+
 若您并不是用的release，需要注明python版本。
 
 若pdf导出出错，建议上报问题，PDF导出的错误目前直接输出在UI里。里面的敏感信息是明文，您可以将敏感信息替换后提issue。
@@ -134,13 +138,17 @@ PDF生成：
 
 ## 项目原理/贡献说明
 
-本项目交流IM：![img](README/{A24B3917-D783-475D-912A-E99FA4AB39F6})https://matrix.to/#/#qq_history_export:matrix.org
+本项目交流IM：https://matrix.to/#/#qq_history_export:matrix.org
 
 可使用Element（推荐），SchildiChat，Weechat等client进入（访问链接按照提示操作即可）
 
-[<font size=10>项目原理/贡献说明</font>](docs/项目说明.md)
 
 
+=================================
+
+## ==[项目原理/贡献说明](docs/项目说明.md)==
+
+=================================
 
 ## TODO
 
@@ -219,10 +227,6 @@ PDF生成：
         </td>
     </tr>
 </table>
-
-
-
-
 <a href="https://afdian.net/a/Hakuuyosei"><img width="200" src="README/button-sponsorme.jpg" alt=""></a>
 
 
