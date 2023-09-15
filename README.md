@@ -167,7 +167,7 @@ PDF生成：
 - [ ] 增加PDF绘制图片自定义尺寸，非统一管理缩放
 - [x] 明确设置群组好友格式，防止QQ群号和用户号重复
 - [ ] 红包解析
-- [ ] java序列化进程更好地管理
+- [x] java序列化进程更好地管理（修改为javaobj）
 - [x] 解析进度条（暂且做成文字百分比提示）
 
 
@@ -186,7 +186,7 @@ PDF生成：
 
 - [ ] 视频解析因为会清理，若视频被清理了就找不到视频了，然而QQ的shortvideo/thumb下的缩略图因分析不出命名规则，无法使用这缩略图
 
-- [ ] 转发的聊天记录的序列化方式是java序列化+其它，无法分析，解析
+- [ ] 转发的聊天记录的序列化方式是java序列化+未知，可能是一种xml的二进制序列化实现，无法解析
 
 - [ ] 解析时抛弃了一些属性，若有需要可修改，提交pr
 
@@ -228,6 +228,43 @@ PDF生成：
     </tr>
 </table>
 <a href="https://afdian.net/a/Hakuuyosei"><img width="200" src="README/button-sponsorme.jpg" alt=""></a>
+
+
+
+贡献者：
+
+<table>
+    <tr>
+        <td align="center">
+            <a href="https://github.com/NovaShen555">
+                <img src="https://avatars.githubusercontent.com/u/122534619?s=200&v=4" width="160px"   alt=""/>
+                <br />
+                <sub><b>NovaShen555</b></sub>
+            </a>
+        </td>
+        <td align="center">
+            <a href="--">
+                <img src="--" width="160px"   alt=""/>
+                <br />
+                <sub><b>----------------------------------</b></sub>
+            </a>
+        </td>
+        <td align="center">
+            <a href="--">
+                <img src="--" width="160px"   alt=""/>
+                <br />
+                <sub><b>-----------------------------------</b></sub>
+            </a>
+        </td>
+    </tr>
+</table>
+
+
+
+
+
+
+
 
 
 
