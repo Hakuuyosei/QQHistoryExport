@@ -3,6 +3,7 @@ import json
 import binascii
 import traceback
 import subprocess
+import javaobj
 
 from src.errcode.errcode import ErrCode
 from .textParsing import textParsing
@@ -16,44 +17,6 @@ class javaSerializedDataParsing():
         self.ERRCODE = errcodeobj
         self.textParsing = textparsingobj
         self.configs = configs
-
-        self.java_deser_proc = None
-
-        if self.configs["needJavaDeser"]:
-            self.open_proc()
-
-    def open_proc(self):
-        try:
-            self.java_deser_proc.kill()
-        except:
-            pass
-
-        try:
-            cmd = "java -jar ./lib/javaDeserialization/QQdeserialization-1.0.jar"
-            self.java_deser_proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                                                    stderr=subprocess.PIPE, text=True)
-            # TODO:其它错误处理 ^
-        except FileNotFoundError:
-            self.ERRCODE.parse_stop("Java环境无效！请安装java环境并在命令行用java -version检查\n")
-        except Exception as e:
-            self.ERRCODE.parse_stop(f"命令行运行jar包发生{e}错误")
-
-
-
-    def proc_java_deser(self, input_data):
-        try:
-            self.java_deser_proc.stdin.write(input_data + '\n')
-            self.java_deser_proc.stdin.flush()
-            # 从进程输出中获取响应
-            # TODO: 超时处理
-            response = self.java_deser_proc.stdout.readline()
-            if not response:
-                self.ERRCODE.parse_err("JAVA_DESER_PROC_ERR", ["No Response", input_data])
-                return False, None
-        except Exception as e:
-            self.ERRCODE.parse_err("JAVA_DESER_PROC_ERR", [e, input_data])
-            return False, None
-        return True, response
 
 
     def javaDeserializationToJson(self, data):
@@ -71,17 +34,20 @@ class javaSerializedDataParsing():
             self.ERRCODE.parse_err("JAVA_DESER_ERR_INPUT_TYPE", [str(data), str(type(data))])
             return True, None
 
-        state, deser_out_data = self.proc_java_deser(dataStr)
-        if state:
-            try:
-                jsonData = json.loads(deser_out_data)
-                return True, jsonData
-            except Exception as e:
-                self.ERRCODE.parse_err("JAVA_DESER_JSON_ERR_DECODE", [dataStr, e])
-                return False, None
-        else:
-            return False, None
 
+        # 使用javaobj解析
+        try:
+            # 解析Java序列化数据
+            deserialized_obj = javaobj.loads(bytes.fromhex(dataStr))
+        except Exception as e:
+            self.ERRCODE.parse_err("JAVA_DESER_JSON_ERR_DECODE", [dataStr, e])
+            return False, None
+        # 返回json
+        return True, deserialized_obj.__dict__
+
+        # Editor: NoahShen admin@noahshen.top
+        # Date: 2023/9/14
+        # Reason: 使用javaobj替代原有链接到jvm的解析方式，优化运行速度
 
 
     def parse(self, msgType, msgData, extStr):

@@ -7,8 +7,11 @@ import json
 import imghdr
 import shutil
 import binascii
-import blackboxprotobuf
 import subprocess
+
+# Editor: NoahShen admin@noahshen.top
+# Date: 2023/9/14
+# Reason: 移除blackboxprotobuf
 
 from src.errcode.errcode import ErrCode
 from .textParsing import textParsing
