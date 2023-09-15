@@ -226,6 +226,7 @@ class unserializedDataParsing():
                 "t": "nudge",
                 "c": {"text": msgText}
             }
+            
 
 
         return msgOutData
