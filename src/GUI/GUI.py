@@ -1,4 +1,4 @@
-from PyQt5.QtCore import QThread, pyqtSignal
+from PyQt5.QtCore import QThread, pyqtSignal, QCoreApplication, Qt
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog
 from src.GUI.mainInterface import Ui_MainWindow
 
@@ -386,6 +386,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 
 def gui_init():
+    # QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
