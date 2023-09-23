@@ -17,7 +17,7 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>QQHistoryExport-QQ聊天记录导出  白羽夜星制作组 v0.1.1</string>
+   <string>QQHistoryExport-QQ聊天记录导出  白羽夜星制作组 v</string>
   </property>
   <property name="windowIcon">
    <iconset resource="res/res.qrc">
@@ -1158,7 +1158,7 @@
      </font>
     </property>
     <property name="text">
-     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt;by 白羽夜星制作组 v0.1.1&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt;by 白羽夜星制作组 v&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
    </widget>
    <widget class="QPushButton" name="startParseButton">

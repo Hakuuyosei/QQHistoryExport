@@ -689,7 +689,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "QQHistoryExport-QQ聊天记录导出  白羽夜星制作组 v0.1.1"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "QQHistoryExport-QQ聊天记录导出  白羽夜星制作组 v"))
         self.parseConfigContainer.setTitle(_translate("MainWindow", "解析设置"))
         self.findFilesModeRadioButton1.setText(_translate("MainWindow", "选择整个Data文件夹"))
         self.findFilesModeRadioButton2.setText(_translate("MainWindow", "分别选取每个文件"))
@@ -727,7 +727,7 @@ class Ui_MainWindow(object):
         self.kcInputModeRadioButton2.setText(_translate("MainWindow", "选取kc文件路径"))
         self.label_5.setText(_translate("MainWindow", "只选该项会解析两个月以内的聊天记录(时间不一定准确)"))
         self.label_4.setText(_translate("MainWindow", "加选该项会解析两个月以前的所有未被清理的聊天记录"))
-        self.label_6.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:14pt;\">by 白羽夜星制作组 v0.1.1</span></p></body></html>"))
+        self.label_6.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:14pt;\">by 白羽夜星制作组 v</span></p></body></html>"))
         self.startParseButton.setText(_translate("MainWindow", "开始解析"))
         self.generatePDFConfainer.setTitle(_translate("MainWindow", "生成PDF"))
         self.label.setText(_translate("MainWindow", "1.填写output/senders/\n"
@@ -744,5 +744,5 @@ class Ui_MainWindow(object):
         self.generateHTMLConfainer.setTitle(_translate("MainWindow", "生成HTML"))
         self.label_23.setText(_translate("MainWindow", "敬请期待"))
         self.Confainer_2.setTitle(_translate("MainWindow", "说明"))
-        self.label_24.setText(_translate("MainWindow", "<html><head/><body><p>本项目<span style=\" font-size:11pt; font-weight:600;\">完全免费开源</span></p><p><span style=\" font-size:11pt; font-weight:600;\">请勿用于商业用途！</span></p><p>关于如何使用软件，请参考教程:</p><p><a href=\"https://github.com/Hakuuyosei/QQHistoryExport\"><span style=\" text-decoration: underline; color:#0000ff;\">github.com/</span></a></p><p><a href=\"https://github.com/Hakuuyosei/QQHistoryExport\"><span style=\" text-decoration: underline; color:#0000ff;\">Hakuuyosei/</span></a></p><p><a href=\"https://github.com/Hakuuyosei/QQHistoryExport\"><span style=\" text-decoration: underline; color:#0000ff;\">QQHistoryExport</span></a></p><p>（点击左下角按钮直达）</p><p><br/>白羽夜星制作组 制作</p><p>感谢您的使用！</p></body></html>"))
+        self.label_24.setText(_translate("MainWindow", "<html><head/><body><p>本项目<span style=\" font-size:11pt; font-weight:600;\">完全免费开源</span></p><p><span style=\" font-size:11pt; font-weight:600;\">请勿用于商业用途！</span></p><p>关于如何使用软件，请参考教程:</p><p><a href=\"https://github.com/Hakuuyosei/QQHistoryExport\"><span style=\" text-decoration: underline; color:#0000ff;\">github.com/</span></a></p><p><a href=\"https://github.com/Hakuuyosei/QQHistoryExport\"><span style=\" text-decoration: underline; color:#0000ff;\">Hakuuyosei/</span></a></p><p><a href=\"https://github.com/Hakuuyosei/QQHistoryExport\"><span style=\" text-decoration: underline; color:#0000ff;\">QQHistoryExport</span></a></p><p>（点击右下角按钮直达）</p><p><br/>白羽夜星制作组 制作</p><p>感谢您的使用！</p></body></html>"))
 import src.GUI.res_rc

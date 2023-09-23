@@ -15,7 +15,7 @@ import shutil
 import commentjson
 import sys
 
-
+APP_VER = "0.2.0"
 # pyuic5 src/GUI/maininterface.ui -o src/GUI/maininterface.py
 # import src.GUI.res_rc
 
@@ -124,6 +124,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.chatimgGroup = [self.chatimgPathInputBox, self.chatimgPathSelectButton]
         self.pttGroup = [self.pttPathInputBox, self.pttPathSelectButton]
         self.videoGroup = [self.videoPathSelectButton, self.videoPathInputBox]
+
+        _translate = QCoreApplication.translate
+        self.setWindowTitle(_translate("MainWindow", f"QQHistoryExport-QQ聊天记录导出  白羽夜星制作组 v{APP_VER}"))
+        self.label_6.setText(_translate("MainWindow",
+                                        f"<html><head/><body><p><span style=\" font-size:14pt;\">by 白羽夜星制作组 v{APP_VER}</span></p></body></html>"))
 
         # 绑定触发事件
         self.dataDirPathSelectButton.clicked.connect(
