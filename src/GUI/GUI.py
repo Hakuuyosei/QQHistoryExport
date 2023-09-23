@@ -1,4 +1,5 @@
 from PyQt5.QtCore import QThread, pyqtSignal, QCoreApplication, Qt
+from PyQt5.QtGui import QGuiApplication
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog
 from src.GUI.mainInterface import Ui_MainWindow
 
@@ -386,8 +387,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 
 def gui_init():
-    QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
+    # QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
+    # os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
+    # QGuiApplication.setAttribute(Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
+
     app = QApplication(sys.argv)
     window = MainWindow()
+
     window.show()
     app.exec_()
