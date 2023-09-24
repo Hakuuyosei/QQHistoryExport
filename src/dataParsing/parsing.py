@@ -143,11 +143,12 @@ class QQParse:
             self.ERRCODE.log("parse", self.ERRCODE.LOG_LEVEL_ERR, info)
             return False
 
+
         friends = self.getFriends()
         groups = self.getGroups()
         groupMembers = self.getGroupMembers()
-        if not friends or not groupMembers or not groups:
-            return False
+        # if not friends and not groupMembers and not groups:
+        #     return False
         print(friends)
         print(groups)
 
@@ -176,8 +177,6 @@ class QQParse:
 
         # if self.cmdpre != "":
         #     cmd = self.cmdpre
-
-
 
         total_num = 0
         current_num = 0
