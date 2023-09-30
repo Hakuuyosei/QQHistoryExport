@@ -10,6 +10,8 @@
 
 网上搜的大多数文章和软件都浅尝辄止，或者收费，本项目开源免费，希望能帮助大家。
 
+本项目目前不支持QQNT版本。详见：[标题1](#关于QQNT)
+
 
 
 ## Features
@@ -84,9 +86,21 @@ PDF生成：
 
 
 
-***重要通知：本项目不支持NT版本。近日，一些自动更新的手机已更新为QQNT版本，8.9.63即以上即为NT版本。若需要提取聊天记录，请勿更新！请勿更新！2023年9月24日***
+### 关于QQNT
 
-有关QQNT，请参看：https://github.com/Young-Lord/QQ-History-Backup/issues/9（YoungLord等人已分析数据库加密方式，需要HOOK）
+***重要通知：本项目不支持NT版本。近日，一些自动更新的手机已更新为QQNT版本。若需要提取聊天记录，请勿更新！请勿更新！2023年9月24日***
+
+QQNT的特征是，db文件夹下QQ号.db大小很小（小于10mb），存在db/nt_db文件夹。
+
+有关QQNT，请参看：
+
+[现在还可以正常使用吗？ · Issue #12 · QQBackup/QQ-History-Backup](https://github.com/QQBackup/QQ-History-Backup/issues/12)
+
+[Feature request: 读取新版QQNT数据库  Issue #9 · QQBackup/QQ-History-Backup](https://github.com/QQBackup/QQ-History-Backup/issues/9)
+
+[QQBackup/qq-win-db-key: Windows QQ / QQNT 聊天数据库解密 (Frida) (github.com)](https://github.com/QQBackup/qq-win-db-key)
+
+（YoungLord等人已分析数据库加密方式，需要HOOK 但新版本套了VMP，可能失效）
 
 现在好像还没有开源项目能解析QQNT数据结构
 
